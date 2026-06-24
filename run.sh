@@ -45,8 +45,6 @@ NEW_REDIS_PASSWORD="$(random_alnum 36)"
 NEW_MONITOR_USER="monitor_$(random_alnum 8)"
 NEW_MONITOR_PASSWORD="$(random_alnum 36)"
 NEW_SECRET_KEY="$(openssl rand -hex 64)"
-GENERATED_MONITORING_DIR="monitoring/generated"
-GENERATED_GRAFANA_DATASOURCES_DIR="${GENERATED_MONITORING_DIR}/grafana-datasources"
 
 if [ -d .data/mysql/mysql ]; then
   echo "Existing MariaDB data detected; updating the database password before writing .env."
@@ -78,74 +76,9 @@ PROMETHEUS_BASIC_PASSWORD=${NEW_MONITOR_PASSWORD}
 EOF
 
 printf '%s\n' "${NEW_SECRET_KEY}" > .ctfd_secret_key
-mkdir -p "${GENERATED_GRAFANA_DATASOURCES_DIR}"
-
-PROMETHEUS_BCRYPT="$(
-  python3 - "${NEW_MONITOR_PASSWORD}" <<'PY'
-import bcrypt
-import sys
-
-password = sys.argv[1].encode()
-print(bcrypt.hashpw(password, bcrypt.gensalt()).decode())
-PY
-)"
-
-cat > "${GENERATED_MONITORING_DIR}/prometheus-web.yml" <<EOF
-basic_auth_users:
-  ${NEW_MONITOR_USER}: "${PROMETHEUS_BCRYPT}"
-EOF
-
-cat > "${GENERATED_MONITORING_DIR}/cadvisor.htpasswd" <<EOF
-$(htpasswd -nbm "${NEW_MONITOR_USER}" "${NEW_MONITOR_PASSWORD}")
-EOF
-
-cat > "${GENERATED_MONITORING_DIR}/prometheus.yml" <<EOF
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: "prometheus"
-    scrape_interval: 5s
-    basic_auth:
-      username: "${NEW_MONITOR_USER}"
-      password: "${NEW_MONITOR_PASSWORD}"
-    static_configs:
-      - targets: ["prometheus:9090"]
-
-  - job_name: "cadvisor"
-    scrape_interval: 5s
-    basic_auth:
-      username: "${NEW_MONITOR_USER}"
-      password: "${NEW_MONITOR_PASSWORD}"
-    static_configs:
-      - targets: ["cadvisor-auth:8080"]
-
-  - job_name: "node-exporter"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["node-exporter:9100"]
-EOF
-
-cat > "${GENERATED_GRAFANA_DATASOURCES_DIR}/prometheus.yml" <<EOF
-apiVersion: 1
-
-deleteDatasources:
-  - name: prometheus-1
-    orgId: 1
-
-datasources:
-  - name: prometheus
-    uid: prometheus
-    type: prometheus
-    access: proxy
-    url: http://prometheus:9090
-    isDefault: true
-    editable: true
-    basicAuth: true
-    basicAuthUser: ${NEW_MONITOR_USER}
-    secureJsonData:
-      basicAuthPassword: ${NEW_MONITOR_PASSWORD}
-EOF
+PROMETHEUS_BASIC_USER="${NEW_MONITOR_USER}" \
+PROMETHEUS_BASIC_PASSWORD="${NEW_MONITOR_PASSWORD}" \
+  bash monitoring/generate-config.sh --quiet
 
 echo
 echo "Generated service credentials:"
