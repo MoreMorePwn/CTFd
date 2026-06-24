@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from CTFd.models import Teams, Users
 from CTFd.utils import get_config, set_config
-from tests.helpers import create_ctfd, destroy_ctfd, gen_team, login_as_user
+from tests.helpers import create_ctfd, destroy_ctfd, login_as_user
 
 
 def test_api_configs_get_non_admin():
@@ -184,36 +183,24 @@ def test_config_value_types():
     destroy_ctfd(app)
 
 
-def test_teams_are_removed_after_migrating_from_team_mode_to_user_mode():
-    """Are teams, and user.team relations removed when migrating from team mode to user mode"""
+def test_user_mode_cannot_be_changed_from_admin_web_api():
+    """Can admins change user_mode from the web API or old admin route"""
     app = create_ctfd()
     with app.app_context():
         with login_as_user(app, "admin") as admin:
             r = admin.patch("/api/v1/configs", json={"user_mode": "teams"})
-            assert r.status_code == 200
-            assert get_config("user_mode") == "teams"
+            assert r.status_code == 400
+            assert get_config("user_mode") == "users"
 
-            gen_team(app.db)
-
-            assert Users.query.count() == 5
-            assert Teams.query.count() == 1
-
-            r = admin.patch("/api/v1/configs", json={"user_mode": "users"})
-            assert r.status_code == 200
+            r = admin.patch("/api/v1/configs/user_mode", json={"value": "teams"})
+            assert r.status_code == 400
             assert get_config("user_mode") == "users"
 
             with admin.session_transaction() as sess:
                 data = {
                     "user_mode": "users",
-                    "submissions": "true",
                     "nonce": sess.get("nonce"),
                 }
-            r = admin.post("/admin/reset", data=data)
-            assert r.status_code == 302
-
-            assert Users.query.count() == 5
-            assert Teams.query.count() == 0
-
-            for user in Users.query.all():
-                assert user.team is None
+            r = admin.post("/admin/user_mode", data=data)
+            assert r.status_code == 404
     destroy_ctfd(app)

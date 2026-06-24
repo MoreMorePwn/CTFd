@@ -37,6 +37,19 @@ configs_namespace.schema_model(
 )
 
 
+def disallow_user_mode_change(key):
+    if str(key) == "user_mode":
+        return {
+            "success": False,
+            "errors": {
+                "key": [
+                    "user_mode can only be changed by resetting CTFd from the CLI"
+                ]
+            },
+        }, 400
+    return None
+
+
 @configs_namespace.route("")
 class ConfigList(Resource):
     @admins_only
@@ -85,6 +98,10 @@ class ConfigList(Resource):
     )
     def post(self):
         req = request.get_json()
+        disallowed = disallow_user_mode_change(req.get("key"))
+        if disallowed:
+            return disallowed
+
         schema = ConfigSchema()
         response = schema.load(req)
 
@@ -113,6 +130,10 @@ class ConfigList(Resource):
         schema = ConfigSchema()
 
         for key, value in req.items():
+            disallowed = disallow_user_mode_change(key)
+            if disallowed:
+                return disallowed
+
             response = schema.load({"key": key, "value": value})
             if response.errors:
                 return {"success": False, "errors": response.errors}, 400
@@ -156,6 +177,10 @@ class Config(Resource):
         },
     )
     def patch(self, config_key):
+        disallowed = disallow_user_mode_change(config_key)
+        if disallowed:
+            return disallowed
+
         config = Configs.query.filter_by(key=config_key).first()
         data = request.get_json()
         if config:
@@ -187,6 +212,10 @@ class Config(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, config_key):
+        disallowed = disallow_user_mode_change(config_key)
+        if disallowed:
+            return disallowed
+
         config = Configs.query.filter_by(key=config_key).first_or_404()
 
         db.session.delete(config)

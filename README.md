@@ -5,6 +5,29 @@
 [![MajorLeagueCyber Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.majorleaguecyber.org%2F)](https://community.majorleaguecyber.org/)
 [![Documentation Status](https://api.netlify.com/api/v1/badges/6d10883a-77bb-45c1-a003-22ce1284190e/deploy-status)](https://docs.ctfd.io)
 
+## Added Features
+
+- Removed the admin reset feature and Danger Zone UI. Switching back to user mode now requires a full CTFd reset from the CLI.
+- Added automatic exports every 20 minutes while the competition is running. Exports are saved in `.export`, and the oldest exports are removed when the folder reaches 1 GB.
+- Added Prometheus, cAdvisor, node exporter, and Grafana monitoring. The admin top bar includes a `Monitor` link to Grafana, while Prometheus, cAdvisor, Redis, MariaDB, and node exporter stay on Docker-internal networking.
+- Added basic authentication for Prometheus and cAdvisor, plus Grafana datasource provisioning.
+- Added host and container monitoring panels for CPU, memory, RAM, disk, and network RX/TX using current/max-style values instead of percentages where requested.
+- Added challenge submission metadata for `AI Source` links and solver/script uploads.
+- Added `Custom` configuration for the accepted AI Source regex, solver file count limit, and solver total size limit.
+- Added per-challenge `Need AI` and `Need Solver` settings, including challenge creation/editing controls and admin challenge-table indicators.
+- Added AI Source and Solver links to the admin submissions table.
+- Added `run.sh` to generate randomized credentials for non-Grafana services, print the generated credentials, and start Docker Compose.
+
+![Challenge submit metadata fields](docs/screenshots/ctfd-challenge-submission-metadata.png)
+
+![Admin challenge Need AI and Need Solver indicators](docs/screenshots/ctfd-admin-challenges-need-ai-solver.png)
+
+![Admin submissions AI Source and Solver links](docs/screenshots/ctfd-admin-submissions-ai-solver-links.png)
+
+![Custom AI Source and solver limits configuration](docs/screenshots/ctfd-admin-custom-config.png)
+
+![Grafana container monitoring dashboard](docs/screenshots/grafana-container-monitoring.png)
+
 ## What is CTFd?
 
 CTFd is a Capture The Flag framework focusing on ease of use and customizability. It comes with everything you need to run a CTF and it's easy to customize with plugins and themes.

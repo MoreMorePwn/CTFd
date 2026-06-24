@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   ctfd:
     build: .
@@ -6,8 +8,8 @@ services:
       - "8000:8000"
     environment:
       - UPLOAD_FOLDER=/var/uploads
-      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@db/ctfd
-      - REDIS_URL=redis://cache:6379
+      - DATABASE_URL=mysql+pymysql://${CTFD_DB_USER:-ctfd}:${CTFD_DB_PASSWORD:-ctfd}@db/${CTFD_DB_NAME:-ctfd}
+      - REDIS_URL=redis://:${CTFD_REDIS_PASSWORD:-ctfd}@cache:6379
       - WORKERS=1
       - LOG_FOLDER=/var/log/CTFd
       - ACCESS_LOG=-
@@ -17,6 +19,7 @@ services:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
       - .:/opt/CTFd:ro
+      - ./.export:/opt/CTFd/.export
     depends_on:
       permissions:
         condition: service_completed_successfully
@@ -35,7 +38,8 @@ services:
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
-    command: chown -R 1001:1001 /var/uploads /var/log/CTFd
+      - ./.export:/opt/CTFd/.export
+    command: chown -R 1001:1001 /var/uploads /var/log/CTFd /opt/CTFd/.export
 
   nginx:
     image: nginx:stable
@@ -51,10 +55,10 @@ services:
     image: mariadb:10.11
     restart: always
     environment:
-      - MARIADB_ROOT_PASSWORD=ctfd
-      - MARIADB_USER=ctfd
-      - MARIADB_PASSWORD=ctfd
-      - MARIADB_DATABASE=ctfd
+      - MARIADB_ROOT_PASSWORD=${CTFD_DB_ROOT_PASSWORD:-ctfd}
+      - MARIADB_USER=${CTFD_DB_USER:-ctfd}
+      - MARIADB_PASSWORD=${CTFD_DB_PASSWORD:-ctfd}
+      - MARIADB_DATABASE=${CTFD_DB_NAME:-ctfd}
       - MARIADB_AUTO_UPGRADE=1
     volumes:
       - .data/mysql:/var/lib/mysql
@@ -66,8 +70,85 @@ services:
   cache:
     image: redis:4
     restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${CTFD_REDIS_PASSWORD:-ctfd}"]
     volumes:
     - .data/redis:/data
+    networks:
+        internal:
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.config.file=/etc/prometheus/web.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus-web.yml:/etc/prometheus/web.yml:ro
+    depends_on:
+      - cadvisor-auth
+      - node-exporter
+    networks:
+        internal:
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+        default:
+        internal:
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    privileged: true
+    cgroup: host
+    command:
+      - -logtostderr
+      - -docker=unix:///var/run/docker.sock
+      - -docker_only=true
+      - -store_container_labels=true
+      - -containerd=/var/run/docker/containerd/containerd.sock
+      - -containerd-namespace=moby
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+        internal:
+
+  cadvisor-auth:
+    image: nginx:stable
+    container_name: cadvisor-auth
+    volumes:
+      - ./conf/nginx/cadvisor-auth.conf:/etc/nginx/nginx.conf:ro
+      - ./monitoring/cadvisor.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - cadvisor
+    networks:
+        internal:
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    pid: host
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
     networks:
         internal:
 

@@ -73,6 +73,7 @@
 						</div>
 					</li>
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
+					<li class="nav-item"><a class="nav-link" href="{{ get_config('grafana_url', default='http://127.0.0.1:3000') }}" target="_blank">Monitor</a></li>
 
 					{% set plugin_menu = get_admin_plugin_menu_bar() %}
 					{% set plugins = get_menubar_plugins() %}

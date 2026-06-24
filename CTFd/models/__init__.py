@@ -1,4 +1,5 @@
 import datetime
+import json
 from collections import defaultdict
 
 from flask_marshmallow import Marshmallow
@@ -126,6 +127,8 @@ class Challenges(db.Model):
     decay = db.Column(db.Integer, nullable=True)
     position = db.Column(db.Integer, nullable=False, default=0)
     function = db.Column(db.String(32), default="static")
+    require_ai_source = db.Column(db.Boolean, nullable=False, default=False)
+    require_solver = db.Column(db.Boolean, nullable=False, default=False)
 
     requirements = db.Column(db.JSON)
 
@@ -369,6 +372,13 @@ class PageFiles(Files):
 class SolutionFiles(Files):
     __mapper_args__ = {"polymorphic_identity": "solution"}
     solution_id = db.Column(db.Integer, db.ForeignKey("solutions.id"))
+
+
+class SubmissionFiles(Files):
+    __mapper_args__ = {"polymorphic_identity": "submission"}
+    submission_id = db.Column(
+        db.Integer, db.ForeignKey("submissions.id", ondelete="CASCADE")
+    )
 
 
 class Flags(db.Model):
@@ -879,6 +889,7 @@ class Submissions(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
     ip = db.Column(db.String(46))
     provided = db.Column(db.Text)
+    ai_source = db.Column(db.Text)
     type = db.Column(db.String(32))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -888,6 +899,7 @@ class Submissions(db.Model):
     challenge = db.relationship(
         "Challenges", foreign_keys="Submissions.challenge_id", lazy="select"
     )
+    solver_files = db.relationship("SubmissionFiles", backref="submission")
 
     __mapper_args__ = {"polymorphic_on": type}
 
@@ -921,6 +933,22 @@ class Submissions(db.Model):
 
     def __repr__(self):
         return f"<Submission id={self.id}, challenge_id={self.challenge_id}, ip={self.ip}, provided={self.provided}>"
+
+    @property
+    def ai_sources(self):
+        if not self.ai_source:
+            return []
+
+        try:
+            sources = json.loads(self.ai_source)
+        except (TypeError, ValueError):
+            sources = self.ai_source
+
+        if isinstance(sources, list):
+            return [str(source) for source in sources if source]
+        if isinstance(sources, str):
+            return [sources]
+        return []
 
 
 class Solves(Submissions):

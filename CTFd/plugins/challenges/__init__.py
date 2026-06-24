@@ -28,6 +28,7 @@ from CTFd.plugins.challenges.logic import (
     challenge_attempt_team,
 )
 from CTFd.utils.uploads import delete_file
+from CTFd.utils.challenge_submissions import save_solver_files, serialize_ai_sources
 from CTFd.utils.user import get_ip
 
 
@@ -59,6 +60,20 @@ class BaseChallenge(object):
     scripts = {}
     challenge_model = Challenges
 
+    @staticmethod
+    def normalize_request_data(request):
+        data = request.form or request.get_json()
+        if hasattr(data, "to_dict"):
+            data = data.to_dict()
+        else:
+            data = dict(data or {})
+
+        for attr in ("require_ai_source", "require_solver"):
+            value = data.get(attr)
+            if isinstance(value, str):
+                data[attr] = value.lower() == "true"
+        return data
+
     @classmethod
     def create(cls, request):
         """
@@ -67,7 +82,7 @@ class BaseChallenge(object):
         :param request:
         :return:
         """
-        data = request.form or request.get_json()
+        data = cls.normalize_request_data(request)
 
         challenge = cls.challenge_model(**data)
 
@@ -110,6 +125,8 @@ class BaseChallenge(object):
             "category": challenge.category,
             "state": challenge.state,
             "max_attempts": challenge.max_attempts,
+            "require_ai_source": challenge.require_ai_source,
+            "require_solver": challenge.require_solver,
             "position": challenge.position,
             "logic": challenge.logic,
             "initial": challenge.initial if challenge.function != "static" else None,
@@ -136,7 +153,7 @@ class BaseChallenge(object):
         :param request:
         :return:
         """
-        data = request.form or request.get_json()
+        data = cls.normalize_request_data(request)
         for attr, value in data.items():
             # We need to set these to floats so that the next operations don't operate on strings
             if attr in ("initial", "minimum", "decay") and value is not None:
@@ -259,6 +276,7 @@ class BaseChallenge(object):
             challenge_id=challenge.id,
             ip=get_ip(req=request),
             provided=submission,
+            ai_source=serialize_ai_sources(request),
         )
 
         try:
@@ -269,6 +287,8 @@ class BaseChallenge(object):
             raise ChallengeSolveException(
                 f"Duplicate solve for user {user.id} on challenge {challenge.id}"
             ) from e
+
+        save_solver_files(submission_id=solve.id, req=request)
 
         # If the challenge is dynamic we should calculate a new value
         if challenge.function in DECAY_FUNCTIONS:

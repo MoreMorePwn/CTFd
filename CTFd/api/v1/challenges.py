@@ -51,6 +51,7 @@ from CTFd.utils.config.visibility import (
     challenges_visible,
     scores_visible,
 )
+from CTFd.utils.challenge_submissions import validate_challenge_submission_metadata
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat
 from CTFd.utils.decorators import (
     admins_only,
@@ -101,6 +102,19 @@ challenges_namespace.schema_model(
 challenges_namespace.schema_model(
     "ChallengeListSuccessResponse", ChallengeListSuccessResponse.apidoc()
 )
+
+
+def normalize_challenge_request_data(data):
+    if hasattr(data, "to_dict"):
+        data = data.to_dict()
+    else:
+        data = dict(data or {})
+
+    for attr in ("require_ai_source", "require_solver"):
+        value = data.get(attr)
+        if isinstance(value, str):
+            data[attr] = value.lower() == "true"
+    return data
 
 
 @challenges_namespace.route("")
@@ -274,7 +288,7 @@ class ChallengeList(Resource):
         },
     )
     def post(self):
-        data = request.form or request.get_json()
+        data = normalize_challenge_request_data(request.form or request.get_json())
 
         # Load data through schema for validation but not for insertion
         schema = ChallengeSchema()
@@ -604,7 +618,7 @@ class Challenge(Resource):
         },
     )
     def patch(self, challenge_id):
-        data = request.get_json()
+        data = normalize_challenge_request_data(request.get_json())
 
         # Load data through schema for validation but not for insertion
         schema = ChallengeSchema()
@@ -728,6 +742,13 @@ class ChallengeAttempt(Resource):
                 abort(403)
 
         chal_class = get_chal_class(challenge.type)
+
+        invalid_metadata = validate_challenge_submission_metadata(challenge, request)
+        if invalid_metadata:
+            return {
+                "success": True,
+                "data": {"status": "invalid", "message": invalid_metadata},
+            }, 400
 
         # Anti-bruteforce / submitting Flags too quickly
         recent_fails = current_user.get_wrong_submissions_per_delta(user.account_id)

@@ -86,6 +86,14 @@
 					</a>
 				</li>
 
+				<!-- Custom -->
+				<small class="section-title">Custom</small>
+				<li class="nav-item">
+					<a class="nav-link rounded-0 py-1" href="#custom" role="tab" data-toggle="tab">
+						<i class="fa fa-sliders action-icon"></i>Custom
+					</a>
+				</li>
+
 				<!-- Backup -->
 				<small class="section-title">Backup</small>
 				<li class="nav-item">
@@ -154,18 +162,6 @@
 					{% endfor %}
 				{% endif %}
 
-				<!-- Reset -->
-				<small class="section-title">Danger zone</small>
-				<li class="nav-item">
-					<a class="nav-link rounded-0 py-1" href="#usermode" role="tab" data-toggle="tab">
-						<i class="fa fa-people-arrows action-icon"></i>User Mode
-					</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link rounded-0 py-1" href="{{ url_for('admin.reset') }}" role="tab">
-						<i class="fa fa-trash-can action-icon"></i>Reset
-					</a>
-				</li>
 			</ul>
 		</div>
 		<div class="col-md-9">
@@ -202,8 +198,6 @@
 
 				{% include "admin/configs/accounts.html" %}
 
-				{% include "admin/configs/usermode.html" %}
-
 				{% include "admin/configs/brackets.html" %}
 
 				{% include "admin/configs/fields.html" %}
@@ -213,6 +207,10 @@
 				<!-- Challeges -->
 
 				{% include "admin/configs/challenges.html" %}
+
+				<!-- Custom -->
+
+				{% include "admin/configs/custom.html" %}
 
 				<!-- Security -->
 
@@ -245,8 +243,6 @@
 						{% endif %}
 					{% endfor %}
 				{% endif %}
-				<!-- Danger zone -->
-				<!-- reset.html is top-level so no need to include -->
 			</div>
 		</div>
 	</div>

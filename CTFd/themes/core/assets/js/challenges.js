@@ -66,6 +66,7 @@ Alpine.data("Challenge", () => ({
   id: null,
   next_id: null,
   submission: "",
+  aiSources: [""],
   tab: null,
   solves: [],
   submissions: [],
@@ -208,11 +209,43 @@ Alpine.data("Challenge", () => ({
     }, 2000);
   },
 
+  addAiSource() {
+    this.aiSources.push("");
+  },
+
+  async submitChallengeWithMetadata() {
+    let path = "/api/v1/challenges/attempt";
+    if (CTFd.config.preview === true) {
+      path += "?preview=true";
+    }
+
+    const body = new FormData();
+    body.append("challenge_id", this.id);
+    body.append("submission", this.submission);
+    body.append("nonce", CTFd.config.csrfNonce);
+    this.aiSources.forEach(source => {
+      body.append("ai_source", source);
+    });
+
+    const files = this.$refs.solverFiles?.files || [];
+    Array.from(files).forEach(file => {
+      body.append("solver", file);
+    });
+
+    const response = await fetch(CTFd.config.urlRoot + path, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "CSRF-Token": CTFd.config.csrfNonce,
+      },
+      body: body,
+    });
+    return await response.json();
+  },
+
   async submitChallenge() {
-    this.response = await CTFd.pages.challenge.submitChallenge(
-      this.id,
-      this.submission,
-    );
+    this.response = await this.submitChallengeWithMetadata();
 
     // Challenges page might be visible to anonymous users, redirect to login on submit
     if (this.response.data.status === "authentication_required") {
@@ -226,6 +259,10 @@ Alpine.data("Challenge", () => ({
   async renderSubmissionResponse() {
     if (this.response.data.status === "correct") {
       this.submission = "";
+      this.aiSources = [""];
+      if (this.$refs.solverFiles) {
+        this.$refs.solverFiles.value = "";
+      }
     }
 
     // Decide whether to check for the solution
@@ -246,7 +283,8 @@ Alpine.data("Challenge", () => ({
     if (
       this.max_attempts > 0 &&
       this.response.data.status != "already_solved" &&
-      this.response.data.status != "ratelimited"
+      this.response.data.status != "ratelimited" &&
+      this.response.data.status != "invalid"
     ) {
       this.attempts += 1;
     }

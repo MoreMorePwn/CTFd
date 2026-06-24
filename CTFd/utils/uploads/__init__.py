@@ -2,7 +2,14 @@ import hashlib
 import shutil
 from pathlib import Path
 
-from CTFd.models import ChallengeFiles, Files, PageFiles, SolutionFiles, db
+from CTFd.models import (
+    ChallengeFiles,
+    Files,
+    PageFiles,
+    SolutionFiles,
+    SubmissionFiles,
+    db,
+)
 from CTFd.utils import get_app_config
 from CTFd.utils.uploads.uploaders import FilesystemUploader, S3Uploader
 
@@ -18,6 +25,7 @@ def upload_file(*args, **kwargs):
     challenge_id = kwargs.get("challenge_id") or kwargs.get("challenge")
     page_id = kwargs.get("page_id") or kwargs.get("page")
     solution_id = kwargs.get("solution_id") or kwargs.get("solution")
+    submission_id = kwargs.get("submission_id") or kwargs.get("submission")
     file_type = kwargs.get("type", "standard")
     location = kwargs.get("location")
 
@@ -47,6 +55,9 @@ def upload_file(*args, **kwargs):
     elif file_type == "solution":
         model = SolutionFiles
         model_args["solution_id"] = solution_id
+    elif file_type == "submission":
+        model = SubmissionFiles
+        model_args["submission_id"] = submission_id
 
     # Hash is calculated before upload since S3 file upload closes file object
     sha1sum = hash_file(fp=file_obj)

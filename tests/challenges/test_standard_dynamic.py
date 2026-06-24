@@ -336,7 +336,7 @@ def test_standard_dynamic_challenge_value_isnt_affected_by_hidden_users():
     destroy_ctfd(app)
 
 
-def test_standard_dynamic_challenges_reset():
+def test_standard_dynamic_challenges_reset_removed():
     app = create_ctfd()
     with app.app_context():
         client = login_as_user(app, name="admin", password="password")
@@ -360,8 +360,8 @@ def test_standard_dynamic_challenges_reset():
         with client.session_transaction() as sess:
             data = {"nonce": sess.get("nonce"), "challenges": "on"}
             r = client.post("/admin/reset", data=data)
-            assert r.location.endswith("/admin/statistics")
-        assert Challenges.query.count() == 0
+            assert r.status_code == 404
+        assert Challenges.query.count() == 1
 
     destroy_ctfd(app)
 

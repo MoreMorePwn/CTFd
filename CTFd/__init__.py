@@ -352,5 +352,8 @@ def create_app(config="CTFd.config.Config"):
         init_events(app)
         init_plugins(app)
         init_cli(app)
+        from CTFd.utils.exports.auto import start_auto_exports
+
+        start_auto_exports(app)
 
         return app

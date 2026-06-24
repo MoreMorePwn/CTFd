@@ -168,6 +168,31 @@
 	</div>
 	{% endblock %}
 
+	{% block submission_requirements %}
+	<div class="form-group">
+		<label>
+			Need AI<br>
+			<small class="form-text text-muted">Require an accepted AI Source when solving this challenge.</small>
+		</label>
+
+		<select class="form-control custom-select" name="require_ai_source">
+			<option value="false" {% if not challenge.require_ai_source %}selected{% endif %}>No</option>
+			<option value="true" {% if challenge.require_ai_source %}selected{% endif %}>Yes</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<label>
+			Need Solver<br>
+			<small class="form-text text-muted">Require a solver script upload when solving this challenge.</small>
+		</label>
+
+		<select class="form-control custom-select" name="require_solver">
+			<option value="false" {% if not challenge.require_solver %}selected{% endif %}>No</option>
+			<option value="true" {% if challenge.require_solver %}selected{% endif %}>Yes</option>
+		</select>
+	</div>
+	{% endblock %}
+
 	{% block state %}
 	<div class="form-group">
 		<label>

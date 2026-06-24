@@ -67,6 +67,7 @@ CTFd/static/uploads
 CTFd/uploads
 .data/
 .ctfd_secret_key
+.env
 .*.swp
 
 # Vagrant
@@ -74,6 +75,7 @@ CTFd/uploads
 
 # CTFd Exports
 *.zip
+.export/
 
 # JS
 node_modules/

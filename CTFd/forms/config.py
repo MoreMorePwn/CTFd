@@ -27,27 +27,6 @@ from CTFd.utils.csv import get_dumpable_tables
 from CTFd.utils.social import BASE_TEMPLATE
 
 
-class ResetInstanceForm(BaseForm):
-    accounts = BooleanField(
-        "Accounts",
-        description="Deletes all user and team accounts and their associated information",
-    )
-    submissions = BooleanField(
-        "Submissions",
-        description="Deletes all records that accounts gained points or took an action",
-    )
-    challenges = BooleanField(
-        "Challenges", description="Deletes all challenges and associated data"
-    )
-    pages = BooleanField(
-        "Pages", description="Deletes all pages and their associated files"
-    )
-    notifications = BooleanField(
-        "Notifications", description="Deletes all notifications"
-    )
-    submit = SubmitField("Reset CTF")
-
-
 class AccountSettingsForm(BaseForm):
     domain_whitelist = StringField(
         "Email Domain Allowlist",
@@ -206,6 +185,27 @@ class ChallengeSettingsForm(BaseForm):
         ],
         default="public",
     )
+
+
+class CustomSettingsForm(BaseForm):
+    ai_source_regex = StringField(
+        "AI Source",
+        description="Regex for accepted AI Source URLs. Leave blank to accept any AI Source.",
+        default=r"^https://chat\.deepseek\.com/share/[A-Za-z0-9_-]+$",
+    )
+    solver_file_limit = IntegerField(
+        "Solver / Script File Limit",
+        widget=NumberInput(min=0),
+        description="Maximum number of solver files per solve. Use 0 for unlimited.",
+        default=0,
+    )
+    solver_total_size_limit = IntegerField(
+        "Solver / Script Total Size Limit",
+        widget=NumberInput(min=0),
+        description="Maximum total solver file size in bytes. Use 0 for unlimited. Default is 10485760 bytes (10 MB).",
+        default=10485760,
+    )
+    submit = SubmitField("Update")
 
 
 class VisibilitySettingsForm(BaseForm):

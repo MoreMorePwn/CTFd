@@ -94,6 +94,42 @@ def test_can_update_dynamic_challenge():
     destroy_ctfd(app)
 
 
+def test_can_update_dynamic_challenge_submission_requirements():
+    app = create_ctfd(enable_plugins=True)
+    with app.app_context():
+        register_user(app)
+        client = login_as_user(app, name="admin", password="password")
+
+        challenge_data = {
+            "name": "ada",
+            "category": "category",
+            "description": "description",
+            "initial": 100,
+            "decay": 20,
+            "minimum": 1,
+            "state": "hidden",
+            "type": "dynamic",
+        }
+
+        r = client.post("/api/v1/challenges", json=challenge_data)
+        challenge_id = r.get_json().get("data")["id"]
+
+        challenge_data.update(
+            {
+                "require_ai_source": "true",
+                "require_solver": "true",
+            }
+        )
+        r = client.patch(f"/api/v1/challenges/{challenge_id}", json=challenge_data)
+        assert r.status_code == 200
+
+        challenge = DynamicChallenge.query.filter_by(id=challenge_id).first()
+        assert challenge.require_ai_source is True
+        assert challenge.require_solver is True
+
+    destroy_ctfd(app)
+
+
 def test_can_add_requirement_dynamic_challenge():
     """Test that requirements can be added to dynamic challenges"""
     app = create_ctfd(enable_plugins=True)
@@ -321,7 +357,7 @@ def test_dynamic_challenge_value_isnt_affected_by_hidden_users():
     destroy_ctfd(app)
 
 
-def test_dynamic_challenges_reset():
+def test_dynamic_challenges_reset_removed():
     app = create_ctfd(enable_plugins=True)
     with app.app_context():
         client = login_as_user(app, name="admin", password="password")
@@ -344,9 +380,9 @@ def test_dynamic_challenges_reset():
         with client.session_transaction() as sess:
             data = {"nonce": sess.get("nonce"), "challenges": "on"}
             r = client.post("/admin/reset", data=data)
-            assert r.location.endswith("/admin/statistics")
-        assert Challenges.query.count() == 0
-        assert DynamicChallenge.query.count() == 0
+            assert r.status_code == 404
+        assert Challenges.query.count() == 1
+        assert DynamicChallenge.query.count() == 1
 
     destroy_ctfd(app)
 

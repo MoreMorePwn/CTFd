@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import io
+import json
 from unittest.mock import patch
 
 from freezegun import freeze_time
@@ -1052,6 +1054,69 @@ def test_api_challenge_attempt_post_private():
             )
             assert r.status_code == 429
             assert r.get_json()["data"]["status"] == "ratelimited"
+    destroy_ctfd(app)
+
+
+def test_api_challenge_attempt_requires_ai_source_and_solver():
+    """Can challenge attempts require AI Source metadata and solver files"""
+    app = create_ctfd()
+    with app.app_context():
+        challenge = gen_challenge(
+            app.db,
+            require_ai_source=True,
+            require_solver=True,
+        )
+        gen_flag(app.db, challenge.id)
+        challenge_id = challenge.id
+        register_user(app)
+
+        with login_as_user(app) as client:
+            with client.session_transaction() as sess:
+                nonce = sess.get("nonce")
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "nonce": nonce,
+                },
+            )
+            assert r.status_code == 400
+            assert r.get_json()["data"]["status"] == "invalid"
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "ai_source": "https://example.com/share/not-allowed",
+                    "nonce": nonce,
+                },
+            )
+            assert r.status_code == 400
+            assert r.get_json()["data"]["status"] == "invalid"
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "ai_source": "https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m",
+                    "solver": (io.BytesIO(b"print('solve')\n"), "solve.py"),
+                    "nonce": nonce,
+                },
+            )
+            assert r.status_code == 200
+            assert r.get_json()["data"]["status"] == "correct"
+
+            solve = Solves.query.filter_by(challenge_id=challenge_id).first()
+            assert json.loads(solve.ai_source) == [
+                "https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m"
+            ]
+            assert len(solve.solver_files) == 1
+            assert solve.solver_files[0].location.endswith("/solve.py")
+
     destroy_ctfd(app)
 
 

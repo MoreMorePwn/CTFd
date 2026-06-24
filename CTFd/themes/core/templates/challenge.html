@@ -190,6 +190,37 @@
               </div>
             </div>
 
+            <div class="row mt-3">
+              <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="mb-0" for="ai-source-0">AI Source:</label>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="addAiSource()">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+                <template x-for="(_source, index) in aiSources" :key="index">
+                  <input
+                      class="form-control mb-2"
+                      type="text"
+                      name="ai_source"
+                      :id="'ai-source-' + index"
+                      x-model="aiSources[index]"
+                  >
+                </template>
+              </div>
+              <div class="col-12 mt-2">
+                <label for="solver-files">Solver / Script:</label>
+                <input
+                    id="solver-files"
+                    class="form-control mt-2 mb-2 px-2 py-2"
+                    type="file"
+                    name="solver"
+                    multiple
+                    x-ref="solverFiles"
+                >
+              </div>
+            </div>
+
             <div class="row notification-row">
               <div class="col-12">
                 <template x-if="response">
@@ -198,7 +229,7 @@
                       :class="{
                         'alert-success': response.data.status == 'correct',
                         'alert-info': response.data.status == 'already_solved',
-                        'alert-danger': response.data.status == 'incorrect',
+                        'alert-danger': response.data.status == 'incorrect' || response.data.status == 'invalid',
                         'alert-warning': response.data.status == 'paused',
                       }" role="alert"
                   >

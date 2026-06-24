@@ -92,6 +92,8 @@
 						<th class="sort-col"><b>Challenge</b></th>
 						<th class="sort-col"><b>Type</b></th>
 						<th class="sort-col"><b>Provided</b></th>
+						<th class="sort-col"><b>AI Source</b></th>
+						<th class="sort-col"><b>Solver</b></th>
 						<th class="text-center sort-col"><b>Date</b></th>
 					</tr>
 				</thead>
@@ -140,6 +142,20 @@
 									</button>
 								{% endif %}
 							{% endif %}
+						</td>
+						<td>
+							{% for source in sub.ai_sources %}
+								<a href="{{ source }}" target="_blank" rel="noopener noreferrer">
+									AI Source{% if sub.ai_sources | length > 1 %} {{ loop.index }}{% endif %}
+								</a>{% if not loop.last %}<br>{% endif %}
+							{% endfor %}
+						</td>
+						<td>
+							{% for file in sub.solver_files %}
+								<a href="{{ url_for('views.files', path=file.location) }}" target="_blank" rel="noopener noreferrer">
+									Solver{% if sub.solver_files | length > 1 %} {{ loop.index }}{% endif %}
+								</a>{% if not loop.last %}<br>{% endif %}
+							{% endfor %}
 						</td>
 						<td class="text-center solve-time">
 							<span data-time="{{ sub.date | isoformat }}"></span>

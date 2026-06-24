@@ -127,14 +127,6 @@
       "assets/js/pages/main.js"
     ]
   },
-  "assets/js/pages/reset.js": {
-    "file": "assets/pages/reset-B0M3xNK6.js",
-    "src": "assets/js/pages/reset.js",
-    "isEntry": true,
-    "imports": [
-      "assets/js/pages/main.js"
-    ]
-  },
   "assets/js/pages/scoreboard.js": {
     "file": "assets/pages/scoreboard-BXUUYrU0.js",
     "src": "assets/js/pages/scoreboard.js",

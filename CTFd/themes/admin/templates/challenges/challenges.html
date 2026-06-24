@@ -81,6 +81,8 @@
 						<th class="sort-col text-center"><b>Value</b></th>
 						<th class="sort-col text-center"><b>Type</b></th>
 						<th class="sort-col text-center"><b>State</b></th>
+						<th class="sort-col text-center"><b>Need AI</b></th>
+						<th class="sort-col text-center"><b>Need Solver</b></th>
 						<th class="sort-col text-center"><b>Solution</b></th>
 					</tr>
 					</thead>
@@ -100,6 +102,20 @@
 							<td class="text-center">
 								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
+							</td>
+							<td class="text-center">
+								{% if challenge.require_ai_source %}
+									<i class="fas fa-check text-success"></i>
+								{% else %}
+									<i class="fas fa-times text-danger"></i>
+								{% endif %}
+							</td>
+							<td class="text-center">
+								{% if challenge.require_solver %}
+									<i class="fas fa-check text-success"></i>
+								{% else %}
+									<i class="fas fa-times text-danger"></i>
+								{% endif %}
 							</td>
 							<td class="text-center">
 								{% if challenge.solution_id %}

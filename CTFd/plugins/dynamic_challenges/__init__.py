@@ -126,7 +126,7 @@ class DynamicValueChallenge(BaseChallenge):
         :param request:
         :return:
         """
-        data = request.form or request.get_json()
+        data = cls.normalize_request_data(request)
 
         for attr, value in data.items():
             # We need to set these to floats so that the next operations don't operate on strings

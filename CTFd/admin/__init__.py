@@ -28,28 +28,10 @@ from CTFd.admin import teams  # noqa: F401,I001
 from CTFd.admin import users  # noqa: F401,I001
 from CTFd.cache import (
     cache,
-    clear_all_team_sessions,
-    clear_all_user_sessions,
-    clear_challenges,
     clear_config,
-    clear_pages,
-    clear_standings,
 )
 from CTFd.constants.setup import DEFAULTS
-from CTFd.models import (
-    Awards,
-    Challenges,
-    Configs,
-    Notifications,
-    Pages,
-    Solves,
-    Submissions,
-    Teams,
-    Tracking,
-    Unlocks,
-    Users,
-    db,
-)
+from CTFd.models import Configs
 from CTFd.utils import config as ctf_config
 from CTFd.utils import get_app_config, get_config, set_config
 from CTFd.utils.csv import (
@@ -62,8 +44,6 @@ from CTFd.utils.csv import (
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.exports import background_import_ctf
 from CTFd.utils.exports import export_ctf as export_ctf_util
-from CTFd.utils.security.auth import logout_user
-from CTFd.utils.uploads import delete_file
 from CTFd.utils.user import is_admin
 
 
@@ -213,74 +193,3 @@ def config():
         **configs,
         force_html_sanitization=force_html_sanitization
     )
-
-
-@admin.route("/admin/reset", methods=["GET", "POST"])
-@admins_only
-def reset():
-    if request.method == "POST":
-        require_setup = False
-        logout = False
-        next_url = url_for("admin.statistics")
-
-        data = request.form
-
-        if data.get("pages"):
-            _pages = Pages.query.all()
-            for p in _pages:
-                for f in p.files:
-                    delete_file(file_id=f.id)
-
-            Pages.query.delete()
-
-        if data.get("notifications"):
-            Notifications.query.delete()
-
-        if data.get("challenges"):
-            _challenges = Challenges.query.all()
-            for c in _challenges:
-                for f in c.files:
-                    delete_file(file_id=f.id)
-            Challenges.query.delete()
-
-        if data.get("accounts"):
-            Users.query.delete()
-            Teams.query.delete()
-            require_setup = True
-            logout = True
-
-        if data.get("submissions"):
-            Solves.query.delete()
-            Submissions.query.delete()
-            Awards.query.delete()
-            Unlocks.query.delete()
-            Tracking.query.delete()
-
-        if data.get("user_mode") == "users":
-            db.session.query(Users).update({Users.team_id: None})
-            Teams.query.delete()
-
-            clear_all_user_sessions()
-            clear_all_team_sessions()
-
-        if require_setup:
-            set_config("setup", False)
-            cache.clear()
-            logout_user()
-            next_url = url_for("views.setup")
-
-        db.session.commit()
-
-        clear_pages()
-        clear_standings()
-        clear_challenges()
-        clear_config()
-
-        if logout is True:
-            cache.clear()
-            logout_user()
-
-        db.session.close()
-        return redirect(next_url)
-
-    return render_template("admin/reset.html")
