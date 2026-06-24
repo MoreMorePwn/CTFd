@@ -28,7 +28,11 @@ from CTFd.plugins.challenges.logic import (
     challenge_attempt_team,
 )
 from CTFd.utils.uploads import delete_file
-from CTFd.utils.challenge_submissions import save_solver_files, serialize_ai_sources
+from CTFd.utils.challenge_submissions import (
+    delete_solver_file_locations,
+    save_solver_files,
+    serialize_ai_sources,
+)
 from CTFd.utils.user import get_ip
 
 
@@ -279,16 +283,26 @@ class BaseChallenge(object):
             ai_source=serialize_ai_sources(request),
         )
 
+        saved_solver_files = []
         try:
             db.session.add(solve)
+            db.session.flush()
+            saved_solver_files = save_solver_files(
+                submission_id=solve.id,
+                req=request,
+                commit=False,
+            )
             db.session.commit()
         except IntegrityError as e:
             db.session.rollback()
+            delete_solver_file_locations(saved_solver_files)
             raise ChallengeSolveException(
                 f"Duplicate solve for user {user.id} on challenge {challenge.id}"
             ) from e
-
-        save_solver_files(submission_id=solve.id, req=request)
+        except Exception:
+            db.session.rollback()
+            delete_solver_file_locations(saved_solver_files)
+            raise
 
         # If the challenge is dynamic we should calculate a new value
         if challenge.function in DECAY_FUNCTIONS:

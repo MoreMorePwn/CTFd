@@ -13,6 +13,6 @@ datasources:
     isDefault: true
     editable: true
     basicAuth: true
-    basicAuthUser: monitor
+    basicAuthUser: ${PROMETHEUS_BASIC_USER}
     secureJsonData:
-      basicAuthPassword: ctfd-monitor
+      basicAuthPassword: ${PROMETHEUS_BASIC_PASSWORD}

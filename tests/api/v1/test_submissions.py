@@ -2,8 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import pathlib
+from io import BytesIO
 
-from CTFd.models import Discards, Fails, Partials, Solves
+from werkzeug.datastructures import FileStorage
+
+from CTFd.models import Discards, Fails, Files, Partials, Solves
+from CTFd.utils.uploads import upload_file
 from tests.helpers import (
     create_ctfd,
     destroy_ctfd,
@@ -96,6 +101,29 @@ def test_api_submission_delete_admin():
             r = client.delete("/api/v1/submissions/1", json="")
             assert r.status_code == 200
             assert r.get_json().get("data") is None
+    destroy_ctfd(app)
+
+
+def test_api_submission_delete_admin_removes_solver_files():
+    """Deleting a solve deletes its solver files from storage and the database"""
+    app = create_ctfd()
+    with app.app_context():
+        solve = gen_solve(app.db, user_id=1)
+        solver_file = upload_file(
+            file=FileStorage(stream=BytesIO(b"solver"), filename="solve.py"),
+            submission_id=solve.id,
+            type="submission",
+        )
+        target = pathlib.Path(app.config["UPLOAD_FOLDER"]) / solver_file.location
+        solve_id = solve.id
+        assert target.exists()
+
+        with login_as_user(app, "admin") as client:
+            r = client.delete(f"/api/v1/submissions/{solve_id}", json="")
+            assert r.status_code == 200
+
+        assert Files.query.filter_by(id=solver_file.id).first() is None
+        assert target.exists() is False
     destroy_ctfd(app)
 
 
@@ -207,6 +235,31 @@ def test_api_submission_patch_incorrect():
             assert r.status_code == 200
             assert Partials.query.count() == 0
             assert Fails.query.count() == 1
+    destroy_ctfd(app)
+
+
+def test_api_submission_patch_incorrect_removes_solver_files():
+    """Reclassifying a solve to incorrect removes solver files"""
+    app = create_ctfd()
+    with app.app_context():
+        solve = gen_solve(app.db, user_id=1)
+        solver_file = upload_file(
+            file=FileStorage(stream=BytesIO(b"solver"), filename="solve.py"),
+            submission_id=solve.id,
+            type="submission",
+        )
+        target = pathlib.Path(app.config["UPLOAD_FOLDER"]) / solver_file.location
+        solve_id = solve.id
+        assert target.exists()
+
+        with login_as_user(app, "admin") as client:
+            r = client.patch(
+                f"/api/v1/submissions/{solve_id}", json={"type": "incorrect"}
+            )
+            assert r.status_code == 200
+
+        assert Files.query.filter_by(id=solver_file.id).first() is None
+        assert target.exists() is False
     destroy_ctfd(app)
 
 

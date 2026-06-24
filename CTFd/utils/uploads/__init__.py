@@ -28,6 +28,7 @@ def upload_file(*args, **kwargs):
     submission_id = kwargs.get("submission_id") or kwargs.get("submission")
     file_type = kwargs.get("type", "standard")
     location = kwargs.get("location")
+    commit = kwargs.get("commit", True)
 
     # Validate location and default filename to uploaded file's name
     parent = None
@@ -72,12 +73,14 @@ def upload_file(*args, **kwargs):
     if existing_file:
         for k, v in model_args.items():
             setattr(existing_file, k, v)
-        db.session.commit()
+        if commit:
+            db.session.commit()
         file_row = existing_file
     else:
         file_row = model(**model_args)
         db.session.add(file_row)
-        db.session.commit()
+        if commit:
+            db.session.commit()
     return file_row
 
 

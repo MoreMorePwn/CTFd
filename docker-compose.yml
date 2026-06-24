@@ -83,8 +83,8 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.config.file=/etc/prometheus/web.yml
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./prometheus-web.yml:/etc/prometheus/web.yml:ro
+      - ./monitoring/generated/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/generated/prometheus-web.yml:/etc/prometheus/web.yml:ro
     depends_on:
       - cadvisor-auth
       - node-exporter
@@ -95,7 +95,8 @@ services:
     image: grafana/grafana
     container_name: grafana
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/generated/grafana-datasources:/etc/grafana/provisioning/datasources:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3000:3000"
@@ -131,7 +132,7 @@ services:
     container_name: cadvisor-auth
     volumes:
       - ./conf/nginx/cadvisor-auth.conf:/etc/nginx/nginx.conf:ro
-      - ./monitoring/cadvisor.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./monitoring/generated/cadvisor.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - cadvisor
     networks:

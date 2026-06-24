@@ -899,7 +899,9 @@ class Submissions(db.Model):
     challenge = db.relationship(
         "Challenges", foreign_keys="Submissions.challenge_id", lazy="select"
     )
-    solver_files = db.relationship("SubmissionFiles", backref="submission")
+    solver_files = db.relationship(
+        "SubmissionFiles", backref="submission", cascade="all, delete-orphan"
+    )
 
     __mapper_args__ = {"polymorphic_on": type}
 

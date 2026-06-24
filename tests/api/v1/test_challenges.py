@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from sqlalchemy.exc import IntegrityError
 
 from CTFd.exceptions.challenges import ChallengeSolveException
-from CTFd.models import Challenges, Flags, Hints, Solves, Tags, Tracking, Users
+from CTFd.models import Challenges, Files, Flags, Hints, Solves, Tags, Tracking, Users
 from CTFd.utils import set_config
 from tests.helpers import (
     create_ctfd,
@@ -1087,6 +1087,32 @@ def test_api_challenge_attempt_requires_ai_source_and_solver():
 
             r = client.post(
                 "/api/v1/challenges/attempt",
+                json={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "ai_source": 1,
+                },
+            )
+            assert r.status_code == 400
+            assert r.get_json()["data"]["status"] == "invalid"
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "ai_source": "https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m",
+                    "solver": (io.BytesIO(b"print('bad name')\n"), " "),
+                    "nonce": nonce,
+                },
+            )
+            assert r.status_code == 400
+            assert r.get_json()["data"]["status"] == "invalid"
+            assert Solves.query.filter_by(challenge_id=challenge_id).count() == 0
+            assert Files.query.filter_by(type="submission").count() == 0
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
                 data={
                     "challenge_id": challenge_id,
                     "submission": "flag",
@@ -1116,6 +1142,18 @@ def test_api_challenge_attempt_requires_ai_source_and_solver():
             ]
             assert len(solve.solver_files) == 1
             assert solve.solver_files[0].location.endswith("/solve.py")
+            solver_location = solve.solver_files[0].location
+
+            anonymous_response = app.test_client().get("/files/" + solver_location)
+            assert anonymous_response.status_code == 403
+
+            owner_response = client.get("/files/" + solver_location)
+            assert owner_response.status_code == 200
+            assert owner_response.get_data(as_text=True) == "print('solve')\n"
+
+            with login_as_user(app, "admin") as admin_client:
+                admin_response = admin_client.get("/files/" + solver_location)
+                assert admin_response.status_code == 200
 
     destroy_ctfd(app)
 

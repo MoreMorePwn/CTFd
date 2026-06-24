@@ -472,6 +472,22 @@ def files(path):
                 pass
             else:
                 abort(404)
+    elif f.type == "submission":
+        if authed() is False:
+            abort(403)
+
+        submission = f.submission
+        if submission is None:
+            abort(404)
+
+        if current_user.is_admin() is False:
+            user = get_current_user()
+            team = get_current_team()
+            is_user_owner = submission.user_id == user.id
+            is_team_owner = team and submission.team_id == team.id
+
+            if not (is_user_owner or is_team_owner):
+                abort(403)
 
     uploader = get_uploader()
     try:

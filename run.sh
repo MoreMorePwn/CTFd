@@ -45,6 +45,8 @@ NEW_REDIS_PASSWORD="$(random_alnum 36)"
 NEW_MONITOR_USER="monitor_$(random_alnum 8)"
 NEW_MONITOR_PASSWORD="$(random_alnum 36)"
 NEW_SECRET_KEY="$(openssl rand -hex 64)"
+GENERATED_MONITORING_DIR="monitoring/generated"
+GENERATED_GRAFANA_DATASOURCES_DIR="${GENERATED_MONITORING_DIR}/grafana-datasources"
 
 if [ -d .data/mysql/mysql ]; then
   echo "Existing MariaDB data detected; updating the database password before writing .env."
@@ -76,6 +78,7 @@ PROMETHEUS_BASIC_PASSWORD=${NEW_MONITOR_PASSWORD}
 EOF
 
 printf '%s\n' "${NEW_SECRET_KEY}" > .ctfd_secret_key
+mkdir -p "${GENERATED_GRAFANA_DATASOURCES_DIR}"
 
 PROMETHEUS_BCRYPT="$(
   python3 - "${NEW_MONITOR_PASSWORD}" <<'PY'
@@ -87,16 +90,16 @@ print(bcrypt.hashpw(password, bcrypt.gensalt()).decode())
 PY
 )"
 
-cat > prometheus-web.yml <<EOF
+cat > "${GENERATED_MONITORING_DIR}/prometheus-web.yml" <<EOF
 basic_auth_users:
   ${NEW_MONITOR_USER}: "${PROMETHEUS_BCRYPT}"
 EOF
 
-cat > monitoring/cadvisor.htpasswd <<EOF
+cat > "${GENERATED_MONITORING_DIR}/cadvisor.htpasswd" <<EOF
 $(htpasswd -nbm "${NEW_MONITOR_USER}" "${NEW_MONITOR_PASSWORD}")
 EOF
 
-cat > prometheus.yml <<EOF
+cat > "${GENERATED_MONITORING_DIR}/prometheus.yml" <<EOF
 global:
   scrape_interval: 15s
 
@@ -123,7 +126,7 @@ scrape_configs:
       - targets: ["node-exporter:9100"]
 EOF
 
-cat > grafana/provisioning/datasources/prometheus.yml <<EOF
+cat > "${GENERATED_GRAFANA_DATASOURCES_DIR}/prometheus.yml" <<EOF
 apiVersion: 1
 
 deleteDatasources:

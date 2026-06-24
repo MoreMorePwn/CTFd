@@ -13,6 +13,7 @@ from CTFd.cache import cache, clear_challenges, clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Fails, Solves, Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
+from CTFd.utils.challenge_submissions import delete_solver_files_for_submission
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
@@ -226,6 +227,7 @@ class Submission(Resource):
             existing_solve = Solves.query.filter_by(id=submission_id).first()
 
             if existing_solve:
+                delete_solver_files_for_submission(existing_solve, commit=False)
                 db.session.delete(existing_solve)
 
             submission.type = "incorrect"
@@ -260,6 +262,7 @@ class Submission(Resource):
         submission = Submissions.query.filter_by(id=submission_id).first_or_404()
         account_id = submission.account_id
         challenge_id = submission.challenge_id
+        delete_solver_files_for_submission(submission, commit=False)
         db.session.delete(submission)
         db.session.commit()
         db.session.close()
