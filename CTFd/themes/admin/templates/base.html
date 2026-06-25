@@ -63,10 +63,10 @@
 						</div>
 					</li>
 					{% endif %}
-					{% if admin_can('users') %}
+					{% if admin_can('users_read') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a></li>
 					{% endif %}
-					{% if get_config('user_mode') == 'teams' and admin_can('teams') %}
+					{% if get_config('user_mode') == 'teams' and admin_can('teams_read') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a></li>
 					{% endif %}
 					{% if admin_can('scoreboard') %}
@@ -75,7 +75,7 @@
 					{% if admin_can('challenges') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
 					{% endif %}
-					{% if admin_can('submissions') %}
+					{% if admin_can('submissions_read') %}
 					<li class="nav-item dropdown">
 						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
 						   aria-haspopup="true" aria-expanded="true">Submissions</a>

@@ -47,6 +47,7 @@ from CTFd.utils.user import (
     get_ip,
     get_locale,
     is_admin,
+    is_admin_panel_user,
     is_full_admin,
 )
 
@@ -120,6 +121,7 @@ def init_template_globals(app):
     app.jinja_env.globals.update(integrations=integrations)
     app.jinja_env.globals.update(authed=authed)
     app.jinja_env.globals.update(is_admin=is_admin)
+    app.jinja_env.globals.update(is_admin_panel_user=is_admin_panel_user)
     app.jinja_env.globals.update(is_full_admin=is_full_admin)
     app.jinja_env.globals.update(admin_can=current_user_can_access_admin_permission)
     app.jinja_env.globals.update(

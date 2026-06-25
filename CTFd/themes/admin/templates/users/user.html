@@ -4,6 +4,7 @@
 {% endblock %}
 
 {% block content %}
+{% if admin_can('users_write') %}
 <div id="user-info-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -19,6 +20,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
 <div id="user-statistics-modal" class="modal fade">
 	<div class="modal-dialog modal-xl">
@@ -36,6 +38,7 @@
 	</div>
 </div>
 
+{% if admin_can('awards') %}
 <div id="user-award-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -51,7 +54,9 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
+{% if admin_can('users_write') %}
 <div id="user-email-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -67,6 +72,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
 <div id="user-addresses-modal" class="modal fade">
 	<div class="modal-dialog modal-lg">
@@ -162,21 +168,27 @@
 		</h3>
 		<hr class="w-50">
 		<div class="pt-3">
+			{% if admin_can('users_write') %}
 			<a class="edit-user text-dark">
 				<i class="btn-fa fas fa-user-edit fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Edit User"></i>
 			</a>
+			{% endif %}
 			<a class="statistics-user text-dark">
 				<i class="btn-fa fas fa-chart-pie fa-2x px-2" data-toggle="tooltip" data-placement="top" title="User Statistics"></i>
 			</a>
+			{% if admin_can('awards') %}
 			<a class="award-user text-dark">
 				<i class="btn-fa fas fa-trophy fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Award User"></i>
 			</a>
+			{% endif %}
+			{% if admin_can('users_write') %}
 			<a class="email-user text-dark">
 				<i class="btn-fa fas fa-envelope fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Email User"></i>
 			</a>
 			<a class="delete-user text-dark">
 				<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Delete User"></i>
 			</a>
+			{% endif %}
 		</div>
 		<div class="pt-3">
 			<a class="addresses-user text-dark">

@@ -66,7 +66,7 @@
       <ul class="navbar-nav ms-md-auto d-block d-sm-flex d-md-flex">
         {% if authed() %}
 
-          {% if is_admin() %}
+          {% if is_admin_panel_user() %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin.view') }}">
                 <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Admin Panel{% endtrans %}">

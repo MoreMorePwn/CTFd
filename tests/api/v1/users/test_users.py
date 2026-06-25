@@ -3,7 +3,14 @@
 
 from CTFd.models import Users, db
 from CTFd.utils.crypto import verify_password
-from tests.helpers import create_ctfd, destroy_ctfd, gen_user, login_as_user, register_user
+from tests.helpers import (
+    create_ctfd,
+    destroy_ctfd,
+    gen_team,
+    gen_user,
+    login_as_user,
+    register_user,
+)
 
 
 def test_api_self_ban():
@@ -20,7 +27,7 @@ def test_api_self_ban():
 
 
 def test_api_modify_user_type():
-    """Can a user patch /api/v1/users/<user_id> to promote a user to admin and demote them to user"""
+    """Can an admin promote a user to admin and demote them to user"""
     app = create_ctfd()
     with app.app_context():
         register_user(app)
@@ -51,18 +58,26 @@ def test_api_admin_can_create_assistant_with_permissions():
                     "email": "assistant@examplectf.com",
                     "password": "password",
                     "type": "assistant",
-                    "assistant_permissions": ["users", "monitor", "invalid"],
+                    "assistant_permissions": ["users_write", "monitor", "invalid"],
                 },
             )
 
             assert r.status_code == 200
             user_data = r.get_json()["data"]
             assert user_data["type"] == "assistant"
-            assert user_data["assistant_permissions"] == ["users", "monitor"]
+            assert user_data["assistant_permissions"] == [
+                "users_write",
+                "monitor",
+                "users_read",
+            ]
 
             assistant = Users.query.filter_by(name="assistant").first()
             assert assistant.type == "assistant"
-            assert assistant.assistant_permission_list == ["users", "monitor"]
+            assert assistant.assistant_permission_list == [
+                "users_write",
+                "monitor",
+                "users_read",
+            ]
     destroy_ctfd(app)
 
 
@@ -76,7 +91,7 @@ def test_api_assistant_access_is_limited_to_granted_sections():
             email="assistant@examplectf.com",
             password="password",
             type="assistant",
-            assistant_permissions='["users"]',
+            assistant_permissions='["users_read"]',
         )
 
         with login_as_user(app, "assistant") as client:
@@ -85,15 +100,36 @@ def test_api_assistant_access_is_limited_to_granted_sections():
             assert r.location.endswith("/admin/users")
 
             assert client.get("/admin/users").status_code == 200
-            assert client.get("/api/v1/users?view=admin", json=True).status_code == 200
+            r = client.get("/api/v1/users?view=admin", json=True)
+            assert r.status_code == 200
 
             assert client.get("/admin/statistics").status_code == 403
             assert client.get("/api/v1/statistics/users", json=True).status_code == 403
     destroy_ctfd(app)
 
 
-def test_api_assistant_cannot_manage_roles_or_privileged_accounts():
-    """Assistants with Users access cannot promote users or manage admins/assistants"""
+def test_assistant_sees_admin_panel_nav_link():
+    """Assistants should see the Admin Panel link outside admin-only routes"""
+    app = create_ctfd()
+    with app.app_context():
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["submissions_read"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get("/")
+            assert r.status_code == 200
+            assert b"Admin Panel" in r.data
+    destroy_ctfd(app)
+
+
+def test_api_assistant_user_read_cannot_write_users():
+    """Assistants with Users Read access can inspect users but cannot edit them"""
     app = create_ctfd()
     with app.app_context():
         register_user(app)
@@ -103,10 +139,47 @@ def test_api_assistant_cannot_manage_roles_or_privileged_accounts():
             email="assistant@examplectf.com",
             password="password",
             type="assistant",
-            assistant_permissions='["users"]',
+            assistant_permissions='["users_read"]',
         )
 
         with login_as_user(app, "assistant") as client:
+            assert client.get("/api/v1/users?view=admin", json=True).status_code == 200
+
+            r = client.patch("/api/v1/users/2", json={"hidden": True})
+            assert r.status_code == 403
+            assert Users.query.get(2).hidden is False
+
+            r = client.post(
+                "/api/v1/users",
+                json={
+                    "name": "newuser",
+                    "email": "newuser@examplectf.com",
+                    "password": "password",
+                },
+            )
+            assert r.status_code == 403
+    destroy_ctfd(app)
+
+
+def test_api_assistant_user_write_cannot_manage_roles_or_privileged_accounts():
+    """Assistants with Users Write access cannot promote users or manage admins/assistants"""
+    app = create_ctfd()
+    with app.app_context():
+        register_user(app)
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users_write"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.patch("/api/v1/users/2", json={"hidden": True})
+            assert r.status_code == 200
+            assert Users.query.get(2).hidden is True
+
             r = client.patch("/api/v1/users/2", json={"type": "admin"})
             assert r.status_code == 403
             assert Users.query.get(2).type == "user"
@@ -118,6 +191,78 @@ def test_api_assistant_cannot_manage_roles_or_privileged_accounts():
             r = client.delete("/api/v1/users/1", json=True)
             assert r.status_code == 403
             assert Users.query.get(1) is not None
+    destroy_ctfd(app)
+
+
+def test_api_assistant_submission_read_cannot_write_submissions():
+    """Assistants with Submissions Read can inspect but not mutate submissions"""
+    app = create_ctfd()
+    with app.app_context():
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["submissions_read"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            assert client.get("/admin").status_code == 302
+            assert client.get("/admin").location.endswith("/admin/submissions")
+            assert client.get("/admin/submissions").status_code == 200
+            assert client.get("/api/v1/submissions", json=True).status_code == 200
+
+            r = client.patch("/api/v1/submissions/1", json={"type": "correct"})
+            assert r.status_code == 403
+            assert client.delete("/api/v1/submissions/1", json=True).status_code == 403
+    destroy_ctfd(app)
+
+
+def test_api_assistant_team_read_cannot_write_teams():
+    """Assistants with Teams Read access can inspect teams but cannot edit them"""
+    app = create_ctfd(user_mode="teams")
+    with app.app_context():
+        team = gen_team(db)
+        team_id = team.id
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["teams_read"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            assert client.get("/admin/teams").status_code == 200
+            assert client.get("/api/v1/teams?view=admin", json=True).status_code == 200
+
+            r = client.patch(f"/api/v1/teams/{team_id}", json={"hidden": True})
+            assert r.status_code == 403
+            assert db.session.query(type(team)).get(team_id).hidden is False
+    destroy_ctfd(app)
+
+
+def test_api_assistant_team_write_can_write_teams():
+    """Assistants with Teams Write access can edit teams"""
+    app = create_ctfd(user_mode="teams")
+    with app.app_context():
+        team = gen_team(db)
+        team_id = team.id
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["teams_write"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.patch(f"/api/v1/teams/{team_id}", json={"hidden": True})
+            assert r.status_code == 200
+            assert db.session.query(type(team)).get(team_id).hidden is True
     destroy_ctfd(app)
 
 

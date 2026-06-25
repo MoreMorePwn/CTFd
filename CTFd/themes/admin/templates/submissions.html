@@ -48,6 +48,7 @@
 		<div class="col-md-12">
 			<div class="float-right pb-3">
 				<div class="btn-group" role="group">
+					{% if admin_can('submissions_write') %}
 					{% if type == "incorrect" %}
 					<button type="button" class="btn btn-outline-success" data-toggle="tooltip" title="Mark submissions correct" id="correct-flags-button">
 						<i class="btn-fa fas fa-check"></i>
@@ -56,6 +57,7 @@
 					<button type="button" class="btn btn-outline-danger" data-toggle="tooltip" title="Mark submissions incorrect" id="incorrect-flags-button">
 						<i class="btn-fa fas fa-times"></i>
 					</button>
+					{% endif %}
 					{% endif %}
 					{% if request.args.get("full") %}
 					<button type="button" class="btn btn-outline-primary" data-toggle="tooltip" title="Show truncated flags" id="show-short-flags-button">
@@ -66,9 +68,11 @@
 						<i class="btn-fa fas fa-flag"></i>
 					</button>
 					{% endif %}
+					{% if admin_can('submissions_write') %}
 					<button type="button" class="btn btn-outline-danger" data-toggle="tooltip" title="Delete selected submissions" id="submission-delete-button">
 						<i class="btn-fa fas fa-trash-alt"></i>
 					</button>
+					{% endif %}
 				</div>
 			</div>
 		</div>
@@ -79,11 +83,13 @@
 			<table id="teamsboard" class="table table-striped border">
 				<thead>
 					<tr>
+						{% if admin_can('submissions_write') %}
 						<th class="border-right" data-checkbox>
 							<div class="form-check text-center">
 								<input type="checkbox" class="form-check-input" autocomplete="off" data-checkbox-all>&nbsp;
 							</div>
 						</th>
+						{% endif %}
 						<th class="text-center sort-col"><b>ID</b></th>
 						{% if mode == UserModeTypes.TEAMS %}
 						<th class="sort-col"><b>User</b></th>
@@ -100,11 +106,13 @@
 				<tbody>
 					{% for sub in submissions.items %}
 					<tr>
+						{% if admin_can('submissions_write') %}
 						<td class="border-right" data-checkbox>
 							<div class="form-check text-center">
 								<input type="checkbox" class="form-check-input" value="{{ sub.id }}" data-submission-id="{{ sub.id }}" autocomplete="off">&nbsp;
 							</div>
 						</td>
+						{% endif %}
 						<td class="text-center" id="{{ sub.id }}">
 							{{ sub.id }}
 						</td>

@@ -4,6 +4,7 @@
 {% endblock %}
 
 {% block content %}
+{% if admin_can('teams_write') %}
 <div id="team-info-edit-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -19,7 +20,9 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
+{% if admin_can('teams_write') %}
 <div id="team-add-modal" class="modal fade">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
@@ -34,7 +37,9 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
+{% if admin_can('teams_write') %}
 <div id="team-invite-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -67,6 +72,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
 <div id="team-statistics-modal" class="modal fade">
 	<div class="modal-dialog modal-xl">
@@ -84,6 +90,7 @@
 	</div>
 </div>
 
+{% if admin_can('teams_write') %}
 <div id="team-captain-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -99,7 +106,9 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
+{% if admin_can('awards') %}
 <div id="team-award-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -124,6 +133,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 
 <template id="team-member-select">
 	<select class="form-control custom-select">
@@ -215,6 +225,7 @@
 		</h3>
 		<hr class="w-50">
 		<div class="pt-3">
+			{% if admin_can('teams_write') %}
 			<a class="edit-team text-dark">
 				<i class="btn-fa fas fa-pencil-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 				   title="Edit Team"></i>
@@ -231,13 +242,18 @@
 				<i class="btn-fa fas fa-user-tag fa-2x px-2" data-toggle="tooltip" data-placement="top"
 				   title="Choose Captain"></i>
 			</a>
+			{% endif %}
+			{% if admin_can('awards') %}
 			<a class="award-team text-dark">
 				<i class="btn-fa fas fa-trophy fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Award Team Member"></i>
 			</a>
+			{% endif %}
+			{% if admin_can('teams_write') %}
 			<a class="delete-team text-dark">
 				<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 				   title="Delete Team"></i>
 			</a>
+			{% endif %}
 		</div>
 		<div class="pt-3">
 			<a class="statistics-team text-dark">

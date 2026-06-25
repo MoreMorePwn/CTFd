@@ -45,7 +45,7 @@
 
             <ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
                 {% if authed() %}
-                    {% if is_admin() %}
+                    {% if is_admin_panel_user() %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('admin.view') }}">
                                 <span class="d-block" data-toggle="tooltip" data-placement="bottom" title="Admin Panel">

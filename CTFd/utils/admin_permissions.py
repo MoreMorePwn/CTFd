@@ -11,11 +11,14 @@ ASSISTANT_PERMISSION_DEFINITIONS = [
     ("statistics", "Statistics"),
     ("notifications", "Notifications"),
     ("pages", "Pages"),
-    ("users", "Users"),
-    ("teams", "Teams"),
+    ("users_read", "Users Read"),
+    ("users_write", "Users Write"),
+    ("teams_read", "Teams Read"),
+    ("teams_write", "Teams Write"),
     ("scoreboard", "Scoreboard"),
     ("challenges", "Challenges"),
-    ("submissions", "Submissions"),
+    ("submissions_read", "Submissions Read"),
+    ("submissions_write", "Submissions Write"),
     ("awards", "Awards"),
     ("comments", "Comments"),
     ("files", "Files"),
@@ -29,6 +32,18 @@ ASSISTANT_PERMISSION_KEYS = {
     permission for permission, _label in ASSISTANT_PERMISSION_DEFINITIONS
 }
 
+ASSISTANT_PERMISSION_IMPLICATIONS = {
+    "users_write": ["users_read"],
+    "teams_write": ["teams_read"],
+    "submissions_write": ["submissions_read"],
+}
+
+LEGACY_PERMISSION_EXPANSIONS = {
+    "users": ["users_read", "users_write"],
+    "teams": ["teams_read", "teams_write"],
+    "submissions": ["submissions_read", "submissions_write"],
+}
+
 ADMIN_ENDPOINT_PERMISSIONS = {
     "admin.statistics": {"statistics"},
     "admin.notifications": {"notifications"},
@@ -36,18 +51,18 @@ ADMIN_ENDPOINT_PERMISSIONS = {
     "admin.pages_new": {"pages"},
     "admin.pages_preview": {"pages"},
     "admin.pages_detail": {"pages"},
-    "admin.users_listing": {"users"},
-    "admin.users_new": {"users"},
-    "admin.users_detail": {"users"},
-    "admin.teams_listing": {"teams"},
-    "admin.teams_new": {"teams"},
-    "admin.teams_detail": {"teams"},
+    "admin.users_listing": {"users_read"},
+    "admin.users_new": {"users_write"},
+    "admin.users_detail": {"users_read"},
+    "admin.teams_listing": {"teams_read"},
+    "admin.teams_new": {"teams_write"},
+    "admin.teams_detail": {"teams_read"},
     "admin.scoreboard_listing": {"scoreboard"},
     "admin.challenges_listing": {"challenges"},
     "admin.challenges_detail": {"challenges"},
     "admin.challenges_preview": {"challenges"},
     "admin.challenges_new": {"challenges"},
-    "admin.submissions_listing": {"submissions"},
+    "admin.submissions_listing": {"submissions_read"},
     "admin.config": {"config"},
     "admin.import_ctf": {"import_export"},
     "admin.export_ctf": {"import_export"},
@@ -61,8 +76,24 @@ API_PATH_PERMISSIONS = [
     ("/api/v1/statistics", {"statistics"}),
     ("/api/v1/notifications", {"notifications"}),
     ("/api/v1/pages", {"pages"}),
-    ("/api/v1/users", {"users"}),
-    ("/api/v1/teams", {"teams"}),
+    (
+        "/api/v1/users",
+        {
+            "GET": {"users_read"},
+            "POST": {"users_write"},
+            "PATCH": {"users_write"},
+            "DELETE": {"users_write"},
+        },
+    ),
+    (
+        "/api/v1/teams",
+        {
+            "GET": {"teams_read"},
+            "POST": {"teams_write"},
+            "PATCH": {"teams_write"},
+            "DELETE": {"teams_write"},
+        },
+    ),
     ("/api/v1/scoreboard", {"scoreboard"}),
     ("/api/v1/challenges", {"challenges"}),
     ("/api/v1/flags", {"challenges"}),
@@ -71,14 +102,22 @@ API_PATH_PERMISSIONS = [
     ("/api/v1/topics", {"challenges"}),
     ("/api/v1/unlocks", {"challenges"}),
     ("/api/v1/solutions", {"challenges"}),
-    ("/api/v1/submissions", {"submissions"}),
-    ("/api/v1/awards", {"awards", "users", "teams"}),
-    ("/api/v1/comments", {"comments", "users", "teams", "challenges", "pages"}),
+    (
+        "/api/v1/submissions",
+        {
+            "GET": {"submissions_read"},
+            "POST": {"submissions_write"},
+            "PATCH": {"submissions_write"},
+            "DELETE": {"submissions_write"},
+        },
+    ),
+    ("/api/v1/awards", {"awards"}),
+    ("/api/v1/comments", {"comments", "challenges", "pages"}),
     ("/api/v1/files", {"files", "challenges", "pages"}),
     ("/api/v1/configs", {"config"}),
-    ("/api/v1/brackets", {"config", "users", "teams"}),
+    ("/api/v1/brackets", {"config", "users_write", "teams_write"}),
     ("/api/v1/exports", {"import_export"}),
-    ("/api/v1/tokens", {"users"}),
+    ("/api/v1/tokens", {"users_write"}),
 ]
 
 
@@ -97,8 +136,20 @@ def normalize_assistant_permissions(value):
 
     permissions = []
     for permission in value:
+        if permission in LEGACY_PERMISSION_EXPANSIONS:
+            for expanded_permission in LEGACY_PERMISSION_EXPANSIONS[permission]:
+                if expanded_permission not in permissions:
+                    permissions.append(expanded_permission)
+            continue
+
         if permission in ASSISTANT_PERMISSION_KEYS and permission not in permissions:
             permissions.append(permission)
+
+    for permission in list(permissions):
+        for implied_permission in ASSISTANT_PERMISSION_IMPLICATIONS.get(permission, []):
+            if implied_permission not in permissions:
+                permissions.append(implied_permission)
+
     return permissions
 
 
@@ -154,6 +205,8 @@ def get_current_admin_permission_candidates():
     path = request.path
     for prefix, permissions in API_PATH_PERMISSIONS:
         if _path_matches(path, prefix):
+            if isinstance(permissions, dict):
+                return permissions.get(request.method, set())
             return permissions
 
     return set()
@@ -197,11 +250,11 @@ def first_allowed_admin_endpoint(user):
         ("statistics", "admin.statistics"),
         ("notifications", "admin.notifications"),
         ("pages", "admin.pages_listing"),
-        ("users", "admin.users_listing"),
-        ("teams", "admin.teams_listing"),
+        ("users_read", "admin.users_listing"),
+        ("teams_read", "admin.teams_listing"),
         ("scoreboard", "admin.scoreboard_listing"),
         ("challenges", "admin.challenges_listing"),
-        ("submissions", "admin.submissions_listing"),
+        ("submissions_read", "admin.submissions_listing"),
         ("config", "admin.config"),
         ("import_export", "admin.import_ctf"),
         ("monitor", "admin.monitor"),

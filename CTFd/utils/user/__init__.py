@@ -218,6 +218,10 @@ def is_assistant():
     return False
 
 
+def is_admin_panel_user():
+    return is_full_admin() or is_assistant()
+
+
 def is_admin():
     if authed():
         user = get_current_user_attrs()
