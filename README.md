@@ -19,6 +19,12 @@
 - Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, and Submissions.
 - Added `run.sh` to generate randomized credentials for non-Grafana services, print the generated credentials, and start Docker Compose.
 
+![Assistant role permission controls](docs/screenshots/ctfd-admin-assistant-access-permissions.png)
+
+![Assistant Admin Panel link](docs/screenshots/ctfd-assistant-admin-panel-link.png)
+
+![Assistant read-only submissions access](docs/screenshots/ctfd-assistant-submissions-read-only.png)
+
 ![Challenge submit metadata fields](docs/screenshots/ctfd-challenge-submission-metadata.png)
 
 ![Admin challenge Need AI and Need Solver indicators](docs/screenshots/ctfd-admin-challenges-need-ai-solver.png)
