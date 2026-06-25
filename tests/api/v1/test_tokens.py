@@ -77,11 +77,39 @@ def test_api_tag_detail_get():
             assert r.status_code == 200
             resp = r.get_json()
             assert sorted(resp["data"].keys()) == sorted(TokenSchema().views["admin"])
+            assert "value" not in resp["data"]
 
         gen_user(app.db, name="user2", email="user2@examplectf.com")
         with login_as_user(app, "user2") as client:
             r = client.get("/api/v1/tokens/1", json="")
             assert r.status_code == 404
+    destroy_ctfd(app)
+
+
+def test_api_assistant_cannot_read_or_delete_other_users_tokens():
+    """Assistants with Users Write cannot read or delete another user's API tokens"""
+    app = create_ctfd()
+    with app.app_context():
+        user = gen_user(app.db, name="user")
+        token = generate_user_token(user)
+        token_id = token.id
+
+        gen_user(
+            app.db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users_write"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get(f"/api/v1/tokens/{token_id}", json="")
+            assert r.status_code == 404
+
+            r = client.delete(f"/api/v1/tokens/{token_id}", json="")
+            assert r.status_code == 404
+            assert Tokens.query.filter_by(id=token_id).first() is not None
     destroy_ctfd(app)
 
 

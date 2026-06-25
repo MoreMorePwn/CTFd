@@ -7,6 +7,7 @@ from tests.helpers import (
     destroy_ctfd,
     gen_challenge,
     gen_comment,
+    gen_user,
     login_as_user,
     register_user,
 )
@@ -105,4 +106,59 @@ def test_api_delete_comments():
             resp = r.get_json()
             assert Comments.query.count() == 0
             assert resp["success"] is True
+    destroy_ctfd(app)
+
+
+def test_api_challenge_assistant_cannot_access_user_comments():
+    """Challenge assistants should not access user comments through the global comments API"""
+    app = create_ctfd()
+    with app.app_context():
+        challenge = gen_challenge(app.db)
+        user = gen_user(app.db, name="player", email="player@examplectf.com")
+        challenge_comment = gen_comment(
+            app.db,
+            content="challenge note",
+            author_id=1,
+            challenge_id=challenge.id,
+        )
+        user_comment = gen_comment(
+            app.db,
+            content="private user note",
+            author_id=1,
+            type="user",
+            user_id=user.id,
+        )
+        gen_user(
+            app.db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["challenges"]',
+        )
+        challenge_comment_id = challenge_comment.id
+        user_comment_id = user_comment.id
+        user_id = user.id
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get("/api/v1/comments", json="")
+            assert r.status_code == 200
+            assert [c["id"] for c in r.get_json()["data"]] == [challenge_comment_id]
+
+            r = client.get(f"/api/v1/comments?user_id={user_id}", json="")
+            assert r.status_code == 403
+
+            r = client.post(
+                "/api/v1/comments",
+                json={
+                    "content": "tamper",
+                    "type": "user",
+                    "user_id": user_id,
+                },
+            )
+            assert r.status_code == 403
+
+            r = client.delete(f"/api/v1/comments/{user_comment_id}", json="")
+            assert r.status_code == 403
+            assert Comments.query.filter_by(id=user_comment_id).first() is not None
     destroy_ctfd(app)

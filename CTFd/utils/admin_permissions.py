@@ -117,7 +117,6 @@ API_PATH_PERMISSIONS = [
     ("/api/v1/configs", {"config"}),
     ("/api/v1/brackets", {"config", "users_write", "teams_write"}),
     ("/api/v1/exports", {"import_export"}),
-    ("/api/v1/tokens", {"users_write"}),
 ]
 
 

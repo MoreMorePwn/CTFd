@@ -1,6 +1,6 @@
 from typing import List
 
-from flask import request
+from flask import abort, request
 from flask_restx import Namespace, Resource
 
 from CTFd.api.v1.helpers.request import validate_args
@@ -10,6 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import Files, db
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
@@ -33,6 +34,38 @@ files_namespace.schema_model(
 files_namespace.schema_model(
     "FileListSuccessResponse", FileListSuccessResponse.apidoc()
 )
+
+
+def _allowed_file_types():
+    if current_user_can_access_admin_permission("files"):
+        return None
+
+    allowed = set()
+    if current_user_can_access_admin_permission("challenges"):
+        allowed.add("challenge")
+    if current_user_can_access_admin_permission("pages"):
+        allowed.add("page")
+    return allowed
+
+
+def _requested_file_type(args):
+    if args.get("type"):
+        return args["type"]
+    if args.get("challenge_id") or args.get("challenge"):
+        return "challenge"
+    if args.get("page_id") or args.get("page"):
+        return "page"
+    if args.get("solution_id") or args.get("solution"):
+        return "solution"
+    return "standard"
+
+
+def _ensure_file_type_allowed(file_type):
+    allowed_types = _allowed_file_types()
+    if allowed_types is None:
+        return
+    if file_type not in allowed_types:
+        abort(403)
 
 
 @files_namespace.route("")
@@ -64,6 +97,14 @@ class FilesList(Resource):
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Files, query=q, field=field)
+        allowed_types = _allowed_file_types()
+        requested_type = query_args.get("type")
+
+        if allowed_types is not None:
+            if requested_type:
+                _ensure_file_type_allowed(requested_type)
+            else:
+                filters.append(Files.type.in_(allowed_types))
 
         files = Files.query.filter_by(**query_args).filter(*filters).all()
         schema = FileSchema(many=True)
@@ -107,6 +148,10 @@ class FilesList(Resource):
         location="form",
     )
     def post(self, form_args):
+        requested_type = _requested_file_type(form_args)
+        _ensure_file_type_allowed(requested_type)
+        form_args["type"] = requested_type
+
         files = request.files.getlist("file")
         location = form_args.get("location")
         # challenge_id
@@ -157,6 +202,7 @@ class FilesDetail(Resource):
     )
     def get(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
+        _ensure_file_type_allowed(f.type)
         schema = FileSchema()
         response = schema.dump(f)
 
@@ -172,6 +218,7 @@ class FilesDetail(Resource):
     )
     def delete(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
+        _ensure_file_type_allowed(f.type)
 
         uploads.delete_file(file_id=f.id)
         db.session.delete(f)

@@ -6,6 +6,9 @@ from CTFd.utils.crypto import verify_password
 from tests.helpers import (
     create_ctfd,
     destroy_ctfd,
+    gen_challenge,
+    gen_fail,
+    gen_solve,
     gen_team,
     gen_user,
     login_as_user,
@@ -263,6 +266,109 @@ def test_api_assistant_team_write_can_write_teams():
             r = client.patch(f"/api/v1/teams/{team_id}", json={"hidden": True})
             assert r.status_code == 200
             assert db.session.query(type(team)).get(team_id).hidden is True
+    destroy_ctfd(app)
+
+
+def test_api_assistant_user_read_does_not_leak_submission_secrets():
+    """Users Read assistants should not receive submitted flags or solver metadata"""
+    app = create_ctfd()
+    with app.app_context():
+        user = gen_user(db, name="player", email="player@examplectf.com")
+        challenge = gen_challenge(db)
+        gen_solve(
+            db,
+            user_id=user.id,
+            challenge_id=challenge.id,
+            provided="flag{secret-solve}",
+            ip="10.0.0.1",
+            ai_source="https://chat.deepseek.com/share/secret",
+        )
+        gen_fail(
+            db,
+            user_id=user.id,
+            challenge_id=challenge.id,
+            provided="wrong-secret",
+            ip="10.0.0.2",
+        )
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users_read"]',
+        )
+        user_id = user.id
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get(f"/api/v1/users/{user_id}/solves", json=True)
+            assert r.status_code == 200
+            response_text = r.get_data(as_text=True)
+            solve = r.get_json()["data"][0]
+            assert "provided" not in solve
+            assert "ip" not in solve
+            assert "ai_source" not in solve
+            assert "solver_files" not in solve
+            assert "flag{secret-solve}" not in response_text
+            assert "https://chat.deepseek.com/share/secret" not in response_text
+
+            r = client.get(f"/api/v1/users/{user_id}/fails", json=True)
+            assert r.status_code == 200
+            assert r.get_json()["data"] == []
+            assert "wrong-secret" not in r.get_data(as_text=True)
+    destroy_ctfd(app)
+
+
+def test_api_assistant_team_read_does_not_leak_submission_secrets():
+    """Teams Read assistants should not receive submitted flags or solver metadata"""
+    app = create_ctfd(user_mode="teams")
+    with app.app_context():
+        team = gen_team(db)
+        user = team.members[0]
+        challenge = gen_challenge(db)
+        gen_solve(
+            db,
+            user_id=user.id,
+            team_id=team.id,
+            challenge_id=challenge.id,
+            provided="flag{team-secret-solve}",
+            ip="10.0.0.3",
+            ai_source="https://chat.deepseek.com/share/team-secret",
+        )
+        gen_fail(
+            db,
+            user_id=user.id,
+            team_id=team.id,
+            challenge_id=challenge.id,
+            provided="wrong-team-secret",
+            ip="10.0.0.4",
+        )
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["teams_read"]',
+        )
+        team_id = team.id
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get(f"/api/v1/teams/{team_id}/solves", json=True)
+            assert r.status_code == 200
+            response_text = r.get_data(as_text=True)
+            solve = r.get_json()["data"][0]
+            assert "provided" not in solve
+            assert "ip" not in solve
+            assert "ai_source" not in solve
+            assert "solver_files" not in solve
+            assert "flag{team-secret-solve}" not in response_text
+            assert "https://chat.deepseek.com/share/team-secret" not in response_text
+
+            r = client.get(f"/api/v1/teams/{team_id}/fails", json=True)
+            assert r.status_code == 200
+            assert r.get_json()["data"] == []
+            assert "wrong-team-secret" not in r.get_data(as_text=True)
     destroy_ctfd(app)
 
 

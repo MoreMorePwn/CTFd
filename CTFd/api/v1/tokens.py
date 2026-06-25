@@ -10,7 +10,7 @@ from CTFd.models import Tokens, db
 from CTFd.schemas.tokens import TokenSchema
 from CTFd.utils.decorators import authed_only, require_verified_emails
 from CTFd.utils.security.auth import generate_user_token
-from CTFd.utils.user import get_current_user, get_current_user_type, is_admin
+from CTFd.utils.user import get_current_user, is_full_admin
 
 tokens_namespace = Namespace("tokens", description="Endpoint to retrieve Tokens")
 
@@ -94,8 +94,8 @@ class TokenList(Resource):
             user, expiration=expiration, description=description
         )
 
-        # Explicitly use admin view so that user's can see the value of their token
-        schema = TokenSchema(view="admin")
+        # Token values are only returned once, immediately after creation.
+        schema = TokenSchema(view="created")
         response = schema.dump(token)
 
         if response.errors:
@@ -120,15 +120,14 @@ class TokenDetail(Resource):
         },
     )
     def get(self, token_id):
-        if is_admin():
+        if is_full_admin():
             token = Tokens.query.filter_by(id=token_id).first_or_404()
         else:
             token = Tokens.query.filter_by(
                 id=token_id, user_id=session["id"]
             ).first_or_404()
 
-        user_type = get_current_user_type(fallback="user")
-        schema = TokenSchema(view=user_type)
+        schema = TokenSchema(view="admin" if is_full_admin() else "user")
         response = schema.dump(token)
 
         if response.errors:
@@ -143,7 +142,7 @@ class TokenDetail(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, token_id):
-        if is_admin():
+        if is_full_admin():
             token = Tokens.query.filter_by(id=token_id).first_or_404()
         else:
             user = get_current_user()

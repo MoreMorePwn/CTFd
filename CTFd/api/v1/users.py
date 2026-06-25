@@ -24,6 +24,7 @@ from CTFd.models import (
 from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.challenges import get_submissions_for_user_id_for_challenge_id
 from CTFd.utils.config import get_config, get_mail_provider
 from CTFd.utils.decorators import admins_only, authed_only, ratelimit
@@ -51,6 +52,14 @@ def _assistant_role_error():
         "success": False,
         "errors": {"type": ["Only full admins can manage user roles"]},
     }, 403
+
+
+def _can_read_sensitive_submissions():
+    return current_user_can_access_admin_permission("submissions_read")
+
+
+def _submission_view():
+    return "admin" if _can_read_sensitive_submissions() else "user"
 
 
 UserModel = sqlalchemy_to_pydantic(Users)
@@ -403,7 +412,7 @@ class UserPrivateSolves(Resource):
         user = get_current_user()
         solves = user.get_solves(admin=True)
 
-        view = "user" if not is_admin() else "admin"
+        view = _submission_view()
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -420,12 +429,12 @@ class UserPrivateFails(Resource):
         user = get_current_user()
         fails = user.get_fails(admin=True)
 
-        view = "user" if not is_admin() else "admin"
+        view = _submission_view()
 
         # We want to return the count purely for stats & graphs
         # but this data isn't really needed by the end user.
-        # Only actually show fail data for admins.
-        if is_admin():
+        # Only actually show fail data to submission-sensitive readers.
+        if _can_read_sensitive_submissions():
             response = SubmissionSchema(view=view, many=True).dump(fails)
             if response.errors:
                 return {"success": False, "errors": response.errors}, 400
@@ -467,9 +476,10 @@ class UserPublicSolves(Resource):
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
 
-        solves = user.get_solves(admin=is_admin())
+        can_read_sensitive_submissions = _can_read_sensitive_submissions()
+        solves = user.get_solves(admin=can_read_sensitive_submissions)
 
-        view = "user" if not is_admin() else "admin"
+        view = "admin" if can_read_sensitive_submissions else "user"
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -489,14 +499,15 @@ class UserPublicFails(Resource):
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        fails = user.get_fails(admin=is_admin())
+        can_read_sensitive_submissions = _can_read_sensitive_submissions()
+        fails = user.get_fails(admin=can_read_sensitive_submissions)
 
-        view = "user" if not is_admin() else "admin"
+        view = "admin" if can_read_sensitive_submissions else "user"
 
         # We want to return the count purely for stats & graphs
         # but this data isn't really needed by the end user.
-        # Only actually show fail data for admins.
-        if is_admin():
+        # Only actually show fail data to submission-sensitive readers.
+        if can_read_sensitive_submissions:
             response = SubmissionSchema(view=view, many=True).dump(fails)
             if response.errors:
                 return {"success": False, "errors": response.errors}, 400
