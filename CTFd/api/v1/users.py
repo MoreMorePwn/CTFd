@@ -40,9 +40,17 @@ from CTFd.utils.user import (
     get_user_attrs,
     get_user_public_api,
     is_admin,
+    is_full_admin,
 )
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
+
+
+def _assistant_role_error():
+    return {
+        "success": False,
+        "errors": {"type": ["Only full admins can manage user roles"]},
+    }, 403
 
 
 UserModel = sqlalchemy_to_pydantic(Users)
@@ -163,7 +171,15 @@ class UserList(Resource):
         },
     )
     def post(self):
-        req = request.get_json()
+        req = request.get_json() or {}
+        if is_full_admin() is False:
+            if (
+                req.get("type") in ("admin", "assistant")
+                or "assistant_permissions" in req
+            ):
+                return _assistant_role_error()
+            req["type"] = "user"
+
         schema = UserSchema("admin")
         response = schema.load(req)
 
@@ -232,7 +248,13 @@ class UserPublic(Resource):
     )
     def patch(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
-        data = request.get_json()
+        data = request.get_json() or {}
+        if is_full_admin() is False:
+            if user.type in ("admin", "assistant"):
+                return _assistant_role_error()
+            if "type" in data or "assistant_permissions" in data:
+                return _assistant_role_error()
+
         data["id"] = user_id
 
         # Admins should not be able to ban themselves
@@ -275,6 +297,9 @@ class UserPublic(Resource):
                 {"success": False, "errors": {"id": "You cannot delete yourself"}},
                 400,
             )
+        user = Users.query.filter_by(id=user_id).first_or_404()
+        if is_full_admin() is False and user.type in ("admin", "assistant"):
+            return _assistant_role_error()
 
         Notifications.query.filter_by(user_id=user_id).delete()
         Awards.query.filter_by(user_id=user_id).delete()

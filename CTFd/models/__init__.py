@@ -412,6 +412,7 @@ class Users(db.Model):
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
     secret = db.Column(db.String(128))
+    assistant_permissions = db.Column(db.Text)
 
     # Supplementary attributes
     website = db.Column(db.String(128))
@@ -445,6 +446,12 @@ class Users(db.Model):
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
+
+    @property
+    def assistant_permission_list(self):
+        from CTFd.utils.admin_permissions import normalize_assistant_permissions
+
+        return normalize_assistant_permissions(self.assistant_permissions)
 
     @validates("password")
     def validate_password(self, key, plaintext):
@@ -624,6 +631,10 @@ class Users(db.Model):
 class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}
+
+
+class Assistants(Users):
+    __mapper_args__ = {"polymorphic_identity": "assistant"}
 
 
 class Teams(db.Model):

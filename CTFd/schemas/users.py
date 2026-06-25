@@ -6,9 +6,13 @@ from sqlalchemy.orm import load_only
 from CTFd.models import Brackets, UserFieldEntries, UserFields, Users, ma
 from CTFd.schemas.fields import UserFieldEntriesSchema
 from CTFd.utils import get_config, string_types
+from CTFd.utils.admin_permissions import (
+    normalize_assistant_permissions,
+    serialize_assistant_permissions,
+)
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_blacklisted, check_email_is_whitelisted
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.user import get_current_user, is_admin, is_full_admin
 from CTFd.utils.validators import validate_country_code, validate_language
 
 
@@ -57,6 +61,32 @@ class UserSchema(ma.ModelSchema):
     fields = Nested(
         UserFieldEntriesSchema, partial=True, many=True, attribute="field_entries"
     )
+
+    @pre_load
+    def validate_role_fields(self, data):
+        user_type = data.get("type")
+        if user_type is not None:
+            if user_type not in ("user", "assistant", "admin"):
+                raise ValidationError(
+                    "Please provide a valid user type", field_names=["type"]
+                )
+            if is_full_admin() is False:
+                raise ValidationError(
+                    "Only full admins can manage user roles", field_names=["type"]
+                )
+
+        if "assistant_permissions" in data:
+            if is_full_admin() is False:
+                raise ValidationError(
+                    "Only full admins can manage assistant access",
+                    field_names=["assistant_permissions"],
+                )
+            data["assistant_permissions"] = serialize_assistant_permissions(
+                data.get("assistant_permissions")
+            )
+
+        if user_type and user_type != "assistant":
+            data["assistant_permissions"] = None
 
     @pre_load
     def validate_name(self, data):
@@ -352,6 +382,13 @@ class UserSchema(ma.ModelSchema):
                 field for field in fields if field["field_id"] not in removed_field_ids
             ]
 
+    @post_dump
+    def process_assistant_permissions(self, data):
+        if "assistant_permissions" in data:
+            data["assistant_permissions"] = normalize_assistant_permissions(
+                data.get("assistant_permissions")
+            )
+
     views = {
         "user": [
             "website",
@@ -396,6 +433,7 @@ class UserSchema(ma.ModelSchema):
             "type",
             "verified",
             "change_password",
+            "assistant_permissions",
             "fields",
             "team_id",
         ],

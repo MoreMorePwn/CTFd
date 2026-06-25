@@ -8,6 +8,7 @@ UserAttrsFields = [
     "email",
     "type",
     "secret",
+    "assistant_permissions",
     "website",
     "affiliation",
     "country",

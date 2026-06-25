@@ -8,7 +8,13 @@ from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
+from CTFd.utils.user import (
+    authed,
+    get_current_team,
+    get_current_user,
+    is_admin,
+    is_assistant,
+)
 
 
 def during_ctf_time_only(f):
@@ -134,7 +140,7 @@ def admins_only(f):
         if is_admin():
             return f(*args, **kwargs)
         else:
-            if request.is_json:
+            if is_assistant() or request.is_json:
                 abort(403)
             else:
                 return redirect(url_for("auth.login", next=request.full_path))

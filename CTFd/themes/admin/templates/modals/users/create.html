@@ -32,9 +32,11 @@
 	{{ render_extra_fields(form.extra) }}
 
 	<div class="form-group">
+		{% if is_full_admin() %}
 		<div class="form-check form-check-inline">
 			{{ form.type(class="form-control form-inline custom-select", id="type-select") }}
 		</div>
+		{% endif %}
 		<div class="form-check form-check-inline">
 			{{ form.verified(class="form-check-input", autocomplete="off") }}
 			{{ form.verified.label(class="form-check-label") }}
@@ -48,6 +50,20 @@
 			{{ form.banned.label(class="form-check-label") }}
 		</div>
 	</div>
+
+	{% if is_full_admin() %}
+	<div class="form-group">
+		<label>Assistant Access</label>
+		<div class="border rounded p-2">
+			{% for permission, label in get_assistant_permission_definitions() %}
+			<div class="form-check form-check-inline mb-2">
+				<input class="form-check-input assistant-permission-input" type="checkbox" name="assistant_permissions" value="{{ permission }}" autocomplete="off">
+				<label class="form-check-label">{{ label }}</label>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
 
 	<div class="form-group">
 		<div class="form-check form-check-inline">

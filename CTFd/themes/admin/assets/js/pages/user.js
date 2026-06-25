@@ -11,7 +11,17 @@ import CommentBox from "../components/comments/CommentBox.vue";
 
 function createUser(event) {
   event.preventDefault();
-  const params = $("#user-info-create-form").serializeJSON(true);
+  const form = $("#user-info-create-form");
+  const params = form.serializeJSON(true);
+
+  if (form.find("input[name='assistant_permissions']").length) {
+    params.assistant_permissions = form
+      .find("input[name='assistant_permissions']:checked")
+      .map(function () {
+        return this.value;
+      })
+      .get();
+  }
 
   params.fields = [];
 
@@ -70,7 +80,17 @@ function createUser(event) {
 
 function updateUser(event) {
   event.preventDefault();
-  const params = $("#user-info-edit-form").serializeJSON(true);
+  const form = $("#user-info-edit-form");
+  const params = form.serializeJSON(true);
+
+  if (form.find("input[name='assistant_permissions']").length) {
+    params.assistant_permissions = form
+      .find("input[name='assistant_permissions']:checked")
+      .map(function () {
+        return this.value;
+      })
+      .get();
+  }
 
   params.fields = [];
 

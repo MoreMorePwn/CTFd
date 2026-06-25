@@ -191,6 +191,8 @@ def get_current_user_type(fallback=None):
     if authed():
         user = get_current_user_attrs()
         if user and user.type:
+            if user.type == "assistant":
+                return "admin" if is_admin() else "user"
             return user.type
     else:
         return fallback
@@ -200,13 +202,35 @@ def authed():
     return bool(session.get("id", False))
 
 
-def is_admin():
+def is_full_admin():
     if authed():
         user = get_current_user_attrs()
         if user and user.type:
             return user.type == "admin"
-    else:
-        return False
+    return False
+
+
+def is_assistant():
+    if authed():
+        user = get_current_user_attrs()
+        if user and user.type:
+            return user.type == "assistant"
+    return False
+
+
+def is_admin():
+    if authed():
+        user = get_current_user_attrs()
+        if user and user.type:
+            if user.type == "admin":
+                return True
+            if user.type == "assistant":
+                from CTFd.utils.admin_permissions import (
+                    current_user_can_access_current_admin_request,
+                )
+
+                return current_user_can_access_current_admin_request()
+    return False
 
 
 def is_verified():

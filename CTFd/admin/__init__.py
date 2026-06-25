@@ -44,13 +44,19 @@ from CTFd.utils.csv import (
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.exports import background_import_ctf
 from CTFd.utils.exports import export_ctf as export_ctf_util
-from CTFd.utils.user import is_admin
+from CTFd.utils.admin_permissions import first_allowed_admin_endpoint
+from CTFd.utils.user import get_current_user, is_admin, is_assistant
 
 
 @admin.route("/admin", methods=["GET"])
 def view():
     if is_admin():
-        return redirect(url_for("admin.statistics"))
+        endpoint = first_allowed_admin_endpoint(get_current_user())
+        if endpoint:
+            return redirect(url_for(endpoint))
+        abort(403)
+    if is_assistant():
+        abort(403)
     return redirect(url_for("auth.login"))
 
 
@@ -113,6 +119,12 @@ def export_ctf():
     return send_file(
         backup, cache_timeout=-1, as_attachment=True, attachment_filename=full_name
     )
+
+
+@admin.route("/admin/monitor", methods=["GET"])
+@admins_only
+def monitor():
+    return redirect(get_config("grafana_url", default="http://127.0.0.1:3000"))
 
 
 @admin.route("/admin/import/csv", methods=["POST"])

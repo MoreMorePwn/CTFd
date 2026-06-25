@@ -77,7 +77,7 @@
 						<th class="sort-col text-center"><b>User</b></th>
 						<th class="sort-col text-center"><b>Email</b></th>
 						<th class="sort-col text-center"><b>Country</b></th>
-						<th class="sort-col text-center px-0"><b>Admin</b></th>
+						<th class="sort-col text-center px-0"><b>Role</b></th>
 						<th class="sort-col text-center px-0"><b>Verified</b></th>
 						<th class="sort-col text-center px-0"><b>Hidden</b></th>
 						<th class="sort-col text-center px-0"><b>Banned</b></th>
@@ -130,6 +130,8 @@
 						<td class="team-admin d-md-table-cell d-lg-table-cell text-center" value="{{ user.type }}">
 							{% if user.type == 'admin' %}
 								<span class="badge badge-primary">admin</span>
+							{% elif user.type == 'assistant' %}
+								<span class="badge badge-info">assistant</span>
 							{% endif %}
 						</td>
 						<td class="team-verified d-md-table-cell d-lg-table-cell text-center" value="{{ user.verified }}">

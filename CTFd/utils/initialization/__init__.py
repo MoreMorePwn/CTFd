@@ -47,6 +47,7 @@ from CTFd.utils.user import (
     get_ip,
     get_locale,
     is_admin,
+    is_full_admin,
 )
 
 
@@ -84,6 +85,10 @@ def init_template_globals(app):
     )
     from CTFd.utils.countries import get_countries, lookup_country_code
     from CTFd.utils.countries.geoip import lookup_ip_address, lookup_ip_address_city
+    from CTFd.utils.admin_permissions import (
+        current_user_can_access_admin_permission,
+        get_assistant_permission_definitions,
+    )
 
     app.jinja_env.globals.update(config=config)
     app.jinja_env.globals.update(get_pages=get_pages)
@@ -115,6 +120,11 @@ def init_template_globals(app):
     app.jinja_env.globals.update(integrations=integrations)
     app.jinja_env.globals.update(authed=authed)
     app.jinja_env.globals.update(is_admin=is_admin)
+    app.jinja_env.globals.update(is_full_admin=is_full_admin)
+    app.jinja_env.globals.update(admin_can=current_user_can_access_admin_permission)
+    app.jinja_env.globals.update(
+        get_assistant_permission_definitions=get_assistant_permission_definitions
+    )
     app.jinja_env.globals.update(get_current_user_attrs=get_current_user_attrs)
     app.jinja_env.globals.update(get_current_team_attrs=get_current_team_attrs)
     app.jinja_env.globals.update(get_ip=get_ip)

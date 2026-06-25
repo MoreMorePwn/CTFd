@@ -90,6 +90,8 @@
 		<div class="mb-2">
 			{% if user.type == 'admin' %}
 				<span class="badge badge-primary">admin</span>
+			{% elif user.type == 'assistant' %}
+				<span class="badge badge-info">assistant</span>
 			{% endif %}
 			{% if user.verified %}
 				<span class="badge badge-success">verified</span>

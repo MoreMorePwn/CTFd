@@ -47,9 +47,14 @@
 			</button>
 			<div class="collapse navbar-collapse" id="base-navbars">
 				<ul class="navbar-nav mr-auto">
+					{% if admin_can('statistics') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.statistics') }}">Statistics</a></li>
+					{% endif %}
+					{% if admin_can('notifications') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.notifications') }}">Notifications</a>
 					</li>
+					{% endif %}
+					{% if admin_can('pages') %}
 					<li class="nav-item dropdown">
 						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Pages</a>
 						<div class="dropdown-menu">
@@ -57,12 +62,20 @@
 							<a class="dropdown-item" href="{{ url_for('admin.pages_new') }}">New Page</a>
 						</div>
 					</li>
+					{% endif %}
+					{% if admin_can('users') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a></li>
-					{% if get_config('user_mode') == 'teams' %}
+					{% endif %}
+					{% if get_config('user_mode') == 'teams' and admin_can('teams') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a></li>
 					{% endif %}
+					{% if admin_can('scoreboard') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a></li>
+					{% endif %}
+					{% if admin_can('challenges') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
+					{% endif %}
+					{% if admin_can('submissions') %}
 					<li class="nav-item dropdown">
 						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
 						   aria-haspopup="true" aria-expanded="true">Submissions</a>
@@ -72,9 +85,15 @@
 							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='incorrect') }}">Incorrect Submissions</a>
 						</div>
 					</li>
+					{% endif %}
+					{% if admin_can('config') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
-					<li class="nav-item"><a class="nav-link" href="{{ get_config('grafana_url', default='http://127.0.0.1:3000') }}" target="_blank">Monitor</a></li>
+					{% endif %}
+					{% if admin_can('monitor') %}
+					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.monitor') }}" target="_blank">Monitor</a></li>
+					{% endif %}
 
+					{% if admin_can('plugins') %}
 					{% set plugin_menu = get_admin_plugin_menu_bar() %}
 					{% set plugins = get_menubar_plugins() %}
 					{% if plugin_menu or plugins %}
@@ -105,6 +124,7 @@
 							</ul>
 						</li>
 						{% endif %}
+					{% endif %}
 					{% endif %}
 				</ul>
 				<ul class="nav navbar-nav navbar-right">

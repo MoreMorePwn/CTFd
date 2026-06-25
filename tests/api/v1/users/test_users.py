@@ -3,7 +3,7 @@
 
 from CTFd.models import Users, db
 from CTFd.utils.crypto import verify_password
-from tests.helpers import create_ctfd, destroy_ctfd, login_as_user, register_user
+from tests.helpers import create_ctfd, destroy_ctfd, gen_user, login_as_user, register_user
 
 
 def test_api_self_ban():
@@ -36,6 +36,88 @@ def test_api_modify_user_type():
             user_data = r.get_json()["data"]
             assert user_data["name"] == "user"
             assert user_data["type"] == "user"
+    destroy_ctfd(app)
+
+
+def test_api_admin_can_create_assistant_with_permissions():
+    """A full admin can create an Assistant account with scoped admin permissions"""
+    app = create_ctfd()
+    with app.app_context():
+        with login_as_user(app, "admin") as client:
+            r = client.post(
+                "/api/v1/users",
+                json={
+                    "name": "assistant",
+                    "email": "assistant@examplectf.com",
+                    "password": "password",
+                    "type": "assistant",
+                    "assistant_permissions": ["users", "monitor", "invalid"],
+                },
+            )
+
+            assert r.status_code == 200
+            user_data = r.get_json()["data"]
+            assert user_data["type"] == "assistant"
+            assert user_data["assistant_permissions"] == ["users", "monitor"]
+
+            assistant = Users.query.filter_by(name="assistant").first()
+            assert assistant.type == "assistant"
+            assert assistant.assistant_permission_list == ["users", "monitor"]
+    destroy_ctfd(app)
+
+
+def test_api_assistant_access_is_limited_to_granted_sections():
+    """An Assistant can access granted admin sections but not other admin sections"""
+    app = create_ctfd()
+    with app.app_context():
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get("/admin")
+            assert r.status_code == 302
+            assert r.location.endswith("/admin/users")
+
+            assert client.get("/admin/users").status_code == 200
+            assert client.get("/api/v1/users?view=admin", json=True).status_code == 200
+
+            assert client.get("/admin/statistics").status_code == 403
+            assert client.get("/api/v1/statistics/users", json=True).status_code == 403
+    destroy_ctfd(app)
+
+
+def test_api_assistant_cannot_manage_roles_or_privileged_accounts():
+    """Assistants with Users access cannot promote users or manage admins/assistants"""
+    app = create_ctfd()
+    with app.app_context():
+        register_user(app)
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.patch("/api/v1/users/2", json={"type": "admin"})
+            assert r.status_code == 403
+            assert Users.query.get(2).type == "user"
+
+            r = client.patch("/api/v1/users/1", json={"hidden": False})
+            assert r.status_code == 403
+            assert Users.query.get(1).type == "admin"
+
+            r = client.delete("/api/v1/users/1", json=True)
+            assert r.status_code == 403
+            assert Users.query.get(1) is not None
     destroy_ctfd(app)
 
 
