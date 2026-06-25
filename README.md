@@ -16,6 +16,7 @@
 - Added `Custom` configuration for the accepted AI Source regex, solver file count limit, and solver total size limit.
 - Added per-challenge `Need AI` and `Need Solver` settings, including challenge creation/editing controls and admin challenge-table indicators.
 - Added AI Source and Solver links to the admin submissions table.
+- Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, and Submissions.
 - Added `run.sh` to generate randomized credentials for non-Grafana services, print the generated credentials, and start Docker Compose.
 
 ![Challenge submit metadata fields](docs/screenshots/ctfd-challenge-submission-metadata.png)
