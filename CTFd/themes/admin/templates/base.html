@@ -86,6 +86,9 @@
 						</div>
 					</li>
 					{% endif %}
+					{% if admin_can('anti_cheat') %}
+					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.anti_cheat') }}">Anti-Cheat</a></li>
+					{% endif %}
 					{% if admin_can('config') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
 					{% endif %}

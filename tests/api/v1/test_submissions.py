@@ -92,6 +92,33 @@ def test_api_submission_get_admin():
     destroy_ctfd(app)
 
 
+def test_api_submission_patch_verified():
+    """Admins can mark a submission as verified after reviewing AI source and solver files"""
+    app = create_ctfd()
+    with app.app_context():
+        solve = gen_solve(app.db, user_id=1)
+        solve_id = solve.id
+        assert solve.verified is False
+
+        with login_as_user(app, "admin") as client:
+            r = client.patch(f"/api/v1/submissions/{solve_id}", json={"verified": True})
+            assert r.status_code == 200
+            data = r.get_json()["data"]
+            assert data["verified"] is True
+            assert Solves.query.get(solve_id).verified is True
+
+            r = client.patch(f"/api/v1/submissions/{solve_id}", json={"verified": "yes"})
+            assert r.status_code == 400
+            assert Solves.query.get(solve_id).verified is True
+
+            r = client.patch(f"/api/v1/submissions/{solve_id}", json={"verified": False})
+            assert r.status_code == 200
+            data = r.get_json()["data"]
+            assert data["verified"] is False
+            assert Solves.query.get(solve_id).verified is False
+    destroy_ctfd(app)
+
+
 def test_api_submission_delete_admin():
     """Can a user patch /api/v1/submissions/<submission_id> if admin"""
     app = create_ctfd()

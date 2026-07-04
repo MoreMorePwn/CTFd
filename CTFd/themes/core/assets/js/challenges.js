@@ -16,6 +16,20 @@ function addTargetBlank(html) {
   return view.documentElement.outerHTML;
 }
 
+function getBrowserFingerprint() {
+  const key = "ctfd_browser_fingerprint";
+  let fingerprint = window.localStorage.getItem(key);
+  if (!fingerprint) {
+    if (window.crypto && window.crypto.randomUUID) {
+      fingerprint = window.crypto.randomUUID();
+    } else {
+      fingerprint = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+    window.localStorage.setItem(key, fingerprint);
+  }
+  return fingerprint;
+}
+
 window.Alpine = Alpine;
 
 Alpine.store("challenge", {
@@ -223,6 +237,7 @@ Alpine.data("Challenge", () => ({
     body.append("challenge_id", this.id);
     body.append("submission", this.submission);
     body.append("nonce", CTFd.config.csrfNonce);
+    body.append("browser_fingerprint", getBrowserFingerprint());
     this.aiSources.forEach(source => {
       body.append("ai_source", source);
     });

@@ -38,6 +38,7 @@ from CTFd.models import (
 from CTFd.utils import config, get_config, set_config
 from CTFd.utils import user as current_user
 from CTFd.utils import validators
+from CTFd.utils.anti_cheat import track_challenge_file_download
 from CTFd.utils.config import can_send_mail, is_setup, is_teams_mode
 from CTFd.utils.config.pages import build_markdown, get_page
 from CTFd.utils.config.visibility import challenges_visible
@@ -397,6 +398,7 @@ def files(path):
     :return:
     """
     f = Files.query.filter_by(location=path).first_or_404()
+    download_user = get_current_user() if authed() else None
     if f.type == "challenge":
         if challenges_visible():
             if current_user.is_admin() is False:
@@ -425,6 +427,7 @@ def files(path):
             file_id = data.get("file_id")
             user = Users.query.filter_by(id=user_id).first()
             team = Teams.query.filter_by(id=team_id).first()
+            download_user = user
 
             if not ctftime():
                 # It's not CTF time. The only edge case is if the CTF is ended
@@ -488,6 +491,9 @@ def files(path):
 
             if not (is_user_owner or is_team_owner):
                 abort(403)
+
+    if f.type == "challenge":
+        track_challenge_file_download(f, user=download_user, req=request)
 
     uploader = get_uploader()
     try:

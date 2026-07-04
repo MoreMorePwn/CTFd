@@ -1,0 +1,301 @@
+{% extends "admin/base.html" %}
+
+{% block stylesheets %}
+<style>
+@media (min-width: 992px) {
+	.admin-table-container {
+		max-width: none;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+		width: 100%;
+	}
+
+	.admin-fit-table-wrap {
+		overflow-x: visible;
+	}
+
+	.admin-fit-table {
+		font-size: 0.875rem;
+		line-height: 1.25;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.admin-fit-table th,
+	.admin-fit-table td {
+		overflow-wrap: anywhere;
+		padding: 0.45rem 0.5rem;
+		vertical-align: middle;
+		word-break: break-word;
+	}
+
+	.admin-fit-table th {
+		white-space: normal;
+	}
+
+	.admin-fit-table code,
+	.admin-fit-table small {
+		overflow-wrap: anywhere;
+		white-space: normal;
+		word-break: break-word;
+	}
+
+	.admin-fit-table .admin-col-id {
+		width: 4%;
+	}
+
+	.admin-fit-table .admin-col-severity {
+		width: 6%;
+	}
+
+	.admin-fit-table .admin-col-type {
+		width: 11%;
+	}
+
+	.admin-fit-table .admin-col-account {
+		width: 9%;
+	}
+
+	.admin-fit-table .admin-col-challenge {
+		width: 9%;
+	}
+
+	.admin-fit-table .admin-col-submission {
+		width: 6%;
+	}
+
+	.admin-fit-table .admin-col-ip {
+		width: 9%;
+	}
+
+	.admin-fit-table .admin-col-details {
+		width: 31%;
+	}
+
+	.admin-fit-table .admin-col-created {
+		width: 10%;
+	}
+
+	.admin-fit-table .admin-col-reviewed {
+		width: 5%;
+	}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+	<div class="container">
+		<h1>Anti-Cheat</h1>
+	</div>
+</div>
+
+<div class="container-fluid admin-table-container">
+	<div class="row text-center mb-4">
+		<div class="col-md-3 mb-3">
+			<div class="border rounded p-3 h-100">
+				<div class="text-muted">Total Events</div>
+				<h2 class="mb-0">{{ total_count }}</h2>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="border rounded p-3 h-100">
+				<div class="text-muted">Open Events</div>
+				<h2 class="mb-0">{{ open_count }}</h2>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="border rounded p-3 h-100">
+				<div class="text-muted">Open High</div>
+				<h2 class="mb-0">{{ high_count }}</h2>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="border rounded p-3 h-100">
+				<div class="text-muted">Open Medium</div>
+				<h2 class="mb-0">{{ medium_count }}</h2>
+			</div>
+		</div>
+	</div>
+
+	<form method="GET" class="form-row align-items-end mb-4">
+		<div class="form-group col-md-3">
+			<label for="anti-cheat-type">Type</label>
+			<select id="anti-cheat-type" name="type" class="form-control custom-select">
+				<option value="">All Types</option>
+				{% for event_type in event_types %}
+				<option value="{{ event_type }}" {% if selected_type == event_type %}selected{% endif %}>
+					{{ event_type | replace("_", " ") | title }}
+				</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="form-group col-md-3">
+			<label for="anti-cheat-severity">Severity</label>
+			<select id="anti-cheat-severity" name="severity" class="form-control custom-select">
+				<option value="">All Severities</option>
+				{% for severity in ["high", "medium", "low"] %}
+				<option value="{{ severity }}" {% if selected_severity == severity %}selected{% endif %}>
+					{{ severity | title }}
+				</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="form-group col-md-3">
+			<label for="anti-cheat-reviewed">Review Status</label>
+			<select id="anti-cheat-reviewed" name="reviewed" class="form-control custom-select">
+				<option value="">All</option>
+				<option value="open" {% if selected_reviewed == "open" %}selected{% endif %}>Open</option>
+				<option value="reviewed" {% if selected_reviewed == "reviewed" %}selected{% endif %}>Reviewed</option>
+			</select>
+		</div>
+		<div class="form-group col-md-3">
+			<button type="submit" class="btn btn-primary w-100">
+				<i class="fas fa-filter" aria-hidden="true"></i>
+			</button>
+		</div>
+	</form>
+
+	<div class="row">
+		<div class="col-md-12 table-responsive-lg admin-fit-table-wrap">
+			<table class="table table-striped border admin-fit-table anti-cheat-fit-table">
+				<thead>
+					<tr>
+						<th class="text-center admin-col-id">ID</th>
+						<th class="admin-col-severity">Severity</th>
+						<th class="admin-col-type">Type</th>
+						<th class="admin-col-account">{{ get_mode_as_word(capitalize=True) }}</th>
+						<th class="admin-col-challenge">Challenge</th>
+						<th class="admin-col-submission">Submission</th>
+						<th class="admin-col-ip">IP</th>
+						<th class="admin-col-details">Details</th>
+						<th class="text-center admin-col-created">Created</th>
+						<th class="text-center admin-col-reviewed">Reviewed</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for event in events.items %}
+					{% set severity_class = {"high": "danger", "medium": "warning", "low": "secondary"}.get(event.severity, "secondary") %}
+					<tr>
+						<td class="text-center admin-col-id">{{ event.id }}</td>
+						<td class="admin-col-severity">
+							<span class="badge badge-{{ severity_class }}">{{ event.severity | title }}</span>
+						</td>
+						<td class="admin-col-type">{{ event.type | replace("_", " ") | title }}</td>
+						<td class="admin-col-account">
+							{% if Configs.user_mode == UserModeTypes.TEAMS and event.team %}
+							<a href="{{ generate_account_url(event.team_id, admin=True) }}">{{ event.team.name }}</a>
+							{% elif event.user %}
+							<a href="{{ generate_account_url(event.user_id, admin=True) }}">{{ event.user.name }}</a>
+							{% else %}
+							<span class="text-muted">Unknown</span>
+							{% endif %}
+						</td>
+						<td class="admin-col-challenge">
+							{% if event.challenge %}
+							<a href="{{ url_for('admin.challenges_detail', challenge_id=event.challenge_id) }}">{{ event.challenge.name }}</a>
+							{% else %}
+							<span class="text-muted">None</span>
+							{% endif %}
+						</td>
+						<td class="admin-col-submission">
+							{% if event.submission_id %}
+							<a href="{{ url_for('admin.submissions_listing', field='id', q=event.submission_id) }}">#{{ event.submission_id }}</a>
+							{% else %}
+							<span class="text-muted">None</span>
+							{% endif %}
+						</td>
+						<td class="admin-col-ip">
+							{% if event.ip %}
+							<code>{{ event.ip }}</code>
+							{% else %}
+							<span class="text-muted">None</span>
+							{% endif %}
+						</td>
+						<td class="admin-col-details">
+							<div>{{ event.details }}</div>
+							{% if event.browser_fingerprint %}
+							<small class="text-muted d-block">Fingerprint: {{ event.browser_fingerprint }}</small>
+							{% endif %}
+							{% if event.user_agent %}
+							<small class="text-muted d-block">{{ event.user_agent | truncate(100, True) }}</small>
+							{% endif %}
+						</td>
+						<td class="text-center admin-col-created">
+							<span data-time="{{ event.created | isoformat }}"></span>
+						</td>
+						<td class="text-center admin-col-reviewed">
+							<form method="POST" action="{{ url_for('admin.anti_cheat_review', event_id=event.id) }}" class="m-0 anti-cheat-review-form">
+								<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+								<input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+								<input type="hidden" name="reviewed" value="{{ 'false' if event.reviewed else 'true' }}">
+								<button
+									type="submit"
+									class="btn btn-sm {{ 'btn-success' if event.reviewed else 'btn-outline-secondary' }}"
+									aria-label="{{ 'Mark open' if event.reviewed else 'Mark reviewed' }}"
+								>
+									{% if event.reviewed %}
+									<i class="fas fa-check"></i>
+									{% else %}
+									<i class="far fa-square"></i>
+									{% endif %}
+								</button>
+							</form>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% if events.pages > 1 %}
+			<div class="text-center">Page
+				<br>
+				{% if events.page != 1 %}
+					<a href="{{ prev_page }}">&lt;&lt;&lt;</a>
+				{% endif %}
+				<select class="page-select">
+					{% for page in range(1, events.pages + 1) %}
+					<option {% if events.page == page %}selected{% endif %}>{{ page }}</option>
+					{% endfor %}
+				</select>
+				{% if events.next_num %}
+					<a href="{{ next_page }}">&gt;&gt;&gt;</a>
+				{% endif %}
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+	const scrollKey = "ctfd:anti-cheat:scroll-y";
+
+	const restoreScroll = () => {
+		const savedScroll = sessionStorage.getItem(scrollKey);
+		if (savedScroll === null) {
+			return;
+		}
+
+		sessionStorage.removeItem(scrollKey);
+		window.requestAnimationFrame(() => {
+			window.scrollTo(0, Number.parseInt(savedScroll, 10) || 0);
+		});
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", restoreScroll);
+	} else {
+		restoreScroll();
+	}
+
+	document.addEventListener("submit", event => {
+		if (event.target.matches(".anti-cheat-review-form")) {
+			sessionStorage.setItem(scrollKey, String(window.scrollY));
+		}
+	}, true);
+})();
+</script>
+{% endblock %}

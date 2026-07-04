@@ -18,6 +18,7 @@ from flask import (
 admin = Blueprint("admin", __name__)
 
 # isort:imports-firstparty
+from CTFd.admin import anti_cheat  # noqa: F401,I001
 from CTFd.admin import challenges  # noqa: F401,I001
 from CTFd.admin import notifications  # noqa: F401,I001
 from CTFd.admin import pages  # noqa: F401,I001

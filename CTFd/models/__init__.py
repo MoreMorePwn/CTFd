@@ -899,8 +899,11 @@ class Submissions(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
     ip = db.Column(db.String(46))
+    user_agent = db.Column(db.Text)
+    browser_fingerprint = db.Column(db.String(128))
     provided = db.Column(db.Text)
     ai_source = db.Column(db.Text)
+    verified = db.Column(db.Boolean, nullable=False, default=False)
     type = db.Column(db.String(32))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -1012,6 +1015,44 @@ class Ratelimiteds(Submissions):
     __mapper_args__ = {"polymorphic_identity": "ratelimited"}
 
 
+class AntiCheatEvents(db.Model):
+    __tablename__ = "anti_cheat_events"
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(80), nullable=False)
+    severity = db.Column(db.String(16), nullable=False, default="low")
+    details = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
+    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="SET NULL"))
+    challenge_id = db.Column(
+        db.Integer, db.ForeignKey("challenges.id", ondelete="SET NULL")
+    )
+    submission_id = db.Column(
+        db.Integer, db.ForeignKey("submissions.id", ondelete="SET NULL")
+    )
+    ip = db.Column(db.String(46))
+    user_agent = db.Column(db.Text)
+    browser_fingerprint = db.Column(db.String(128))
+    reviewed = db.Column(db.Boolean, nullable=False, default=False)
+    reviewer_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at = db.Column(db.DateTime)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    user = db.relationship("Users", foreign_keys="AntiCheatEvents.user_id", lazy="select")
+    reviewer = db.relationship(
+        "Users", foreign_keys="AntiCheatEvents.reviewer_id", lazy="select"
+    )
+    team = db.relationship("Teams", foreign_keys="AntiCheatEvents.team_id", lazy="select")
+    challenge = db.relationship(
+        "Challenges", foreign_keys="AntiCheatEvents.challenge_id", lazy="select"
+    )
+    submission = db.relationship(
+        "Submissions", foreign_keys="AntiCheatEvents.submission_id", lazy="select"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(AntiCheatEvents, self).__init__(**kwargs)
+
+
 class Unlocks(db.Model):
     __tablename__ = "unlocks"
     id = db.Column(db.Integer, primary_key=True)
@@ -1050,6 +1091,8 @@ class Tracking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(32))
     ip = db.Column(db.String(46))
+    user_agent = db.Column(db.Text)
+    browser_fingerprint = db.Column(db.String(128))
     target = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)

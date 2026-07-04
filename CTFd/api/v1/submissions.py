@@ -33,6 +33,16 @@ class SubmissionListSuccessResponse(PaginatedAPIListSuccessResponse):
     data: List[SubmissionModel]
 
 
+def _get_verified_value(req):
+    if "verified" not in req:
+        return None, None
+
+    verified = req.get("verified")
+    if not isinstance(verified, bool):
+        return None, {"verified": ["Verified must be true or false"]}
+    return verified, None
+
+
 submissions_namespace.schema_model(
     "SubmissionDetailedSuccessResponse", SubmissionDetailedSuccessResponse.apidoc()
 )
@@ -187,7 +197,11 @@ class Submission(Resource):
     def patch(self, submission_id):
         submission = Submissions.query.filter_by(id=submission_id).first_or_404()
 
-        req = request.get_json()
+        req = request.get_json() or {}
+        verified, verified_error = _get_verified_value(req)
+        if verified_error:
+            return {"success": False, "errors": verified_error}, 400
+
         submission_type = req.get("type")
 
         if submission_type == "correct":
@@ -210,6 +224,8 @@ class Submission(Resource):
                 team_id=submission.team_id,
                 ip=submission.ip,
                 provided=submission.provided,
+                ai_source=submission.ai_source,
+                verified=submission.verified,
                 date=submission.date,
             )
             db.session.add(solve)
@@ -238,6 +254,10 @@ class Submission(Resource):
                 clear_challenges()
 
             submission = Fails.query.filter_by(id=submission_id).first()
+
+        if verified is not None:
+            submission.verified = verified
+            db.session.commit()
 
         schema = SubmissionSchema()
         response = schema.dump(submission)

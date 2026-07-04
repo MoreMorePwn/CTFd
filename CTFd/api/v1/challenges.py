@@ -39,6 +39,7 @@ from CTFd.schemas.ratings import RatingSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
+from CTFd.utils.anti_cheat import get_browser_fingerprint, get_user_agent
 from CTFd.utils.challenges import (
     get_all_challenges,
     get_rating_average_for_challenge_id,
@@ -596,6 +597,8 @@ class Challenge(Resource):
         ):
             track = Tracking(
                 ip=get_ip(),
+                user_agent=get_user_agent(request),
+                browser_fingerprint=get_browser_fingerprint(request),
                 user_id=session["id"],
                 type="challenges.open",
                 target=challenge_id,

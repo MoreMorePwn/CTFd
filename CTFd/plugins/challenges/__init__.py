@@ -28,6 +28,11 @@ from CTFd.plugins.challenges.logic import (
     challenge_attempt_team,
 )
 from CTFd.utils.uploads import delete_file
+from CTFd.utils.anti_cheat import (
+    analyze_submission,
+    get_browser_fingerprint,
+    get_user_agent,
+)
 from CTFd.utils.challenge_submissions import (
     delete_solver_file_locations,
     save_solver_files,
@@ -242,6 +247,8 @@ class BaseChallenge(object):
             team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(req=request),
+            user_agent=get_user_agent(request),
+            browser_fingerprint=get_browser_fingerprint(request),
             provided=submission,
         )
         db.session.add(partial)
@@ -256,6 +263,8 @@ class BaseChallenge(object):
             team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(req=request),
+            user_agent=get_user_agent(request),
+            browser_fingerprint=get_browser_fingerprint(request),
             provided=submission,
         )
         db.session.add(partial)
@@ -279,6 +288,8 @@ class BaseChallenge(object):
             team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(req=request),
+            user_agent=get_user_agent(request),
+            browser_fingerprint=get_browser_fingerprint(request),
             provided=submission,
             ai_source=serialize_ai_sources(request),
         )
@@ -308,6 +319,8 @@ class BaseChallenge(object):
         if challenge.function in DECAY_FUNCTIONS:
             calculate_value(challenge)
 
+        analyze_submission(solve)
+
     @classmethod
     def fail(cls, user, team, challenge, request):
         """
@@ -325,10 +338,13 @@ class BaseChallenge(object):
             team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(request),
+            user_agent=get_user_agent(request),
+            browser_fingerprint=get_browser_fingerprint(request),
             provided=submission,
         )
         db.session.add(wrong)
         db.session.commit()
+        analyze_submission(wrong)
 
 
 class CTFdStandardChallenge(BaseChallenge):

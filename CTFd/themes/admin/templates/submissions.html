@@ -1,6 +1,115 @@
 {% extends "admin/base.html" %}
 
 {% block stylesheets %}
+<style>
+@media (min-width: 992px) {
+	.admin-table-container {
+		max-width: none;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+		width: 100%;
+	}
+
+	.admin-fit-table-wrap {
+		overflow-x: visible;
+	}
+
+	.admin-fit-table {
+		font-size: 0.875rem;
+		line-height: 1.25;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.admin-fit-table th,
+	.admin-fit-table td {
+		overflow-wrap: anywhere;
+		padding: 0.45rem 0.5rem;
+		vertical-align: middle;
+		word-break: break-word;
+	}
+
+	.admin-fit-table th {
+		white-space: normal;
+	}
+
+	.admin-fit-table pre {
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.admin-fit-table .admin-col-check {
+		width: 3%;
+	}
+
+	.admin-fit-table .admin-col-id {
+		width: 4%;
+	}
+
+	.admin-fit-table .admin-col-user {
+		width: 8%;
+	}
+
+	.admin-fit-table .admin-col-account {
+		width: 9%;
+	}
+
+	.admin-fit-table .admin-col-challenge {
+		width: 10%;
+	}
+
+	.admin-fit-table .admin-col-type {
+		width: 6%;
+	}
+
+	.admin-fit-table .admin-col-provided {
+		width: 25%;
+	}
+
+	.admin-fit-table .admin-col-ai {
+		width: 10%;
+	}
+
+	.admin-fit-table .admin-col-solver {
+		width: 8%;
+	}
+
+	.admin-fit-table .admin-col-date {
+		width: 10%;
+	}
+
+	.admin-fit-table .admin-col-verified {
+		width: 7%;
+	}
+
+	.admin-fit-table .admin-col-check .form-check {
+		padding-left: 0;
+	}
+
+	.admin-fit-table .admin-col-check .form-check-input {
+		margin-left: 0;
+		position: static;
+	}
+
+	.submission-provided {
+		align-items: flex-start;
+		display: flex;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.submission-provided pre {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.submission-provided .btn {
+		flex: 0 0 auto;
+		line-height: 1.1;
+	}
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -11,7 +120,7 @@
 	</div>
 </div>
 
-<div class="container">
+<div class="container-fluid admin-table-container">
 
 	<div class="row">
 		<div class="col-md-12">
@@ -78,95 +187,110 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-12 table-responsive">
+		<div class="col-md-12 table-responsive-lg admin-fit-table-wrap">
 			{% set mode = Configs.user_mode %}
-			<table id="teamsboard" class="table table-striped border">
+			<table id="teamsboard" class="table table-striped border admin-fit-table submissions-fit-table">
 				<thead>
 					<tr>
 						{% if admin_can('submissions_write') %}
-						<th class="border-right" data-checkbox>
+						<th class="border-right admin-col-check" data-checkbox>
 							<div class="form-check text-center">
 								<input type="checkbox" class="form-check-input" autocomplete="off" data-checkbox-all>&nbsp;
 							</div>
 						</th>
 						{% endif %}
-						<th class="text-center sort-col"><b>ID</b></th>
+						<th class="text-center sort-col admin-col-id"><b>ID</b></th>
 						{% if mode == UserModeTypes.TEAMS %}
-						<th class="sort-col"><b>User</b></th>
+						<th class="sort-col admin-col-user"><b>User</b></th>
 						{% endif %}
-						<th class="sort-col"><b>{{ get_mode_as_word(capitalize=True) }}</b></th>
-						<th class="sort-col"><b>Challenge</b></th>
-						<th class="sort-col"><b>Type</b></th>
-						<th class="sort-col"><b>Provided</b></th>
-						<th class="sort-col"><b>AI Source</b></th>
-						<th class="sort-col"><b>Solver</b></th>
-						<th class="text-center sort-col"><b>Date</b></th>
+						<th class="sort-col admin-col-account"><b>{{ get_mode_as_word(capitalize=True) }}</b></th>
+						<th class="sort-col admin-col-challenge"><b>Challenge</b></th>
+						<th class="sort-col admin-col-type"><b>Type</b></th>
+						<th class="sort-col admin-col-provided"><b>Provided</b></th>
+						<th class="sort-col admin-col-ai"><b>AI Source</b></th>
+						<th class="sort-col admin-col-solver"><b>Solver</b></th>
+						<th class="text-center sort-col admin-col-date"><b>Date</b></th>
+						<th class="text-center sort-col admin-col-verified"><b>Verified</b></th>
 					</tr>
 				</thead>
 				<tbody>
 					{% for sub in submissions.items %}
 					<tr>
 						{% if admin_can('submissions_write') %}
-						<td class="border-right" data-checkbox>
+						<td class="border-right admin-col-check" data-checkbox>
 							<div class="form-check text-center">
 								<input type="checkbox" class="form-check-input" value="{{ sub.id }}" data-submission-id="{{ sub.id }}" autocomplete="off">&nbsp;
 							</div>
 						</td>
 						{% endif %}
-						<td class="text-center" id="{{ sub.id }}">
+						<td class="text-center admin-col-id" id="{{ sub.id }}">
 							{{ sub.id }}
 						</td>
 						{% if mode == UserModeTypes.TEAMS %}
-						<td>
+						<td class="admin-col-user">
 							<a href="{{ url_for('admin.users_detail', user_id=sub.user_id) }}">
 								{{ sub.user.name }}
 							</a>
 						</td>
 						{% endif %}
-						<td class="team" id="{{ sub.account_id }}">
+						<td class="team admin-col-account" id="{{ sub.account_id }}">
 							<a href="{{ generate_account_url(sub.account_id, admin=True) }}">
 								{{ sub.account.name }}
 							</a>
 						</td>
-						<td class="chal" id="{{ sub.challenge_id }}">
+						<td class="chal admin-col-challenge" id="{{ sub.challenge_id }}">
 							<a href="{{ url_for('admin.challenges_detail', challenge_id=sub.challenge_id) }}">
 								{{ sub.challenge.name }}
 							</a>
 						</td>
-						<td>
+						<td class="admin-col-type">
 							{{ sub.type }}
 						</td>
-						<td class="flag" id="{{ sub.id }}">
-							<button class="btn btn-link p-0 float-left copy-flag" type="button">
-								<i class="fas fa-clipboard"></i>
-							</button>
+						<td class="flag admin-col-provided" id="{{ sub.id }}">
+							<div class="submission-provided">
+								<button class="btn btn-link p-0 copy-flag" type="button">
+									<i class="fas fa-clipboard"></i>
+								</button>
 							{% if request.args.get('full') %}
-								<pre class="mb-0 pl-2" title="{{ sub.provided }}">{{ sub.provided }}</pre>
+								<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided }}</pre>
 							{% else %}
-								<pre class="mb-0 pl-2 float-left" title="{{ sub.provided }}">{{ sub.provided | truncate(45, True) }}</pre>
+								<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided | truncate(45, True) }}</pre>
 								{% if sub.provided | length > 50 %}
-									<button class="btn btn-link p-0 pl-1 float-left show-flag">
+									<button class="btn btn-link p-0 show-flag" type="button">
 										<i class="fas fa-eye"></i>
 									</button>
 								{% endif %}
 							{% endif %}
+							</div>
 						</td>
-						<td>
+						<td class="admin-col-ai">
 							{% for source in sub.ai_sources %}
 								<a href="{{ source }}" target="_blank" rel="noopener noreferrer">
 									AI Source{% if sub.ai_sources | length > 1 %} {{ loop.index }}{% endif %}
 								</a>{% if not loop.last %}<br>{% endif %}
 							{% endfor %}
 						</td>
-						<td>
+						<td class="admin-col-solver">
 							{% for file in sub.solver_files %}
 								<a href="{{ url_for('views.files', path=file.location) }}" target="_blank" rel="noopener noreferrer">
 									Solver{% if sub.solver_files | length > 1 %} {{ loop.index }}{% endif %}
 								</a>{% if not loop.last %}<br>{% endif %}
 							{% endfor %}
 						</td>
-						<td class="text-center solve-time">
+						<td class="text-center solve-time admin-col-date">
 							<span data-time="{{ sub.date | isoformat }}"></span>
+						</td>
+						<td class="text-center align-middle admin-col-verified">
+							<div class="form-check d-flex justify-content-center mb-0">
+								<input
+									type="checkbox"
+									class="form-check-input position-static m-0 submission-verified-checkbox"
+									data-submission-verified-id="{{ sub.id }}"
+									autocomplete="off"
+									{% if sub.verified %}checked{% endif %}
+									{% if not admin_can('submissions_write') %}disabled{% endif %}
+								>
+							</div>
 						</td>
 					</tr>
 					{% endfor %}

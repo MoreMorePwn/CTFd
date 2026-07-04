@@ -156,6 +156,36 @@ function copyFlag(event) {
   }, 1500);
 }
 
+function updateSubmissionVerified(event) {
+  const target = $(event.currentTarget);
+  const submissionId = target.data("submission-verified-id");
+  const verified = target.prop("checked");
+
+  target.prop("disabled", true);
+
+  CTFd.fetch(`/api/v1/submissions/${submissionId}`, {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ verified }),
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (!response.success) {
+        target.prop("checked", !verified);
+      }
+    })
+    .catch(() => {
+      target.prop("checked", !verified);
+    })
+    .finally(() => {
+      target.prop("disabled", false);
+    });
+}
+
 $(() => {
   $("#show-full-flags-button").click(showFlagsToggle);
   $("#show-short-flags-button").click(showFlagsToggle);
@@ -165,4 +195,5 @@ $(() => {
   $("#incorrect-flags-button").click(incorrectSubmissions);
   $(".delete-correct-submission").click(deleteCorrectSubmission);
   $("#submission-delete-button").click(deleteSelectedSubmissions);
+  $(".submission-verified-checkbox").change(updateSubmissionVerified);
 });

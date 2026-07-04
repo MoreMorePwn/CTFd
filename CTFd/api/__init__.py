@@ -2,6 +2,7 @@ from flask import Blueprint, current_app
 from flask_restx import Api
 
 from CTFd.api.v1.awards import awards_namespace
+from CTFd.api.v1.anti_cheat import anti_cheat_namespace
 from CTFd.api.v1.brackets import brackets_namespace
 from CTFd.api.v1.challenges import challenges_namespace
 from CTFd.api.v1.comments import comments_namespace
@@ -73,3 +74,4 @@ CTFd_API_v1.add_namespace(shares_namespace, "/shares")
 CTFd_API_v1.add_namespace(brackets_namespace, "/brackets")
 CTFd_API_v1.add_namespace(exports_namespace, "/exports")
 CTFd_API_v1.add_namespace(solutions_namespace, "/solutions")
+CTFd_API_v1.add_namespace(anti_cheat_namespace, "/anti-cheat")

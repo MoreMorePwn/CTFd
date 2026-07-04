@@ -116,8 +116,6 @@ services:
       - -docker=unix:///var/run/docker.sock
       - -docker_only=true
       - -store_container_labels=true
-      - -containerd=/var/run/docker/containerd/containerd.sock
-      - -containerd-namespace=moby
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
