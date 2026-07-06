@@ -37,7 +37,12 @@ html {
 }
 
 body.techfest-theme {
+  --tf-nav-height: 82px;
+  --tf-footer-height: 60px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  min-height: 100svh;
   color: var(--tf-white);
   background:
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
@@ -46,11 +51,13 @@ body.techfest-theme {
   background-size: 42px 42px, 42px 42px, auto;
   font-family: var(--tf-body);
   letter-spacing: 0;
-  padding-top: 82px;
+  padding-top: var(--tf-nav-height);
 }
 
 body.techfest-theme main {
-  min-height: calc(100vh - 150px);
+  flex: 1 0 auto;
+  min-height: 0;
+  margin-bottom: 0;
 }
 
 .techfest-theme h1,
@@ -164,7 +171,7 @@ body.techfest-theme main {
 .techfest-home {
   position: relative;
   isolation: isolate;
-  min-height: calc(100svh - 80px);
+  min-height: calc(100svh - var(--tf-nav-height) - var(--tf-footer-height));
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -464,9 +471,17 @@ body.techfest-theme main {
 }
 
 .techfest-footer {
+  position: static;
+  z-index: auto;
+  flex-shrink: 0;
+  height: var(--tf-footer-height);
+  min-height: var(--tf-footer-height);
+  display: flex;
+  align-items: center;
   background: var(--tf-black);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 24px 0;
+  padding: 0;
+  line-height: 1.4;
 }
 
 .techfest-footer a {
@@ -475,7 +490,7 @@ body.techfest-theme main {
 
 @media (max-width: 1199.98px) {
   body.techfest-theme {
-    padding-top: 78px;
+    --tf-nav-height: 78px;
   }
 
   .techfest-nav-inner {
@@ -533,7 +548,7 @@ body.techfest-theme main {
 
 @media (max-width: 520px) {
   body.techfest-theme {
-    padding-top: 74px;
+    --tf-nav-height: 74px;
   }
 
   .techfest-home {
