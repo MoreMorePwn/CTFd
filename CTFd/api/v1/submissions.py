@@ -1,6 +1,6 @@
 from typing import List
 
-from flask import request
+from flask import abort, request
 from flask_restx import Namespace, Resource
 
 from CTFd.api.v1.helpers.request import validate_args
@@ -13,6 +13,7 @@ from CTFd.cache import cache, clear_challenges, clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Fails, Solves, Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.challenge_submissions import delete_solver_files_for_submission
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -198,6 +199,11 @@ class Submission(Resource):
         submission = Submissions.query.filter_by(id=submission_id).first_or_404()
 
         req = request.get_json() or {}
+
+        if not current_user_can_access_admin_permission("submissions_write"):
+            if set(req.keys()) != {"verified"}:
+                abort(403)
+
         verified, verified_error = _get_verified_value(req)
         if verified_error:
             return {"success": False, "errors": verified_error}, 400

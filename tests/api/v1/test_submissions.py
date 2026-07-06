@@ -16,6 +16,7 @@ from tests.helpers import (
     gen_fail,
     gen_solve,
     gen_team,
+    gen_user,
     login_as_user,
     register_user,
 )
@@ -115,6 +116,47 @@ def test_api_submission_patch_verified():
             assert r.status_code == 200
             data = r.get_json()["data"]
             assert data["verified"] is False
+            assert Solves.query.get(solve_id).verified is False
+    destroy_ctfd(app)
+
+
+def test_api_submission_patch_verified_by_submissions_read_assistant():
+    """A submissions_read assistant can verify submissions without write access"""
+    app = create_ctfd()
+    with app.app_context():
+        solve = gen_solve(app.db, user_id=1)
+        solve_id = solve.id
+        gen_user(
+            app.db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["submissions_read"]',
+        )
+
+        with login_as_user(app, "assistant") as client:
+            r = client.patch(f"/api/v1/submissions/{solve_id}", json={"verified": True})
+            assert r.status_code == 200
+            assert r.get_json()["data"]["verified"] is True
+            assert Solves.query.get(solve_id).verified is True
+
+            r = client.patch(
+                f"/api/v1/submissions/{solve_id}",
+                json={"verified": False, "type": "incorrect"},
+            )
+            assert r.status_code == 403
+            assert Solves.query.get(solve_id).verified is True
+
+            r = client.patch(
+                f"/api/v1/submissions/{solve_id}", json={"type": "incorrect"}
+            )
+            assert r.status_code == 403
+            assert Solves.query.get(solve_id).verified is True
+
+            r = client.patch(f"/api/v1/submissions/{solve_id}", json={"verified": False})
+            assert r.status_code == 200
+            assert r.get_json()["data"]["verified"] is False
             assert Solves.query.get(solve_id).verified is False
     destroy_ctfd(app)
 

@@ -110,7 +110,7 @@ API_PATH_PERMISSIONS = [
         {
             "GET": {"submissions_read"},
             "POST": {"submissions_write"},
-            "PATCH": {"submissions_write"},
+            "PATCH": {"submissions_read", "submissions_write"},
             "DELETE": {"submissions_write"},
         },
     ),

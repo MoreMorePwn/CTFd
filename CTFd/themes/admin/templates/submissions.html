@@ -288,7 +288,7 @@
 									data-submission-verified-id="{{ sub.id }}"
 									autocomplete="off"
 									{% if sub.verified %}checked{% endif %}
-									{% if not admin_can('submissions_write') %}disabled{% endif %}
+									{% if not admin_can('submissions_read') %}disabled{% endif %}
 								>
 							</div>
 						</td>
