@@ -44,6 +44,14 @@ compose_up() {
   docker compose up -d --build
 }
 
+remove_local_data() {
+  docker run --rm \
+    -v "${PWD}:/workspace" \
+    -w /workspace \
+    alpine:3.23 \
+    sh -c 'rm -rf .data .export monitoring/generated .env .ctfd_secret_key'
+}
+
 generate_credentials() {
   local db_user="${CTFD_DB_USER:-ctfd}"
   local db_name="${CTFD_DB_NAME:-ctfd}"
@@ -158,7 +166,7 @@ reset_infra() {
   confirm_reset "${yes}"
 
   docker compose down --remove-orphans
-  rm -rf .data .export monitoring/generated .env .ctfd_secret_key
+  remove_local_data
   mkdir -p .export
 
   echo "Local data removed; initializing a fresh instance."
