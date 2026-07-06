@@ -158,6 +158,25 @@ body.techfest-theme main {
   box-shadow: 0 0 22px rgba(255, 84, 129, 0.36);
 }
 
+.techfest-nav-icon {
+  width: 40px;
+  min-width: 40px;
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  font-size: 0.9rem;
+}
+
+.techfest-nav-icon .badge-notification {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 16px;
+  min-height: 16px;
+  padding: 3px 5px;
+  font-size: 0.58rem;
+}
+
 .techfest-toggler {
   border: 1px solid var(--tf-border);
   border-radius: 8px;

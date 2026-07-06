@@ -60,64 +60,56 @@
         {% if authed() %}
           {% if is_admin_panel_user() %}
             <li class="nav-item">
-              <a class="nav-link techfest-nav-link techfest-nav-link-accent" href="{{ url_for('admin.view') }}">
-                <i class="fas fa-wrench pe-1"></i>
-                {% trans %}Admin Panel{% endtrans %}
+              <a class="nav-link techfest-nav-link techfest-nav-icon techfest-nav-link-accent" href="{{ url_for('admin.view') }}" aria-label="{% trans %}Admin Panel{% endtrans %}" title="{% trans %}Admin Panel{% endtrans %}">
+                <i class="fas fa-wrench"></i>
               </a>
             </li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link techfest-nav-link" href="{{ url_for('views.notifications') }}">
-              <i class="fas fa-bell pe-1"></i>
+            <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('views.notifications') }}" aria-label="{% trans %}Notifications{% endtrans %}" title="{% trans %}Notifications{% endtrans %}">
+              <i class="fas fa-bell"></i>
               <span x-data x-show="$store.unread_count > 0" x-text="$store.unread_count" class="badge rounded-pill bg-danger badge-notification"></span>
-              {% trans %}Notifications{% endtrans %}
             </a>
           </li>
 
           {% if Configs.user_mode == "teams" %}
             <li class="nav-item">
-              <a class="nav-link techfest-nav-link" href="{{ url_for('teams.private') }}">
-                <i class="fas fa-users pe-1"></i>
-                {% trans %}Team{% endtrans %}
+              <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('teams.private') }}" aria-label="{% trans %}Team{% endtrans %}" title="{% trans %}Team{% endtrans %}">
+                <i class="fas fa-users"></i>
               </a>
             </li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link techfest-nav-link" href="{{ url_for('users.private') }}">
-              <i class="fas fa-user-circle pe-1"></i>
-              {% trans %}Profile{% endtrans %}
+            <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('users.private') }}" aria-label="{% trans %}Profile{% endtrans %}" title="{% trans %}Profile{% endtrans %}">
+              <i class="fas fa-user-circle"></i>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link techfest-nav-link" href="{{ url_for('views.settings') }}">
-              <i class="fas fa-cogs pe-1"></i>
-              {% trans %}Settings{% endtrans %}
+            <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('views.settings') }}" aria-label="{% trans %}Settings{% endtrans %}" title="{% trans %}Settings{% endtrans %}">
+              <i class="fas fa-cogs"></i>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link techfest-nav-link" href="{{ url_for('auth.logout') }}">
-              <i class="fas fa-sign-out-alt pe-1"></i>
-              {% trans %}Logout{% endtrans %}
+            <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('auth.logout') }}" aria-label="{% trans %}Logout{% endtrans %}" title="{% trans %}Logout{% endtrans %}">
+              <i class="fas fa-sign-out-alt"></i>
             </a>
           </li>
         {% else %}
           {% if registration_visible() %}
             <li class="nav-item">
-              <a class="nav-link techfest-nav-link techfest-nav-link-accent" href="{{ url_for('auth.register') }}">
-                <i class="fas fa-user-plus pe-1"></i>
-                {% trans %}Register{% endtrans %}
+              <a class="nav-link techfest-nav-link techfest-nav-icon techfest-nav-link-accent" href="{{ url_for('auth.register') }}" aria-label="{% trans %}Register{% endtrans %}" title="{% trans %}Register{% endtrans %}">
+                <i class="fas fa-user-plus"></i>
               </a>
             </li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link techfest-nav-link" href="{{ url_for('auth.login') }}">
-              <i class="fas fa-sign-in-alt pe-1"></i>
-              {% trans %}Login{% endtrans %}
+            <a class="nav-link techfest-nav-link techfest-nav-icon" href="{{ url_for('auth.login') }}" aria-label="{% trans %}Login{% endtrans %}" title="{% trans %}Login{% endtrans %}">
+              <i class="fas fa-sign-in-alt"></i>
             </a>
           </li>
         {% endif %}
