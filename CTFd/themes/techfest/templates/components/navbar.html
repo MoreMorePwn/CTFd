@@ -1,0 +1,127 @@
+<nav class="navbar navbar-expand-xl fixed-top techfest-navbar">
+  <div class="container-fluid techfest-nav-inner">
+    <a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand techfest-brand" aria-label="{{ Configs.ctf_name }}">
+      <img
+        class="techfest-brand-logo"
+        src="{{ url_for('views.themes', theme='techfest', path='img/techfest-logo.png') }}"
+        alt="TechFest"
+      >
+    </a>
+
+    <button
+      class="navbar-toggler techfest-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#base-navbars"
+      aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse techfest-nav-collapse" id="base-navbars">
+      <ul class="navbar-nav me-auto techfest-nav-group">
+        {% for page in Plugins.user_menu_pages %}
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
+              {{ page.title }}
+            </a>
+          </li>
+        {% endfor %}
+
+        {% if Configs.account_visibility != 'admins' %}
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('users.listing') }}">
+              {% trans %}Users{% endtrans %}
+            </a>
+          </li>
+
+          {% if Configs.user_mode == 'teams' %}
+            <li class="nav-item">
+              <a class="nav-link techfest-nav-link" href="{{ url_for('teams.listing') }}">
+                {% trans %}Teams{% endtrans %}
+              </a>
+            </li>
+          {% endif %}
+        {% endif %}
+
+        {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('scoreboard.listing') }}">
+              {% trans %}Scoreboard{% endtrans %}
+            </a>
+          </li>
+        {% endif %}
+
+        <li class="nav-item">
+          <a class="nav-link techfest-nav-link" href="{{ url_for('challenges.listing') }}">
+            {% trans %}Challenges{% endtrans %}
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav ms-xl-auto techfest-nav-group techfest-nav-group-right">
+        {% if authed() %}
+          {% if is_admin_panel_user() %}
+            <li class="nav-item">
+              <a class="nav-link techfest-nav-link techfest-nav-link-accent" href="{{ url_for('admin.view') }}">
+                <i class="fas fa-wrench pe-1"></i>
+                {% trans %}Admin Panel{% endtrans %}
+              </a>
+            </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('views.notifications') }}">
+              <i class="fas fa-bell pe-1"></i>
+              <span x-data x-show="$store.unread_count > 0" x-text="$store.unread_count" class="badge rounded-pill bg-danger badge-notification"></span>
+              {% trans %}Notifications{% endtrans %}
+            </a>
+          </li>
+
+          {% if Configs.user_mode == "teams" %}
+            <li class="nav-item">
+              <a class="nav-link techfest-nav-link" href="{{ url_for('teams.private') }}">
+                <i class="fas fa-users pe-1"></i>
+                {% trans %}Team{% endtrans %}
+              </a>
+            </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('users.private') }}">
+              <i class="fas fa-user-circle pe-1"></i>
+              {% trans %}Profile{% endtrans %}
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('views.settings') }}">
+              <i class="fas fa-cogs pe-1"></i>
+              {% trans %}Settings{% endtrans %}
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('auth.logout') }}">
+              <i class="fas fa-sign-out-alt pe-1"></i>
+              {% trans %}Logout{% endtrans %}
+            </a>
+          </li>
+        {% else %}
+          {% if registration_visible() %}
+            <li class="nav-item">
+              <a class="nav-link techfest-nav-link techfest-nav-link-accent" href="{{ url_for('auth.register') }}">
+                <i class="fas fa-user-plus pe-1"></i>
+                {% trans %}Register{% endtrans %}
+              </a>
+            </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link techfest-nav-link" href="{{ url_for('auth.login') }}">
+              <i class="fas fa-sign-in-alt pe-1"></i>
+              {% trans %}Login{% endtrans %}
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

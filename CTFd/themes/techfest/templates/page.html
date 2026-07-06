@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if request.path == "/" %}
+    <section class="techfest-home" aria-label="Back to the Future">
+      <img class="techfest-bg-top" src="{{ url_for('views.themes', theme='techfest', path='img/bg-top.svg') }}" alt="" aria-hidden="true">
+      <img class="techfest-bg-city" src="{{ url_for('views.themes', theme='techfest', path='img/bg-city.svg') }}" alt="" aria-hidden="true">
+
+      <div class="techfest-home-inner">
+        <div class="techfest-home-copy">
+          <p class="techfest-kicker">Temporal Security Breach</p>
+          <h1>Back to the Future</h1>
+          <p class="techfest-home-text">
+            Step into the TechFest CTF arena and stabilize the timeline one flag at a time.
+          </p>
+        </div>
+
+        <div class="techfest-mascot-frame">
+          <img
+            class="techfest-mascot"
+            src="{{ url_for('views.themes', theme='techfest', path='img/techfest-mascot.png') }}"
+            alt="TechFest mascot"
+          >
+        </div>
+      </div>
+    </section>
+  {% else %}
+    <div class="container techfest-page">
+      {{ content | safe }}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/page.js") }}
+{% endblock %}

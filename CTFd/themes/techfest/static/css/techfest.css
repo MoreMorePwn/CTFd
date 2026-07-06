@@ -1,0 +1,562 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  --tf-pink: #ff5481;
+  --tf-orange: #ff8007;
+  --tf-amber: #ffaf08;
+  --tf-teal: #00c7c0;
+  --tf-cyan: #05badd;
+  --tf-steel: #2b4871;
+  --tf-navy: #00113c;
+  --tf-blue: #002175;
+  --tf-ink: #020817;
+  --tf-black: #000512;
+  --tf-white: #ffffff;
+  --tf-muted: #aeb9d5;
+  --tf-border: rgba(255, 255, 255, 0.13);
+  --tf-card: rgba(0, 17, 60, 0.72);
+  --tf-card-solid: #06143d;
+  --tf-headline: "Sora", system-ui, sans-serif;
+  --tf-body: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --bs-body-bg: var(--tf-navy);
+  --bs-body-color: var(--tf-white);
+  --bs-border-color: var(--tf-border);
+  --bs-primary: var(--tf-cyan);
+  --bs-primary-rgb: 5, 186, 221;
+  --bs-secondary: var(--tf-steel);
+  --bs-secondary-rgb: 43, 72, 113;
+  --bs-link-color: var(--tf-cyan);
+  --bs-link-hover-color: var(--tf-teal);
+  color-scheme: dark;
+}
+
+html {
+  background: var(--tf-navy);
+}
+
+body.techfest-theme {
+  min-height: 100vh;
+  color: var(--tf-white);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #00113b 0%, #002175 62%, #00113c 100%);
+  background-size: 42px 42px, 42px 42px, auto;
+  font-family: var(--tf-body);
+  letter-spacing: 0;
+  padding-top: 82px;
+}
+
+body.techfest-theme main {
+  min-height: calc(100vh - 150px);
+}
+
+.techfest-theme h1,
+.techfest-theme h2,
+.techfest-theme h3,
+.techfest-theme h4,
+.techfest-theme h5,
+.techfest-theme h6,
+.techfest-theme .modal-title,
+.techfest-theme .card-title {
+  color: var(--tf-white);
+  font-family: var(--tf-headline);
+  letter-spacing: 0;
+}
+
+.techfest-theme label,
+.techfest-theme .form-label,
+.techfest-theme .nav-link,
+.techfest-theme .btn,
+.techfest-theme .badge,
+.techfest-theme th {
+  font-family: var(--tf-body);
+}
+
+.techfest-navbar {
+  min-height: 80px;
+  background: rgba(0, 5, 18, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+}
+
+.techfest-nav-inner {
+  width: min(100% - 48px, 1320px);
+  margin: 0 auto;
+  padding: 0;
+}
+
+.techfest-brand {
+  position: relative;
+  width: 226px;
+  height: 70px;
+  overflow: hidden;
+}
+
+.techfest-brand-logo {
+  position: absolute;
+  top: -104px;
+  left: -18px;
+  width: 270px;
+  max-width: none;
+  height: auto;
+}
+
+.techfest-nav-collapse {
+  gap: 18px;
+}
+
+.techfest-nav-group {
+  align-items: center;
+  gap: 12px;
+}
+
+.techfest-nav-link {
+  min-height: 38px;
+  color: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  align-items: center;
+  padding: 11px 15px !important;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  transition: color 0.18s, border-color 0.18s, background-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+
+.techfest-nav-link:hover,
+.techfest-nav-link:focus,
+.techfest-nav-link.active {
+  color: var(--tf-teal) !important;
+  background: rgba(0, 199, 192, 0.08);
+  border-color: rgba(0, 199, 192, 0.36);
+  box-shadow: 0 0 18px rgba(0, 199, 192, 0.2);
+}
+
+.techfest-nav-link-accent {
+  color: var(--tf-pink) !important;
+  border-color: var(--tf-pink);
+}
+
+.techfest-nav-link-accent:hover,
+.techfest-nav-link-accent:focus {
+  color: var(--tf-white) !important;
+  background: rgba(255, 84, 129, 0.16);
+  border-color: var(--tf-pink);
+  box-shadow: 0 0 22px rgba(255, 84, 129, 0.36);
+}
+
+.techfest-toggler {
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  color: var(--tf-white);
+}
+
+.techfest-toggler .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+.techfest-home {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 80px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(40px, 7vw, 90px) 24px clamp(70px, 9vw, 130px);
+  background: linear-gradient(180deg, #00113b 0%, #002175 100%);
+}
+
+.techfest-bg-top,
+.techfest-bg-city {
+  position: absolute;
+  left: 0;
+  z-index: -2;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.techfest-bg-top {
+  top: 0;
+}
+
+.techfest-bg-city {
+  bottom: 0;
+}
+
+.techfest-home::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(255, 178, 5, 0) 0%, rgba(255, 178, 5, 0.18) 45%, rgba(255, 178, 5, 0.55) 100%);
+}
+
+.techfest-home-inner {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.75fr);
+  align-items: center;
+  gap: clamp(32px, 7vw, 86px);
+}
+
+.techfest-kicker {
+  display: inline-flex;
+  margin: 0 0 18px;
+  padding: 10px 18px;
+  color: var(--tf-teal);
+  background: rgba(0, 199, 192, 0.08);
+  border: 1px solid rgba(0, 199, 192, 0.28);
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.techfest-home h1 {
+  margin: 0;
+  max-width: 760px;
+  color: transparent;
+  background: linear-gradient(90deg, #ff5481 0%, #ff8007 48%, #ffaf08 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 16px rgba(255, 84, 129, 0.45));
+  text-transform: uppercase;
+  font-size: clamp(3.3rem, 9vw, 7.8rem);
+  font-weight: 800;
+  line-height: 0.92;
+}
+
+.techfest-home-text {
+  max-width: 600px;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: clamp(0.92rem, 1.4vw, 1.08rem);
+  line-height: 1.8;
+}
+
+.techfest-mascot-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 420px;
+}
+
+.techfest-mascot-frame::before {
+  content: "";
+  position: absolute;
+  inset: 12% 8% 6%;
+  border: 1px solid rgba(5, 186, 221, 0.36);
+  border-radius: 8px;
+  background: rgba(2, 8, 23, 0.34);
+  box-shadow: 0 0 50px rgba(5, 186, 221, 0.18), inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.techfest-mascot {
+  position: relative;
+  width: min(100%, 440px);
+  height: auto;
+  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.42));
+}
+
+.techfest-page {
+  padding-top: 42px;
+  padding-bottom: 70px;
+}
+
+.techfest-page > *:first-child {
+  margin-top: 0;
+}
+
+.techfest-theme .container,
+.techfest-theme .container-fluid {
+  color: var(--tf-white);
+}
+
+.techfest-theme .jumbotron,
+.techfest-theme .card,
+.techfest-theme .modal-content,
+.techfest-theme .dropdown-menu,
+.techfest-theme .alert,
+.techfest-theme .challenge-button,
+.techfest-theme .challenge-window,
+.techfest-theme .list-group-item {
+  color: var(--tf-white);
+  background-color: var(--tf-card);
+  border-color: var(--tf-border);
+  border-radius: 8px;
+  box-shadow: inset 0 1px rgba(43, 72, 113, 0.72);
+}
+
+.techfest-theme .modal-header,
+.techfest-theme .modal-footer,
+.techfest-theme .card-header,
+.techfest-theme .card-footer {
+  background-color: rgba(2, 8, 23, 0.58);
+  border-color: var(--tf-border);
+}
+
+.techfest-theme .table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--tf-white);
+  --bs-table-border-color: var(--tf-border);
+  --bs-table-striped-bg: rgba(43, 72, 113, 0.28);
+  --bs-table-striped-color: var(--tf-white);
+  --bs-table-hover-bg: rgba(5, 186, 221, 0.12);
+  color: var(--tf-white);
+}
+
+.techfest-theme thead,
+.techfest-theme th {
+  color: var(--tf-teal);
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.techfest-theme .form-control,
+.techfest-theme .form-select,
+.techfest-theme .input-group-text,
+.techfest-theme textarea,
+.techfest-theme input,
+.techfest-theme select {
+  color: var(--tf-white);
+  background-color: rgba(2, 8, 23, 0.74);
+  border-color: rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+}
+
+.techfest-theme .form-control:focus,
+.techfest-theme .form-select:focus,
+.techfest-theme textarea:focus,
+.techfest-theme input:focus,
+.techfest-theme select:focus {
+  color: var(--tf-white);
+  background-color: rgba(2, 8, 23, 0.9);
+  border-color: var(--tf-cyan);
+  box-shadow: 0 0 0 0.18rem rgba(5, 186, 221, 0.24);
+}
+
+.techfest-theme .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.techfest-theme .btn {
+  border-radius: 6px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.techfest-theme .btn-primary,
+.techfest-theme .btn-info,
+.techfest-theme button[type="submit"] {
+  color: #03122a;
+  background: linear-gradient(100deg, #10bfc4 0%, #12bfcc 48%, #27c5d7 78%, #62d4df 100%);
+  border-color: transparent;
+  box-shadow: 0 0 22px rgba(5, 186, 221, 0.24);
+}
+
+.techfest-theme .btn-primary:hover,
+.techfest-theme .btn-info:hover,
+.techfest-theme button[type="submit"]:hover {
+  color: #03122a;
+  filter: brightness(1.08);
+  box-shadow: 0 0 30px rgba(5, 186, 221, 0.38);
+}
+
+.techfest-theme .btn-secondary,
+.techfest-theme .btn-outline-secondary,
+.techfest-theme .btn-dark {
+  color: var(--tf-white);
+  background-color: rgba(43, 72, 113, 0.72);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.techfest-theme .btn-danger {
+  background-color: var(--tf-pink);
+  border-color: var(--tf-pink);
+}
+
+.techfest-theme a {
+  color: var(--tf-cyan);
+}
+
+.techfest-theme a:hover {
+  color: var(--tf-teal);
+}
+
+.techfest-theme .nav-tabs,
+.techfest-theme .nav-pills {
+  border-color: var(--tf-border);
+}
+
+.techfest-theme .nav-tabs .nav-link,
+.techfest-theme .nav-pills .nav-link {
+  color: rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+}
+
+.techfest-theme .nav-tabs .nav-link.active,
+.techfest-theme .nav-pills .nav-link.active {
+  color: #03122a;
+  background-color: var(--tf-cyan);
+  border-color: var(--tf-cyan);
+}
+
+.techfest-theme .dropdown-item {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.techfest-theme .dropdown-item:hover,
+.techfest-theme .dropdown-item:focus {
+  color: var(--tf-white);
+  background-color: rgba(5, 186, 221, 0.18);
+}
+
+.techfest-theme .badge.bg-danger,
+.techfest-theme .badge-notification {
+  background-color: var(--tf-pink) !important;
+}
+
+.techfest-theme .solves {
+  color: var(--tf-teal);
+}
+
+.techfest-theme .challenge-button {
+  min-height: 92px;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+
+.techfest-theme .challenge-button:hover {
+  border-color: rgba(5, 186, 221, 0.66);
+  box-shadow: 0 0 24px rgba(5, 186, 221, 0.22);
+  transform: translateY(-2px);
+}
+
+.techfest-theme .challenge-button.solved-challenge {
+  background-color: rgba(0, 199, 192, 0.18) !important;
+  border-color: rgba(0, 199, 192, 0.62);
+}
+
+.techfest-theme .progress {
+  background-color: rgba(2, 8, 23, 0.72);
+}
+
+.techfest-theme .progress-bar {
+  background-color: var(--tf-cyan);
+}
+
+.techfest-theme .text-muted,
+.techfest-theme .text-secondary {
+  color: var(--tf-muted) !important;
+}
+
+.techfest-theme .alert-success {
+  color: var(--tf-white);
+  background-color: rgba(0, 199, 192, 0.2);
+  border-color: rgba(0, 199, 192, 0.44);
+}
+
+.techfest-theme .alert-danger,
+.techfest-theme .alert-error {
+  color: var(--tf-white);
+  background-color: rgba(255, 84, 129, 0.18);
+  border-color: rgba(255, 84, 129, 0.44);
+}
+
+.techfest-footer {
+  background: var(--tf-black);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px 0;
+}
+
+.techfest-footer a {
+  text-decoration: none;
+}
+
+@media (max-width: 1199.98px) {
+  body.techfest-theme {
+    padding-top: 78px;
+  }
+
+  .techfest-nav-inner {
+    width: min(100% - 32px, 980px);
+  }
+
+  .techfest-brand {
+    width: 190px;
+    height: 62px;
+  }
+
+  .techfest-brand-logo {
+    top: -92px;
+    left: -22px;
+    width: 242px;
+  }
+
+  .techfest-nav-collapse {
+    padding: 12px 0 18px;
+  }
+
+  .techfest-nav-group {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .techfest-nav-link {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 820px) {
+  .techfest-home-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .techfest-kicker {
+    justify-content: center;
+  }
+
+  .techfest-home-text {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .techfest-mascot-frame {
+    min-height: 300px;
+  }
+
+  .techfest-mascot {
+    width: min(86vw, 360px);
+  }
+}
+
+@media (max-width: 520px) {
+  body.techfest-theme {
+    padding-top: 74px;
+  }
+
+  .techfest-home {
+    padding-inline: 18px;
+  }
+
+  .techfest-home h1 {
+    font-size: clamp(2.8rem, 18vw, 4.8rem);
+  }
+
+  .techfest-nav-link {
+    min-height: 36px;
+    padding: 10px 12px !important;
+    font-size: 0.68rem;
+  }
+}
