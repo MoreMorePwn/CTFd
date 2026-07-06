@@ -351,6 +351,37 @@ body.techfest-theme main {
   letter-spacing: 0.08em;
 }
 
+.techfest-theme #scoreboard .table {
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.08);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.12);
+}
+
+.techfest-theme #scoreboard tbody th {
+  color: var(--tf-amber);
+  font-size: 0.95rem;
+}
+
+.techfest-theme #scoreboard tbody td {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+}
+
+.techfest-theme #scoreboard tbody td a {
+  color: var(--tf-white);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.techfest-theme #scoreboard tbody td a:hover {
+  color: var(--tf-amber);
+  text-shadow: 0 0 14px rgba(255, 175, 8, 0.34);
+}
+
+.techfest-theme #scoreboard tbody td:last-child {
+  color: var(--tf-white);
+  font-weight: 700;
+}
+
 .techfest-theme .form-control,
 .techfest-theme .form-select,
 .techfest-theme .input-group-text,
