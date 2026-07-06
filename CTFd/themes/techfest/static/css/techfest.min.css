@@ -202,11 +202,12 @@ body.techfest-theme main {
 .techfest-home {
   position: relative;
   isolation: isolate;
-  min-height: calc(100svh - var(--tf-nav-height) - var(--tf-footer-height));
+  min-height: calc(100svh - var(--tf-footer-height));
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: clamp(40px, 7vw, 90px) 24px clamp(70px, 9vw, 130px);
+  margin-top: calc(-1 * var(--tf-nav-height));
+  padding: calc(var(--tf-nav-height) + clamp(40px, 7vw, 90px)) 24px clamp(70px, 9vw, 130px);
   background: linear-gradient(180deg, #00113b 0%, #002175 100%);
 }
 
@@ -221,7 +222,7 @@ body.techfest-theme main {
 }
 
 .techfest-bg-top {
-  top: 0;
+  top: var(--tf-nav-height);
 }
 
 .techfest-bg-city {
@@ -243,6 +244,11 @@ body.techfest-theme main {
   grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.75fr);
   align-items: center;
   gap: clamp(32px, 7vw, 86px);
+}
+
+.techfest-home-copy {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .techfest-kicker {
@@ -618,7 +624,16 @@ body.techfest-theme main {
   }
 
   .techfest-home h1 {
-    font-size: clamp(2.8rem, 18vw, 4.8rem);
+    max-width: 18rem;
+    margin-inline: auto;
+    font-size: clamp(2rem, 10.5vw, 2.85rem);
+    line-height: 0.96;
+  }
+
+  .techfest-home-text {
+    max-width: 30ch;
+    font-size: 0.86rem;
+    line-height: 1.7;
   }
 
   .techfest-nav-link {
