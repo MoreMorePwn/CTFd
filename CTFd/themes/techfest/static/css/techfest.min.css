@@ -159,12 +159,24 @@ body.techfest-theme main {
 }
 
 .techfest-nav-icon {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
   width: 40px;
   min-width: 40px;
+  height: 40px;
+  min-height: 40px;
   justify-content: center;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  padding: 0 !important;
   font-size: 0.9rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.techfest-nav-icon i {
+  width: 1em;
+  line-height: 1;
+  text-align: center;
 }
 
 .techfest-nav-icon .badge-notification {
