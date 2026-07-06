@@ -45,7 +45,36 @@ fi
 
 monitoring_dir="monitoring/generated"
 grafana_datasource_dir="${monitoring_dir}/grafana-datasources"
-mkdir -p "${grafana_datasource_dir}"
+
+ensure_output_dir() {
+  local path="$1"
+
+  if [ -e "${path}" ] && [ ! -d "${path}" ]; then
+    echo "Expected ${path} to be a directory." >&2
+    exit 1
+  fi
+
+  mkdir -p "${path}"
+}
+
+ensure_output_file() {
+  local path="$1"
+
+  mkdir -p "$(dirname "${path}")"
+
+  if [ -d "${path}" ]; then
+    rm -rf "${path}"
+  elif [ -e "${path}" ] && [ ! -f "${path}" ]; then
+    echo "Expected ${path} to be a regular file." >&2
+    exit 1
+  fi
+}
+
+ensure_output_dir "${grafana_datasource_dir}"
+ensure_output_file "${monitoring_dir}/prometheus-web.yml"
+ensure_output_file "${monitoring_dir}/cadvisor.htpasswd"
+ensure_output_file "${monitoring_dir}/prometheus.yml"
+ensure_output_file "${grafana_datasource_dir}/prometheus.yml"
 
 if [ "${generated_env}" = true ]; then
   {
