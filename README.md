@@ -1,3 +1,13 @@
+# Running This CTFd Instance
+
+Use `./run.sh` as the entrypoint for this deployment. Running `./run.sh` with no arguments prints the help text.
+
+- First run: `./run.sh start` generates local credentials, writes `.env`, creates monitoring config, and starts Docker Compose.
+- Normal restart/re-up: `./run.sh start` or `docker compose up -d` starts the existing instance with the current `.env` and data. It does not rotate credentials.
+- Full local reset: `./run.sh reset` stops the stack, deletes local data/config/credentials, generates fresh credentials, and starts a new instance. Use `./run.sh reset --yes` to skip the confirmation prompt.
+
+After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`, and Grafana at `http://<server>:3000/`.
+
 # ![](https://github.com/CTFd/CTFd/blob/master/CTFd/themes/core/static/img/logo.png?raw=true)
 
 ![CTFd MySQL CI](https://github.com/CTFd/CTFd/workflows/CTFd%20MySQL%20CI/badge.svg?branch=master)
@@ -18,7 +28,7 @@
 - Added AI Source and Solver links to the admin submissions table, plus a manual `Verified` checkbox for reviewer tracking.
 - Added anti-cheat event detection and review tooling for shared IPs, shared user agents, shared browser fingerprints, repeated wrong answers, rapid solves, challenge-file download timing, and churn-style signals.
 - Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, and Submissions.
-- Added `run.sh` to generate randomized credentials for non-Grafana services, print the generated credentials, and start Docker Compose.
+- Added `run.sh` to initialize fresh deployments, reuse existing credentials/data on normal starts, and reset local infrastructure on request.
 - Added `reset.sh` for full-instance reset with seven confirmations. It exports the current instance into `.reset`, archives `.export` into `.reset` with a timestamp, and then starts a fresh stack.
 - Added `scripts/trigger_anti_cheat.py` to generate local demo events for validating the anti-cheat detectors.
 

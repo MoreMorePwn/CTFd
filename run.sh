@@ -4,6 +4,21 @@ set -euo pipefail
 cd "$(dirname "$0")"
 umask 077
 
+usage() {
+  cat <<'EOF'
+Usage:
+  ./run.sh             Show this help.
+  ./run.sh start       Start CTFd with current data, or initialize a fresh instance.
+  ./run.sh reset       Delete local data/config and start as a fresh instance.
+  ./run.sh reset --yes Same as reset, without the confirmation prompt.
+
+Default start behavior:
+  - If .env exists, current credentials/data are reused and Docker Compose is started.
+  - If .env does not exist and no database data exists, new credentials are generated.
+  - If database data exists but .env is missing, the script stops to avoid orphaning data.
+EOF
+}
+
 random_alnum() {
   python3 - "${1:-32}" <<'PY'
 import secrets
@@ -16,79 +31,169 @@ print("".join(secrets.choice(alphabet) for _ in range(length)))
 PY
 }
 
-wait_for_db() {
-  local password="$1"
-  for _ in $(seq 1 60); do
-    if docker compose exec -T db mariadb-admin ping -uroot -p"${password}" --silent >/dev/null 2>&1; then
-      return 0
-    fi
-    sleep 2
-  done
-  return 1
+load_env() {
+  if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . ./.env
+    set +a
+  fi
 }
 
-if [ -f .env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  . ./.env
-  set +a
-fi
+compose_up() {
+  docker compose up -d --build
+}
 
-OLD_DB_ROOT_PASSWORD="${CTFD_DB_ROOT_PASSWORD:-ctfd}"
-OLD_DB_USER="${CTFD_DB_USER:-ctfd}"
-OLD_DB_PASSWORD="${CTFD_DB_PASSWORD:-ctfd}"
-OLD_DB_NAME="${CTFD_DB_NAME:-ctfd}"
+generate_credentials() {
+  local db_user="${CTFD_DB_USER:-ctfd}"
+  local db_name="${CTFD_DB_NAME:-ctfd}"
+  local db_root_password
+  local db_password
+  local redis_password
+  local monitor_user
+  local monitor_password
+  local secret_key
 
-NEW_DB_ROOT_PASSWORD="$(random_alnum 36)"
-NEW_DB_PASSWORD="$(random_alnum 36)"
-NEW_REDIS_PASSWORD="$(random_alnum 36)"
-NEW_MONITOR_USER="monitor_$(random_alnum 8)"
-NEW_MONITOR_PASSWORD="$(random_alnum 36)"
-NEW_SECRET_KEY="$(openssl rand -hex 64)"
+  db_root_password="$(random_alnum 36)"
+  db_password="$(random_alnum 36)"
+  redis_password="$(random_alnum 36)"
+  monitor_user="monitor_$(random_alnum 8)"
+  monitor_password="$(random_alnum 36)"
+  secret_key="$(openssl rand -hex 64)"
 
-if [ -d .data/mysql/mysql ]; then
-  echo "Existing MariaDB data detected; updating the database password before writing .env."
-  docker compose up -d db
-  if ! wait_for_db "${OLD_DB_ROOT_PASSWORD}"; then
-    echo "Could not authenticate to the existing MariaDB container with the current root password." >&2
-    echo "Check .env or the existing database credentials before rerunning." >&2
+  cat > .env <<EOF
+CTFD_DB_ROOT_PASSWORD=${db_root_password}
+CTFD_DB_USER=${db_user}
+CTFD_DB_PASSWORD=${db_password}
+CTFD_DB_NAME=${db_name}
+CTFD_REDIS_PASSWORD=${redis_password}
+CTFD_SECRET_KEY=${secret_key}
+PROMETHEUS_BASIC_USER=${monitor_user}
+PROMETHEUS_BASIC_PASSWORD=${monitor_password}
+EOF
+
+  printf '%s\n' "${secret_key}" > .ctfd_secret_key
+  chmod 600 .env .ctfd_secret_key
+
+  PROMETHEUS_BASIC_USER="${monitor_user}" \
+  PROMETHEUS_BASIC_PASSWORD="${monitor_password}" \
+    bash monitoring/generate-config.sh --quiet
+
+  echo
+  echo "Generated service credentials:"
+  echo "  MariaDB root: username=root password=${db_root_password}"
+  echo "  MariaDB CTFd app: username=${db_user} password=${db_password} database=${db_name}"
+  echo "  Redis: username=default password=${redis_password}"
+  echo "  Prometheus: username=${monitor_user} password=${monitor_password}"
+  echo "  cAdvisor auth proxy: username=${monitor_user} password=${monitor_password}"
+  echo "  CTFd secret key: ${secret_key}"
+  echo "  Grafana login was not changed."
+  echo
+}
+
+ensure_monitoring_config() {
+  load_env
+  PROMETHEUS_BASIC_USER="${PROMETHEUS_BASIC_USER:-}" \
+  PROMETHEUS_BASIC_PASSWORD="${PROMETHEUS_BASIC_PASSWORD:-}" \
+    bash monitoring/generate-config.sh --quiet
+}
+
+start_existing_or_initialize() {
+  if [ -f .env ]; then
+    echo "Existing .env detected; starting with current credentials and data."
+    ensure_monitoring_config
+    compose_up
+    return
+  fi
+
+  if [ -d .data/mysql/mysql ]; then
+    echo "Existing MariaDB data was found, but .env is missing." >&2
+    echo "Refusing to generate new credentials that would not match the existing database." >&2
+    echo "Restore the matching .env, or run './run.sh reset' to delete local data and start fresh." >&2
     exit 1
   fi
 
-  docker compose exec -T db mariadb -uroot -p"${OLD_DB_ROOT_PASSWORD}" <<SQL
-CREATE USER IF NOT EXISTS '${OLD_DB_USER}'@'%' IDENTIFIED BY '${OLD_DB_PASSWORD}';
-GRANT ALL PRIVILEGES ON \`${OLD_DB_NAME}\`.* TO '${OLD_DB_USER}'@'%';
-ALTER USER '${OLD_DB_USER}'@'%' IDENTIFIED BY '${NEW_DB_PASSWORD}';
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${NEW_DB_ROOT_PASSWORD}';
-ALTER USER IF EXISTS 'root'@'%' IDENTIFIED BY '${NEW_DB_ROOT_PASSWORD}';
-FLUSH PRIVILEGES;
-SQL
+  echo "No .env or MariaDB data detected; initializing a fresh instance."
+  generate_credentials
+  compose_up
+}
+
+confirm_reset() {
+  local yes="${1:-false}"
+
+  if [ "${yes}" = true ]; then
+    return
+  fi
+
+  echo "This will stop Docker Compose and delete local CTFd data, uploads, exports, database, Redis data, generated monitoring config, and credentials."
+  printf "Type 'reset' to continue: "
+  read -r answer
+  if [ "${answer}" != "reset" ]; then
+    echo "Reset cancelled."
+    exit 1
+  fi
+}
+
+reset_infra() {
+  local yes=false
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -y|--yes)
+        yes=true
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "Unknown reset option: $1" >&2
+        usage >&2
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  confirm_reset "${yes}"
+
+  docker compose down --remove-orphans
+  rm -rf .data .export monitoring/generated .env .ctfd_secret_key
+  mkdir -p .export
+
+  echo "Local data removed; initializing a fresh instance."
+  generate_credentials
+  compose_up
+}
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 0
 fi
 
-cat > .env <<EOF
-CTFD_DB_ROOT_PASSWORD=${NEW_DB_ROOT_PASSWORD}
-CTFD_DB_USER=${OLD_DB_USER}
-CTFD_DB_PASSWORD=${NEW_DB_PASSWORD}
-CTFD_DB_NAME=${OLD_DB_NAME}
-CTFD_REDIS_PASSWORD=${NEW_REDIS_PASSWORD}
-PROMETHEUS_BASIC_USER=${NEW_MONITOR_USER}
-PROMETHEUS_BASIC_PASSWORD=${NEW_MONITOR_PASSWORD}
-EOF
+command="$1"
+if [ "$#" -gt 0 ]; then
+  shift
+fi
 
-printf '%s\n' "${NEW_SECRET_KEY}" > .ctfd_secret_key
-PROMETHEUS_BASIC_USER="${NEW_MONITOR_USER}" \
-PROMETHEUS_BASIC_PASSWORD="${NEW_MONITOR_PASSWORD}" \
-  bash monitoring/generate-config.sh --quiet
-
-echo
-echo "Generated service credentials:"
-echo "  MariaDB root: username=root password=${NEW_DB_ROOT_PASSWORD}"
-echo "  MariaDB CTFd app: username=${OLD_DB_USER} password=${NEW_DB_PASSWORD} database=${OLD_DB_NAME}"
-echo "  Redis: username=default password=${NEW_REDIS_PASSWORD}"
-echo "  Prometheus: username=${NEW_MONITOR_USER} password=${NEW_MONITOR_PASSWORD}"
-echo "  cAdvisor auth proxy: username=${NEW_MONITOR_USER} password=${NEW_MONITOR_PASSWORD}"
-echo "  CTFd secret key: ${NEW_SECRET_KEY}"
-echo "  Grafana login was not changed."
-echo
-
-docker compose up -d --build
+case "${command}" in
+  start|up)
+    if [ "$#" -ne 0 ]; then
+      echo "Unexpected arguments for ${command}: $*" >&2
+      usage >&2
+      exit 1
+    fi
+    start_existing_or_initialize
+    ;;
+  reset|fresh)
+    reset_infra "$@"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: ${command}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

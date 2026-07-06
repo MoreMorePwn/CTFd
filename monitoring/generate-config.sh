@@ -99,7 +99,7 @@ basic_auth_users:
 EOF
 
 cat > "${monitoring_dir}/cadvisor.htpasswd" <<EOF
-$(htpasswd -nbm "${monitor_user}" "${monitor_password}")
+${monitor_user}:$(openssl passwd -apr1 "${monitor_password}")
 EOF
 
 cat > "${monitoring_dir}/prometheus.yml" <<EOF
@@ -149,6 +149,13 @@ datasources:
     secureJsonData:
       basicAuthPassword: ${monitor_password}
 EOF
+
+chmod 755 "${monitoring_dir}" "${grafana_datasource_dir}"
+chmod 644 \
+  "${monitoring_dir}/prometheus-web.yml" \
+  "${monitoring_dir}/cadvisor.htpasswd" \
+  "${monitoring_dir}/prometheus.yml" \
+  "${grafana_datasource_dir}/prometheus.yml"
 
 if [ "${quiet}" = false ]; then
   echo "Monitoring config written to ${monitoring_dir}"
