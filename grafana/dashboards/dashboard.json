@@ -45,7 +45,7 @@
         "label": "Scrape job",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": "prometheus"
         },
         "definition": "label_values(container_last_seen, job)",
         "query": {
@@ -70,7 +70,7 @@
         "label": "cAdvisor instance",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": "prometheus"
         },
         "definition": "label_values(container_last_seen{job=~\"$job\"}, instance)",
         "query": {
@@ -95,7 +95,7 @@
         "label": "Compose stack",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": "prometheus"
         },
         "definition": "label_values(container_last_seen{job=~\"$job\", instance=~\"$instance\", name!=\"\", image!=\"\"}, container_label_com_docker_compose_project)",
         "query": {
@@ -120,7 +120,7 @@
         "label": "Container name",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": "prometheus"
         },
         "definition": "label_values(container_last_seen{job=~\"$job\", instance=~\"$instance\", container_label_com_docker_compose_project=~\"$stack\", name!=\"\", image!=\"\"}, name)",
         "query": {
@@ -177,7 +177,7 @@
       "description": "Count of distinct container names with an image (Docker-style workloads).",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -232,7 +232,7 @@
       "description": "Containers whose last seen timestamp is older than 5 minutes (within current filters).",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -295,7 +295,7 @@
       "description": "Sum of per-container CPU usage (cores) after filters.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -351,7 +351,7 @@
       "description": "Sum of working set bytes across filtered containers.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -406,7 +406,7 @@
       "description": "Cluster-wide rate of OOM events reported by cAdvisor for filtered containers.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -466,7 +466,7 @@
       "description": "1 if the last cAdvisor scrape failed (exporter-level gauge in your scrape).",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -538,7 +538,7 @@
       "description": "Instant snapshot of highest CPU usage after filters.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 10,
@@ -583,7 +583,7 @@
       "title": "Top 20 memory by container name (working set)",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 10,
@@ -641,7 +641,7 @@
       "description": "Instant snapshot per container name. Use column sort to find outliers.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 14,
@@ -776,7 +776,7 @@
       "description": "Limits legend noise by plotting only the five highest CPU consumers.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 10,
@@ -827,7 +827,7 @@
       "title": "Memory by container name (top 5)",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 10,
@@ -891,7 +891,7 @@
       "description": "Receive bytes per second aggregated across interfaces per container.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 9,
@@ -943,7 +943,7 @@
       "description": "Transmit bytes per second aggregated across interfaces per container.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 9,
@@ -995,7 +995,7 @@
       "description": "Combined receive/transmit packet errors and drops per second.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -1060,7 +1060,7 @@
       "description": "Current CPU cores used compared with total host CPU cores.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1122,7 +1122,7 @@
       "description": "Current host RAM used compared with total host RAM.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1183,7 +1183,7 @@
       "description": "Current root filesystem usage compared with total root filesystem size.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1244,7 +1244,7 @@
       "description": "",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1300,7 +1300,7 @@
       "description": "",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1356,7 +1356,7 @@
       "description": "",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -1412,7 +1412,7 @@
       "description": "CPU usage as used cores against total cores.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 9,
@@ -1467,7 +1467,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1524,7 +1524,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1584,7 +1584,7 @@
       "description": "Host receive/transmit throughput by non-loopback, non-Docker virtual interface.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 9,
@@ -1641,7 +1641,7 @@
       "description": "Host block-device read/write throughput.",
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "gridPos": {
         "h": 9,
