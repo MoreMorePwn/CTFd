@@ -3,6 +3,8 @@
 
 from flask import Flask
 
+from CTFd.config import TestingConfig
+from CTFd.utils import set_config
 from tests.helpers import (
     create_ctfd,
     destroy_ctfd,
@@ -79,4 +81,39 @@ def test_get_admin_as_user():
         r = client.get("/admin")
         assert r.status_code == 302
         assert r.location.startswith("/login")
+    destroy_ctfd(app)
+
+
+def test_admin_monitor_redirect_uses_current_host():
+    class MonitorHostConfig(TestingConfig):
+        SERVER_NAME = "ctf.example.com"
+
+    app = create_ctfd(config=MonitorHostConfig)
+    with app.app_context():
+        admin = login_as_user(app, name="admin")
+
+        r = admin.get("/admin/monitor")
+        assert r.status_code == 302
+        assert r.location == "http://ctf.example.com:3000"
+
+        set_config(
+            "grafana_url",
+            "http://127.0.0.1:3000/d/containers-fleet-cadvisor?orgId=1",
+        )
+        r = admin.get("/admin/monitor")
+        assert r.status_code == 302
+        assert (
+            r.location
+            == "http://ctf.example.com:3000/d/containers-fleet-cadvisor?orgId=1"
+        )
+
+        set_config("grafana_url", "localhost:3000/d/local-bare?orgId=1")
+        r = admin.get("/admin/monitor")
+        assert r.status_code == 302
+        assert r.location == "http://ctf.example.com:3000/d/local-bare?orgId=1"
+
+        set_config("grafana_url", "https://grafana.example.com/d/monitoring")
+        r = admin.get("/admin/monitor", headers={"Host": "ctf.example.com"})
+        assert r.status_code == 302
+        assert r.location == "https://grafana.example.com/d/monitoring"
     destroy_ctfd(app)

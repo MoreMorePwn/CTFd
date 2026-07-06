@@ -2,6 +2,7 @@ import csv  # noqa: I001
 import datetime
 import os
 from io import StringIO
+from urllib.parse import urlsplit, urlunsplit
 
 from flask import Blueprint, abort
 from flask import current_app as app
@@ -47,6 +48,45 @@ from CTFd.utils.exports import background_import_ctf
 from CTFd.utils.exports import export_ctf as export_ctf_util
 from CTFd.utils.admin_permissions import first_allowed_admin_endpoint
 from CTFd.utils.user import get_current_user, is_admin, is_assistant
+
+LOCAL_GRAFANA_HOSTS = {"127.0.0.1", "localhost", "0.0.0.0", "::1"}
+
+
+def get_monitor_url():
+    configured_url = str(
+        get_config("grafana_url", default="http://127.0.0.1:3000")
+        or "http://127.0.0.1:3000"
+    )
+    parse_url = configured_url
+    if "://" not in configured_url and not configured_url.startswith("/"):
+        parse_url = f"//{configured_url}"
+    parsed = urlsplit(parse_url)
+
+    if parsed.hostname and parsed.hostname not in LOCAL_GRAFANA_HOSTS:
+        if parsed.scheme:
+            return configured_url
+        return urlunsplit(
+            (request.scheme, parsed.netloc, parsed.path, parsed.query, parsed.fragment)
+        )
+
+    host = request.host or request.headers.get("Host")
+    parsed_host = urlsplit(f"//{host}")
+    hostname = parsed_host.hostname
+
+    if not hostname:
+        return configured_url or "http://127.0.0.1:3000"
+
+    if ":" in hostname and not hostname.startswith("["):
+        hostname = f"[{hostname}]"
+
+    try:
+        port = parsed.port
+    except ValueError:
+        port = None
+
+    scheme = parsed.scheme or request.scheme
+    netloc = f"{hostname}:{port or 3000}"
+    return urlunsplit((scheme, netloc, parsed.path, parsed.query, parsed.fragment))
 
 
 @admin.route("/admin", methods=["GET"])
@@ -125,7 +165,7 @@ def export_ctf():
 @admin.route("/admin/monitor", methods=["GET"])
 @admins_only
 def monitor():
-    return redirect(get_config("grafana_url", default="http://127.0.0.1:3000"))
+    return redirect(get_monitor_url())
 
 
 @admin.route("/admin/import/csv", methods=["POST"])
