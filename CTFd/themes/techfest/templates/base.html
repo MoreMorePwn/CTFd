@@ -37,7 +37,7 @@
           ],
       }
 
-      window.scoreboardChartOptions = {
+      const techfestChartTextOptions = {
           title: {
               textStyle: {
                   color: "#ffffff",
@@ -55,7 +55,22 @@
                   color: "#ffffff",
               },
           },
+          xAxis: [{
+              axisLabel: { color: "#ffffff" },
+              nameTextStyle: { color: "#ffffff" },
+              axisLine: { lineStyle: { color: "rgba(255, 255, 255, 0.65)" } },
+          }],
+          yAxis: [{
+              axisLabel: { color: "#ffffff" },
+              nameTextStyle: { color: "#ffffff" },
+              axisLine: { lineStyle: { color: "rgba(255, 255, 255, 0.65)" } },
+              splitLine: { lineStyle: { color: "rgba(255, 255, 255, 0.14)" } },
+          }],
       }
+
+      window.scoreboardChartOptions = techfestChartTextOptions
+      window.userScoreGraphChartOptions = techfestChartTextOptions
+      window.teamScoreGraphChartOptions = techfestChartTextOptions
   </script>
 
   {{ Configs.theme_header }}
