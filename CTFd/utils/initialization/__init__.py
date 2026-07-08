@@ -78,6 +78,10 @@ def init_template_globals(app):
     from CTFd.constants.teams import Team
     from CTFd.constants.users import User
     from CTFd.forms import Forms
+    from CTFd.utils.admin_permissions import (
+        current_user_can_access_admin_permission,
+        get_assistant_permission_definitions,
+    )
     from CTFd.utils.config.visibility import (
         accounts_visible,
         challenges_visible,
@@ -86,10 +90,6 @@ def init_template_globals(app):
     )
     from CTFd.utils.countries import get_countries, lookup_country_code
     from CTFd.utils.countries.geoip import lookup_ip_address, lookup_ip_address_city
-    from CTFd.utils.admin_permissions import (
-        current_user_can_access_admin_permission,
-        get_assistant_permission_definitions,
-    )
 
     app.jinja_env.globals.update(config=config)
     app.jinja_env.globals.update(get_pages=get_pages)
@@ -408,8 +408,12 @@ def init_request_processors(app):
                 if session["nonce"] != request.headers.get("CSRF-Token"):
                     abort(403)
             else:
-                # Form submissions => token in form body
-                if session["nonce"] != request.form.get("nonce"):
+                # Form submissions can send the token in a header to avoid
+                # parsing large multipart bodies before route-level guards run.
+                csrf_token = request.headers.get("CSRF-Token")
+                if csrf_token is None:
+                    csrf_token = request.form.get("nonce")
+                if session["nonce"] != csrf_token:
                     abort(403)
 
     @app.after_request

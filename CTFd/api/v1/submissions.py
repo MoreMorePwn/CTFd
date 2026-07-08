@@ -196,13 +196,13 @@ class Submission(Resource):
         },
     )
     def patch(self, submission_id):
-        submission = Submissions.query.filter_by(id=submission_id).first_or_404()
-
         req = request.get_json() or {}
 
         if not current_user_can_access_admin_permission("submissions_write"):
             if set(req.keys()) != {"verified"}:
                 abort(403)
+
+        submission = Submissions.query.filter_by(id=submission_id).first_or_404()
 
         verified, verified_error = _get_verified_value(req)
         if verified_error:

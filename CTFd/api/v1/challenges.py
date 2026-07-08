@@ -40,6 +40,10 @@ from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.anti_cheat import get_browser_fingerprint, get_user_agent
+from CTFd.utils.challenge_submissions import (
+    validate_challenge_submission_metadata,
+    validate_challenge_submission_request_size,
+)
 from CTFd.utils.challenges import (
     get_all_challenges,
     get_rating_average_for_challenge_id,
@@ -52,7 +56,6 @@ from CTFd.utils.config.visibility import (
     challenges_visible,
     scores_visible,
 )
-from CTFd.utils.challenge_submissions import validate_challenge_submission_metadata
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat
 from CTFd.utils.decorators import (
     admins_only,
@@ -668,6 +671,13 @@ class ChallengeAttempt(Resource):
     def post(self):
         if authed() is False:
             return {"success": True, "data": {"status": "authentication_required"}}, 403
+
+        request_size_error = validate_challenge_submission_request_size(request)
+        if request_size_error:
+            return {
+                "success": True,
+                "data": {"status": "invalid", "message": request_size_error},
+            }, 400
 
         if not request.is_json:
             request_data = request.form

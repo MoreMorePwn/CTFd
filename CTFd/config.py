@@ -7,6 +7,7 @@ from typing import Union
 from sqlalchemy.engine.url import URL
 
 _FORCED_EXTRA_CONFIG_TYPES = {}
+DEFAULT_MAX_CONTENT_LENGTH = 128 * 1024 * 1024
 
 
 class EnvInterpolation(configparser.BasicInterpolation):
@@ -261,6 +262,12 @@ class ServerConfig(object):
     SERVER_SENT_EVENTS: bool = process_boolean_str(empty_str_cast(config_ini["optional"]["SERVER_SENT_EVENTS"], default=True))
 
     HTML_SANITIZATION: bool = process_boolean_str(empty_str_cast(config_ini["optional"]["HTML_SANITIZATION"], default=False))
+
+    _MAX_CONTENT_LENGTH = empty_str_cast(
+        config_ini["optional"].get("MAX_CONTENT_LENGTH"),
+        default=DEFAULT_MAX_CONTENT_LENGTH,
+    )
+    MAX_CONTENT_LENGTH: int = int(_MAX_CONTENT_LENGTH or DEFAULT_MAX_CONTENT_LENGTH)
 
     SAFE_MODE: bool = process_boolean_str(empty_str_cast(config_ini["optional"].get("SAFE_MODE", False), default=False))
 

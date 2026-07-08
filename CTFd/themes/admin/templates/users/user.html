@@ -205,23 +205,32 @@
 </div>
 
 <div class="container">
+	{% if can_view_submissions or can_view_awards or can_view_missing %}
 	<nav class="nav nav-tabs nav-fill pt-5" id="myTab" role="tablist">
-		<a class="nav-item nav-link active" id="nav-solves-tab" data-toggle="tab" href="#nav-solves" role="tab"
-		   aria-controls="nav-solves" aria-selected="true">Solves</a>
+		{% if can_view_submissions %}
+		<a class="nav-item nav-link{% if active_detail_tab == 'solves' %} active{% endif %}" id="nav-solves-tab" data-toggle="tab" href="#nav-solves" role="tab"
+		   aria-controls="nav-solves" aria-selected="{{ 'true' if active_detail_tab == 'solves' else 'false' }}">Solves</a>
 
 		<a class="nav-item nav-link" id="nav-wrong-tab" data-toggle="tab" href="#nav-wrong" role="tab"
 		   aria-controls="nav-wrong" aria-selected="false">Fails</a>
+		{% endif %}
 
-		<a class="nav-item nav-link" id="nav-awards-tab" data-toggle="tab" href="#nav-awards" role="tab"
-		   aria-controls="nav-awards" aria-selected="false">Awards</a>
+		{% if can_view_awards %}
+		<a class="nav-item nav-link{% if active_detail_tab == 'awards' %} active{% endif %}" id="nav-awards-tab" data-toggle="tab" href="#nav-awards" role="tab"
+		   aria-controls="nav-awards" aria-selected="{{ 'true' if active_detail_tab == 'awards' else 'false' }}">Awards</a>
+		{% endif %}
 
-		<a class="nav-item nav-link" id="nav-missing-tab" data-toggle="tab" href="#nav-missing" role="tab"
-		   aria-controls="nav-missing" aria-selected="false">Missing</a>
+		{% if can_view_missing %}
+		<a class="nav-item nav-link{% if active_detail_tab == 'missing' %} active{% endif %}" id="nav-missing-tab" data-toggle="tab" href="#nav-missing" role="tab"
+		   aria-controls="nav-missing" aria-selected="{{ 'true' if active_detail_tab == 'missing' else 'false' }}">Missing</a>
+		{% endif %}
 	</nav>
 
 	<div class="tab-content min-vh-25 pb-5" id="nav-tabContent">
-		<div class="tab-pane fade show active" id="nav-solves" role="tabpanel" aria-labelledby="nav-solves-tab">
+		{% if can_view_submissions %}
+		<div class="tab-pane fade{% if active_detail_tab == 'solves' %} show active{% endif %}" id="nav-solves" role="tabpanel" aria-labelledby="nav-solves-tab">
 			<h3 class="text-center pt-5 d-block">Solves</h3>
+			{% if admin_can('submissions_write') %}
 			<div class="row">
 				<div class="col-md-12">
 					<div class="float-right pb-3">
@@ -233,16 +242,19 @@
 					</div>
 				</div>
 			</div>
+			{% endif %}
 			<div class="row">
 				<div class="col-md-12 table-responsive">
 					<table class="table table-striped border">
 					<thead>
 						<tr>
+							{% if admin_can('submissions_write') %}
 							<th class="border-right" data-checkbox>
 								<div class="form-check text-center">
 									<input type="checkbox" class="form-check-input" autocomplete="off" data-checkbox-all>&nbsp;
 								</div>
 							</th>
+							{% endif %}
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Submitted</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
@@ -253,6 +265,7 @@
 					<tbody>
 					{% for solve in solves %}
 						<tr class="chal-solve" data-href="{{ url_for("admin.challenges_detail", challenge_id=solve.challenge_id) }}">
+							{% if admin_can('submissions_write') %}
 							<td class="border-right" data-checkbox>
 								<div class="form-check text-center">
 									<input type="checkbox" class="form-check-input" value="{{ solve.id }}" autocomplete="off"
@@ -261,6 +274,7 @@
 									data-submission-challenge="{{ solve.challenge.name }}">&nbsp;
 								</div>
 							</td>
+							{% endif %}
 							<td class="text-center chal" id="{{ solve.challenge_id }}">
 								<a href="{{ url_for("admin.challenges_detail", challenge_id=solve.challenge_id) }}">
 									{{ solve.challenge.name }}
@@ -282,6 +296,7 @@
 
 		<div class="tab-pane fade" id="nav-wrong" role="tabpanel" aria-labelledby="nav-wrong-tab">
 			<h3 class="text-center pt-5 d-block">Fails</h3>
+			{% if admin_can('submissions_write') %}
 			<div class="row">
 				<div class="col-md-12">
 					<div class="float-right pb-3">
@@ -296,16 +311,19 @@
 					</div>
 				</div>
 			</div>
+			{% endif %}
 			<div class="row">
 				<div class="col-md-12 table-responsive">
 					<table class="table table-striped border">
 						<thead>
 							<tr>
+								{% if admin_can('submissions_write') %}
 								<th class="border-right" data-checkbox>
 									<div class="form-check text-center">
 										<input type="checkbox" class="form-check-input" autocomplete="off" data-checkbox-all>&nbsp;
 									</div>
 								</th>
+								{% endif %}
 								<th class="sort-col text-center"><b>Challenge</b></th>
 								<th class="sort-col text-center"><b>Submitted</b></th>
 								<th class="sort-col text-center"><b>Time</b></th>
@@ -314,6 +332,7 @@
 						<tbody>
 						{% for fail in fails %}
 							<tr class="chal-wrong" data-href="{{ url_for('admin.challenges_detail', challenge_id=fail.challenge_id) }}">
+								{% if admin_can('submissions_write') %}
 								<td class="border-right" data-checkbox>
 									<div class="form-check text-center">
 										<input type="checkbox" class="form-check-input" value="{{ fail.id }}" autocomplete="off"
@@ -322,6 +341,7 @@
 										data-submission-challenge="{{ fail.challenge.name }}">&nbsp;
 									</div>
 								</td>
+								{% endif %}
 								<td class="text-center chal" id="{{ fail.challenge_id }}">
 									<a href="{{ url_for("admin.challenges_detail", challenge_id=fail.challenge_id) }}">
 										{{ fail.challenge.name }}
@@ -340,8 +360,10 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 
-		<div class="tab-pane fade" id="nav-awards" role="tabpanel" aria-labelledby="nav-awards-tab">
+		{% if can_view_awards %}
+		<div class="tab-pane fade{% if active_detail_tab == 'awards' %} show active{% endif %}" id="nav-awards" role="tabpanel" aria-labelledby="nav-awards-tab">
 			<h3 class="text-center pt-5 d-block">Awards</h3>
 			<div class="row">
 				<div class="col-md-12">
@@ -395,9 +417,12 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 
-		<div class="tab-pane fade" id="nav-missing" role="tabpanel" aria-labelledby="nav-missing-tab">
+		{% if can_view_missing %}
+		<div class="tab-pane fade{% if active_detail_tab == 'missing' %} show active{% endif %}" id="nav-missing" role="tabpanel" aria-labelledby="nav-missing-tab">
 			<h3 class="text-center pt-5 d-block">Missing</h3>
+			{% if admin_can('submissions_write') %}
 			<div class="row">
 				<div class="col-md-12">
 					<div class="float-right pb-3">
@@ -409,16 +434,19 @@
 					</div>
 				</div>
 			</div>
+			{% endif %}
 			<div class="row">
 				<div class="col-md-12 table-responsive">
 					<table class="table table-striped border">
 					<thead>
 						<tr>
+							{% if admin_can('submissions_write') %}
 							<th class="border-right" data-checkbox>
 								<div class="form-check text-center">
 									<input type="checkbox" class="form-check-input" autocomplete="off" data-checkbox-all>&nbsp;
 								</div>
 							</th>
+							{% endif %}
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
 							<th class="sort-col text-center"><b>Value</b></th>
@@ -427,12 +455,14 @@
 					<tbody>
 					{% for challenge in missing %}
 						<tr class="chal-solve" data-href="{{ url_for("admin.challenges_detail", challenge_id=challenge.id) }}">
+							{% if admin_can('submissions_write') %}
 							<td class="border-right" data-checkbox>
 								<div class="form-check text-center">
 									<input type="checkbox" class="form-check-input" value="{{ challenge.id }}" autocomplete="off" data-missing-challenge-id="{{ challenge.id }}"
 									data-missing-challenge-name="{{ challenge.name }}">&nbsp;
 								</div>
 							</td>
+							{% endif %}
 							<td class="text-center chal" id="{{ challenge.id }}">
 								<a href="{{ url_for("admin.challenges_detail", challenge_id=challenge.id) }}">
 									{{ challenge.name }}
@@ -447,7 +477,9 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 	</div>
+	{% endif %}
 
 	<div class="row min-vh-25 pt-5">
 		<div class="col-md-10 offset-md-1">

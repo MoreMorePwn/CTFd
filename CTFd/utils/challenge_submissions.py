@@ -9,6 +9,7 @@ from CTFd.utils import get_config, uploads
 
 DEFAULT_AI_SOURCE_REGEX = r"^https://chat\.deepseek\.com/share/[A-Za-z0-9_-]+$"
 DEFAULT_SOLVER_TOTAL_SIZE_LIMIT = 10 * 1024 * 1024
+DEFAULT_SOLVER_REQUEST_SIZE_OVERHEAD = 1024 * 1024
 
 
 class SubmissionMetadataError(ValueError):
@@ -66,7 +67,39 @@ def get_solver_file_size(file_obj):
     return size
 
 
+def get_solver_request_size_limit():
+    total_size_limit = int(
+        get_config("solver_total_size_limit", DEFAULT_SOLVER_TOTAL_SIZE_LIMIT) or 0
+    )
+    if total_size_limit <= 0:
+        return 0
+
+    overhead = int(
+        get_config("solver_request_size_overhead", DEFAULT_SOLVER_REQUEST_SIZE_OVERHEAD)
+        or 0
+    )
+    return total_size_limit + max(overhead, 0)
+
+
+def validate_challenge_submission_request_size(req):
+    if req.is_json:
+        return None
+
+    request_size_limit = get_solver_request_size_limit()
+    if (
+        request_size_limit
+        and req.content_length
+        and req.content_length > request_size_limit
+    ):
+        return "Solver / Script files exceed the total size limit."
+    return None
+
+
 def validate_challenge_submission_metadata(challenge, req):
+    request_size_error = validate_challenge_submission_request_size(req)
+    if request_size_error:
+        return request_size_error
+
     try:
         ai_sources = get_ai_sources(req)
     except SubmissionMetadataError as e:

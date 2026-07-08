@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import io
 import json
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
+from flask.wrappers import Request
 from freezegun import freeze_time
 from sqlalchemy.exc import IntegrityError
 
@@ -1155,6 +1156,67 @@ def test_api_challenge_attempt_requires_ai_source_and_solver():
                 admin_response = admin_client.get("/files/" + solver_location)
                 assert admin_response.status_code == 200
 
+    destroy_ctfd(app)
+
+
+def test_api_challenge_attempt_rejects_oversized_solver_request_before_form_parse():
+    """Oversized solver requests should be rejected before multipart parsing"""
+    app = create_ctfd()
+    with app.app_context():
+        challenge = gen_challenge(app.db, require_solver=True)
+        gen_flag(app.db, challenge.id)
+        challenge_id = challenge.id
+        register_user(app)
+        set_config("solver_total_size_limit", 1)
+        set_config("solver_request_size_overhead", 0)
+
+        with login_as_user(app) as client:
+            with client.session_transaction() as sess:
+                headers = {"CSRF-Token": sess.get("nonce")}
+            with patch.object(Request, "form", new_callable=PropertyMock) as form:
+                form.side_effect = AssertionError("request.form was parsed")
+                r = client.post(
+                    "/api/v1/challenges/attempt",
+                    headers=headers,
+                    data={
+                        "challenge_id": challenge_id,
+                        "submission": "flag",
+                        "solver": (io.BytesIO(b"solve"), "solve.py"),
+                    },
+                )
+
+            form.assert_not_called()
+            assert r.status_code == 400
+            assert r.get_json()["data"]["status"] == "invalid"
+            assert "size limit" in r.get_json()["data"]["message"]
+            assert Solves.query.filter_by(challenge_id=challenge_id).count() == 0
+            assert Files.query.filter_by(type="submission").count() == 0
+    destroy_ctfd(app)
+
+
+def test_api_challenge_attempt_respects_max_content_length():
+    """Flask should reject request bodies over MAX_CONTENT_LENGTH"""
+    app = create_ctfd()
+    with app.app_context():
+        app.config["MAX_CONTENT_LENGTH"] = 256
+        challenge = gen_challenge(app.db, require_solver=True)
+        gen_flag(app.db, challenge.id)
+        challenge_id = challenge.id
+        register_user(app)
+
+        with login_as_user(app) as client:
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "flag",
+                    "solver": (io.BytesIO(b"x" * 512), "solve.py"),
+                },
+            )
+
+            assert r.status_code == 413
+            assert Solves.query.filter_by(challenge_id=challenge_id).count() == 0
+            assert Files.query.filter_by(type="submission").count() == 0
     destroy_ctfd(app)
 
 

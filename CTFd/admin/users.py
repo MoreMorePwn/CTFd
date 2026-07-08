@@ -4,8 +4,19 @@ from sqlalchemy.sql import not_
 from CTFd.admin import admin
 from CTFd.models import Challenges, Tracking, Users
 from CTFd.utils import get_config
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.modes import TEAMS_MODE
+
+
+def _first_visible_detail_tab(can_view_submissions, can_view_awards, can_view_missing):
+    if can_view_submissions:
+        return "solves"
+    if can_view_awards:
+        return "awards"
+    if can_view_missing:
+        return "missing"
+    return None
 
 
 @admin.route("/admin/users")
@@ -61,20 +72,28 @@ def users_detail(user_id):
     # Get user object
     user = Users.query.filter_by(id=user_id).first_or_404()
 
+    can_view_submissions = current_user_can_access_admin_permission("submissions_read")
+    can_view_awards = current_user_can_access_admin_permission("awards")
+    can_view_missing = (
+        can_view_submissions and current_user_can_access_admin_permission("challenges")
+    )
+
     # Get the user's solves
-    solves = user.get_solves(admin=True)
+    solves = user.get_solves(admin=True) if can_view_submissions else []
 
     # Get challenges that the user is missing
-    if get_config("user_mode") == TEAMS_MODE:
-        if user.team:
-            all_solves = user.team.get_solves(admin=True)
+    missing = []
+    if can_view_missing:
+        if get_config("user_mode") == TEAMS_MODE:
+            if user.team:
+                all_solves = user.team.get_solves(admin=True)
+            else:
+                all_solves = user.get_solves(admin=True)
         else:
             all_solves = user.get_solves(admin=True)
-    else:
-        all_solves = user.get_solves(admin=True)
 
-    solve_ids = [s.challenge_id for s in all_solves]
-    missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
+        solve_ids = [s.challenge_id for s in all_solves]
+        missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
 
     # Get IP addresses that the User has used
     addrs = (
@@ -82,10 +101,10 @@ def users_detail(user_id):
     )
 
     # Get Fails
-    fails = user.get_fails(admin=True)
+    fails = user.get_fails(admin=True) if can_view_submissions else []
 
     # Get Awards
-    awards = user.get_awards(admin=True)
+    awards = user.get_awards(admin=True) if can_view_awards else []
 
     # Check if the user has an account (team or user)
     # so that we don't throw an error if they dont
@@ -106,4 +125,10 @@ def users_detail(user_id):
         place=place,
         fails=fails,
         awards=awards,
+        can_view_submissions=can_view_submissions,
+        can_view_awards=can_view_awards,
+        can_view_missing=can_view_missing,
+        active_detail_tab=_first_visible_detail_tab(
+            can_view_submissions, can_view_awards, can_view_missing
+        ),
     )

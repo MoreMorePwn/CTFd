@@ -6,6 +6,7 @@ from CTFd.utils.crypto import verify_password
 from tests.helpers import (
     create_ctfd,
     destroy_ctfd,
+    gen_award,
     gen_challenge,
     gen_fail,
     gen_solve,
@@ -319,6 +320,52 @@ def test_api_assistant_user_read_does_not_leak_submission_secrets():
     destroy_ctfd(app)
 
 
+def test_admin_user_detail_users_read_does_not_leak_privileged_sections():
+    """Users Read assistants should not see privileged user detail sections"""
+    app = create_ctfd()
+    with app.app_context():
+        user = gen_user(db, name="player", email="player@examplectf.com")
+        solved_challenge = gen_challenge(db, name="secret_solved_challenge")
+        gen_challenge(db, name="secret_missing_challenge", state="hidden")
+        gen_solve(
+            db,
+            user_id=user.id,
+            challenge_id=solved_challenge.id,
+            provided="flag{secret-user-detail-solve}",
+        )
+        gen_fail(
+            db,
+            user_id=user.id,
+            challenge_id=solved_challenge.id,
+            provided="secret-user-detail-fail",
+        )
+        gen_award(db, user_id=user.id, name="secret_user_detail_award")
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["users_read"]',
+        )
+        user_id = user.id
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get(f"/admin/users/{user_id}")
+            assert r.status_code == 200
+            response_text = r.get_data(as_text=True)
+            assert 'id="nav-solves-tab"' not in response_text
+            assert 'id="nav-wrong-tab"' not in response_text
+            assert 'id="nav-awards-tab"' not in response_text
+            assert 'id="nav-missing-tab"' not in response_text
+            assert "flag{secret-user-detail-solve}" not in response_text
+            assert "secret-user-detail-fail" not in response_text
+            assert "secret_user_detail_award" not in response_text
+            assert "secret_solved_challenge" not in response_text
+            assert "secret_missing_challenge" not in response_text
+    destroy_ctfd(app)
+
+
 def test_api_assistant_team_read_does_not_leak_submission_secrets():
     """Teams Read assistants should not receive submitted flags or solver metadata"""
     app = create_ctfd(user_mode="teams")
@@ -369,6 +416,60 @@ def test_api_assistant_team_read_does_not_leak_submission_secrets():
             assert r.status_code == 200
             assert r.get_json()["data"] == []
             assert "wrong-team-secret" not in r.get_data(as_text=True)
+    destroy_ctfd(app)
+
+
+def test_admin_team_detail_teams_read_does_not_leak_privileged_sections():
+    """Teams Read assistants should not see privileged team detail sections"""
+    app = create_ctfd(user_mode="teams")
+    with app.app_context():
+        team = gen_team(db)
+        user = team.members[0]
+        solved_challenge = gen_challenge(db, name="secret_team_solved_challenge")
+        gen_challenge(db, name="secret_team_missing_challenge", state="hidden")
+        gen_solve(
+            db,
+            user_id=user.id,
+            team_id=team.id,
+            challenge_id=solved_challenge.id,
+            provided="flag{secret-team-detail-solve}",
+        )
+        gen_fail(
+            db,
+            user_id=user.id,
+            team_id=team.id,
+            challenge_id=solved_challenge.id,
+            provided="secret-team-detail-fail",
+        )
+        gen_award(
+            db,
+            user_id=user.id,
+            team_id=team.id,
+            name="secret_team_detail_award",
+        )
+        gen_user(
+            db,
+            name="assistant",
+            email="assistant@examplectf.com",
+            password="password",
+            type="assistant",
+            assistant_permissions='["teams_read"]',
+        )
+        team_id = team.id
+
+        with login_as_user(app, "assistant") as client:
+            r = client.get(f"/admin/teams/{team_id}")
+            assert r.status_code == 200
+            response_text = r.get_data(as_text=True)
+            assert 'id="nav-solves-tab"' not in response_text
+            assert 'id="nav-wrong-tab"' not in response_text
+            assert 'id="nav-awards-tab"' not in response_text
+            assert 'id="nav-missing-tab"' not in response_text
+            assert "flag{secret-team-detail-solve}" not in response_text
+            assert "secret-team-detail-fail" not in response_text
+            assert "secret_team_detail_award" not in response_text
+            assert "secret_team_solved_challenge" not in response_text
+            assert "secret_team_missing_challenge" not in response_text
     destroy_ctfd(app)
 
 

@@ -3,7 +3,18 @@ from sqlalchemy.sql import not_
 
 from CTFd.admin import admin
 from CTFd.models import Challenges, Teams, Tracking
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.decorators import admins_only
+
+
+def _first_visible_detail_tab(can_view_submissions, can_view_awards, can_view_missing):
+    if can_view_submissions:
+        return "solves"
+    if can_view_awards:
+        return "awards"
+    if can_view_missing:
+        return "missing"
+    return None
 
 
 @admin.route("/admin/teams")
@@ -49,21 +60,29 @@ def teams_new():
 def teams_detail(team_id):
     team = Teams.query.filter_by(id=team_id).first_or_404()
 
+    can_view_submissions = current_user_can_access_admin_permission("submissions_read")
+    can_view_awards = current_user_can_access_admin_permission("awards")
+    can_view_missing = (
+        can_view_submissions and current_user_can_access_admin_permission("challenges")
+    )
+
     # Get members
     members = team.members
     member_ids = [member.id for member in members]
 
     # Get Solves for all members
-    solves = team.get_solves(admin=True)
-    fails = team.get_fails(admin=True)
-    awards = team.get_awards(admin=True)
+    solves = team.get_solves(admin=True) if can_view_submissions else []
+    fails = team.get_fails(admin=True) if can_view_submissions else []
+    awards = team.get_awards(admin=True) if can_view_awards else []
     score = team.get_score(admin=True)
     place = team.get_place(admin=True)
 
     # Get missing Challenges for all members
     # TODO: How do you mark a missing challenge for a team?
-    solve_ids = [s.challenge_id for s in solves]
-    missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
+    missing = []
+    if can_view_missing:
+        solve_ids = [s.challenge_id for s in solves]
+        missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
 
     # Get addresses for all members
     addrs = (
@@ -83,4 +102,10 @@ def teams_detail(team_id):
         missing=missing,
         awards=awards,
         addrs=addrs,
+        can_view_submissions=can_view_submissions,
+        can_view_awards=can_view_awards,
+        can_view_missing=can_view_missing,
+        active_detail_tab=_first_visible_detail_tab(
+            can_view_submissions, can_view_awards, can_view_missing
+        ),
     )

@@ -3,10 +3,13 @@ import io
 import json
 import os
 import zipfile
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 from CTFd.constants.themes import DEFAULT_THEME
 from CTFd.models import Challenges, Flags, Teams, Users
 from CTFd.utils import get_config, text_type
+from CTFd.utils.exports import auto as auto_exports
 from CTFd.utils.exports import export_ctf, import_ctf
 from tests.helpers import (
     create_ctfd,
@@ -19,6 +22,41 @@ from tests.helpers import (
     login_as_user,
     register_user,
 )
+
+
+def test_auto_export_writes_export_and_releases_lock(tmp_path, monkeypatch):
+    """Auto export writes a timestamped backup into .export"""
+    app_root = tmp_path / "CTFd"
+    app_root.mkdir()
+    app = SimpleNamespace(root_path=str(app_root), logger=Mock())
+
+    monkeypatch.setattr(auto_exports.ctf_config, "ctf_name", lambda: "My CTF!/2026")
+    monkeypatch.setattr(auto_exports, "export_ctf", lambda: io.BytesIO(b"backup"))
+
+    auto_exports._run_auto_export(app)
+
+    export_dir = tmp_path / ".export"
+    exports = list(export_dir.glob("My_CTF_2026.*.zip"))
+    assert len(exports) == 1
+    assert exports[0].read_bytes() == b"backup"
+    assert (export_dir / ".auto_export.lock").exists() is False
+    app.logger.info.assert_called_once()
+
+
+def test_auto_export_prunes_oldest_exports(tmp_path, monkeypatch):
+    """Auto export pruning removes the oldest zip once the folder is too large"""
+    old_export = tmp_path / "old.zip"
+    new_export = tmp_path / "new.zip"
+    old_export.write_bytes(b"a" * 6)
+    new_export.write_bytes(b"b" * 6)
+    os.utime(old_export, (1, 1))
+    os.utime(new_export, (2, 2))
+    monkeypatch.setattr(auto_exports, "AUTO_EXPORT_MAX_BYTES", 10)
+
+    auto_exports._prune_old_exports(tmp_path)
+
+    assert old_export.exists() is False
+    assert new_export.exists() is True
 
 
 def test_export_ctf():
