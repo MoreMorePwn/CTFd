@@ -39,6 +39,7 @@ from CTFd.utils import config, get_config, set_config
 from CTFd.utils import user as current_user
 from CTFd.utils import validators
 from CTFd.utils.anti_cheat import track_challenge_file_download
+from CTFd.utils.admin_permissions import current_user_can_access_admin_permission
 from CTFd.utils.config import can_send_mail, is_setup, is_teams_mode
 from CTFd.utils.config.pages import build_markdown, get_page
 from CTFd.utils.config.visibility import challenges_visible
@@ -488,8 +489,11 @@ def files(path):
             team = get_current_team()
             is_user_owner = submission.user_id == user.id
             is_team_owner = team and submission.team_id == team.id
+            can_read_submissions = current_user_can_access_admin_permission(
+                "submissions_read"
+            )
 
-            if not (is_user_owner or is_team_owner):
+            if not (can_read_submissions or is_user_owner or is_team_owner):
                 abort(403)
 
     if f.type == "challenge":

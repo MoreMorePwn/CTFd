@@ -7,6 +7,7 @@ from flask import url_for
 from freezegun import freeze_time
 
 from CTFd.cache import clear_pages
+from CTFd.models import SubmissionFiles
 from CTFd.utils import set_config
 from CTFd.utils.config.pages import get_pages
 from CTFd.utils.encoding import hexencode
@@ -16,6 +17,8 @@ from tests.helpers import (
     gen_challenge,
     gen_file,
     gen_page,
+    gen_solve,
+    gen_user,
     login_as_user,
     register_user,
 )
@@ -268,6 +271,63 @@ def test_user_can_access_files():
                     r = admin.get(url)
                     assert r.status_code == 200
                     assert r.get_data(as_text=True) == "testing file load"
+        finally:
+            rmdir(directory)
+    destroy_ctfd(app)
+
+
+def test_assistant_submission_read_can_access_submission_files():
+    app = create_ctfd()
+    with app.app_context():
+        from CTFd.utils.uploads import rmdir
+
+        chal = gen_challenge(app.db)
+        chal_id = chal.id
+        register_user(app)
+        solve = gen_solve(app.db, user_id=2, challenge_id=chal_id)
+
+        path = app.config.get("UPLOAD_FOLDER")
+        location = os.path.join(path, "submission_file_path", "solve.py")
+        directory = os.path.dirname(location)
+        model_path = os.path.join("submission_file_path", "solve.py")
+
+        try:
+            os.makedirs(directory)
+            with open(location, "wb") as obj:
+                obj.write(b"print('solver')")
+
+            app.db.session.add(
+                SubmissionFiles(submission_id=solve.id, location=model_path)
+            )
+            app.db.session.commit()
+
+            gen_user(
+                app.db,
+                name="assistant",
+                email="assistant@examplectf.com",
+                password="password",
+                type="assistant",
+                assistant_permissions='["submissions_read"]',
+            )
+            gen_user(
+                app.db,
+                name="files_assistant",
+                email="files_assistant@examplectf.com",
+                password="password",
+                type="assistant",
+                assistant_permissions='["files"]',
+            )
+
+            url = url_for("views.files", path=model_path)
+
+            with login_as_user(app, "assistant") as client:
+                r = client.get(url)
+                assert r.status_code == 200
+                assert r.get_data(as_text=True) == "print('solver')"
+
+            with login_as_user(app, "files_assistant") as client:
+                r = client.get(url)
+                assert r.status_code == 403
         finally:
             rmdir(directory)
     destroy_ctfd(app)
