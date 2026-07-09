@@ -5,6 +5,10 @@ CTFd/*.db
 CTFd/uploads/**/*
 .ctfd_secret_key
 .data
+.export
+.reset
+*.tgz
+*.tar.gz
 .git
 .codecov.yml
 .dockerignore
