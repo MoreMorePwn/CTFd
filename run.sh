@@ -49,7 +49,7 @@ remove_local_data() {
     -v "${PWD}:/workspace" \
     -w /workspace \
     alpine:3.23 \
-    sh -c 'rm -rf .data .export monitoring/generated .env .ctfd_secret_key'
+    sh -c 'rm -rf .data .export .env .ctfd_secret_key'
 }
 
 generate_credentials() {
@@ -58,15 +58,11 @@ generate_credentials() {
   local db_root_password
   local db_password
   local redis_password
-  local monitor_user
-  local monitor_password
   local secret_key
 
   db_root_password="$(random_alnum 36)"
   db_password="$(random_alnum 36)"
   redis_password="$(random_alnum 36)"
-  monitor_user="monitor_$(random_alnum 8)"
-  monitor_password="$(random_alnum 36)"
   secret_key="$(openssl rand -hex 64)"
 
   cat > .env <<EOF
@@ -76,40 +72,23 @@ CTFD_DB_PASSWORD=${db_password}
 CTFD_DB_NAME=${db_name}
 CTFD_REDIS_PASSWORD=${redis_password}
 CTFD_SECRET_KEY=${secret_key}
-PROMETHEUS_BASIC_USER=${monitor_user}
-PROMETHEUS_BASIC_PASSWORD=${monitor_password}
 EOF
 
   printf '%s\n' "${secret_key}" > .ctfd_secret_key
   chmod 600 .env .ctfd_secret_key
-
-  PROMETHEUS_BASIC_USER="${monitor_user}" \
-  PROMETHEUS_BASIC_PASSWORD="${monitor_password}" \
-    bash monitoring/generate-config.sh --quiet
 
   echo
   echo "Generated service credentials:"
   echo "  MariaDB root: username=root password=${db_root_password}"
   echo "  MariaDB CTFd app: username=${db_user} password=${db_password} database=${db_name}"
   echo "  Redis: username=default password=${redis_password}"
-  echo "  Prometheus: username=${monitor_user} password=${monitor_password}"
-  echo "  cAdvisor auth proxy: username=${monitor_user} password=${monitor_password}"
   echo "  CTFd secret key: ${secret_key}"
-  echo "  Grafana login was not changed."
   echo
-}
-
-ensure_monitoring_config() {
-  load_env
-  PROMETHEUS_BASIC_USER="${PROMETHEUS_BASIC_USER:-}" \
-  PROMETHEUS_BASIC_PASSWORD="${PROMETHEUS_BASIC_PASSWORD:-}" \
-    bash monitoring/generate-config.sh --quiet
 }
 
 start_existing_or_initialize() {
   if [ -f .env ]; then
     echo "Existing .env detected; starting with current credentials and data."
-    ensure_monitoring_config
     compose_up
     return
   fi
@@ -133,7 +112,7 @@ confirm_reset() {
     return
   fi
 
-  echo "This will stop Docker Compose and delete local CTFd data, uploads, exports, database, Redis data, generated monitoring config, and credentials."
+  echo "This will stop Docker Compose and delete local CTFd data, uploads, exports, database, Redis data, and credentials."
   printf "Type 'reset' to continue: "
   read -r answer
   if [ "${answer}" != "reset" ]; then

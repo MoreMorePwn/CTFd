@@ -92,10 +92,6 @@
 					{% if admin_can('config') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
 					{% endif %}
-					{% if admin_can('monitor') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.monitor') }}" target="_blank">Monitor</a></li>
-					{% endif %}
-
 					{% if admin_can('plugins') %}
 					{% set plugin_menu = get_admin_plugin_menu_bar() %}
 					{% set plugins = get_menubar_plugins() %}

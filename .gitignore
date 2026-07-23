@@ -77,7 +77,6 @@ CTFd/uploads
 *.zip
 .export/
 .reset/
-monitoring/generated/
 
 # JS
 node_modules/

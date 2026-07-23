@@ -2,11 +2,11 @@
 
 Use `./run.sh` as the entrypoint for this deployment. Running `./run.sh` with no arguments prints the help text.
 
-- First run: `./run.sh start` generates local credentials, writes `.env`, creates monitoring config, and starts Docker Compose.
+- First run: `./run.sh start` generates local credentials, writes `.env`, and starts Docker Compose.
 - Normal restart/re-up: `./run.sh start` or `docker compose up -d` starts the existing instance with the current `.env` and data. It does not rotate credentials.
 - Full local reset: `./run.sh reset` stops the stack, deletes local data/config/credentials, generates fresh credentials, and starts a new instance. Use `./run.sh reset --yes` to skip the confirmation prompt.
 
-After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`, and Grafana at `http://<server>:3000/`.
+After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`.
 
 # ![](https://github.com/CTFd/CTFd/blob/master/CTFd/themes/core/static/img/logo.png?raw=true)
 
@@ -19,9 +19,6 @@ After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`, and G
 
 - Removed the admin reset feature and Danger Zone UI. Switching back to user mode now requires a full CTFd reset from the CLI.
 - Added automatic exports every 20 minutes while the competition is running. Exports are saved in `.export`, and the oldest exports are removed when the folder reaches 1 GB.
-- Added Prometheus, cAdvisor, node exporter, and Grafana monitoring. The admin top bar includes a `Monitor` link to Grafana, while Prometheus, cAdvisor, Redis, MariaDB, and node exporter stay on Docker-internal networking.
-- Added basic authentication for Prometheus and cAdvisor, plus Grafana datasource provisioning generated into ignored local files by `run.sh` or `monitoring/generate-config.sh`.
-- Added host and container monitoring panels for CPU, memory, RAM, disk, and network RX/TX using current/max-style values instead of percentages where requested.
 - Added challenge submission metadata for `AI Source` links and solver/script uploads.
 - Added `Custom` configuration for the accepted AI Source regex, solver file count limit, and solver total size limit.
 - Added per-challenge `Need AI` and `Need Solver` settings, including challenge creation/editing controls and admin challenge-table indicators.
@@ -47,8 +44,6 @@ After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`, and G
 ![Admin anti-cheat event review](docs/screenshots/ctfd-admin-anti-cheat-events.png)
 
 ![Custom AI Source and solver limits configuration](docs/screenshots/ctfd-admin-custom-config.png)
-
-![Grafana container monitoring dashboard](docs/screenshots/grafana-container-monitoring.png)
 
 ## What is CTFd?
 

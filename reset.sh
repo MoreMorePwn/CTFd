@@ -118,7 +118,6 @@ echo "Deleting CTFd persisted data..."
 rm -rf .data .export
 mkdir -p .data/CTFd/logs .data/CTFd/uploads .export
 write_secret_key
-bash monitoring/generate-config.sh
 
 echo "Starting fresh Docker Compose stack..."
 docker compose up -d --build

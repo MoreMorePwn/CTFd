@@ -26,7 +26,6 @@ ASSISTANT_PERMISSION_DEFINITIONS = [
     ("config", "Config"),
     ("import_export", "Import / Export"),
     ("plugins", "Plugins"),
-    ("monitor", "Monitor"),
 ]
 
 ASSISTANT_PERMISSION_KEYS = {
@@ -72,7 +71,6 @@ ADMIN_ENDPOINT_PERMISSIONS = {
     "admin.import_csv": {"import_export"},
     "admin.export_csv": {"import_export"},
     "admin.plugin": {"plugins"},
-    "admin.monitor": {"monitor"},
 }
 
 API_PATH_PERMISSIONS = [
@@ -261,7 +259,6 @@ def first_allowed_admin_endpoint(user):
         ("anti_cheat", "admin.anti_cheat"),
         ("config", "admin.config"),
         ("import_export", "admin.import_ctf"),
-        ("monitor", "admin.monitor"),
     ]:
         if permission in permissions:
             return endpoint

@@ -62,7 +62,7 @@ def test_api_admin_can_create_assistant_with_permissions():
                     "email": "assistant@examplectf.com",
                     "password": "password",
                     "type": "assistant",
-                    "assistant_permissions": ["users_write", "monitor", "invalid"],
+                    "assistant_permissions": ["users_write", "statistics", "invalid"],
                 },
             )
 
@@ -71,7 +71,7 @@ def test_api_admin_can_create_assistant_with_permissions():
             assert user_data["type"] == "assistant"
             assert user_data["assistant_permissions"] == [
                 "users_write",
-                "monitor",
+                "statistics",
                 "users_read",
             ]
 
@@ -79,7 +79,7 @@ def test_api_admin_can_create_assistant_with_permissions():
             assert assistant.type == "assistant"
             assert assistant.assistant_permission_list == [
                 "users_write",
-                "monitor",
+                "statistics",
                 "users_read",
             ]
     destroy_ctfd(app)
