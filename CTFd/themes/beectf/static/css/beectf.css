@@ -516,13 +516,13 @@ body.beectf-theme main {
 }
 
 .beectf-shape-ring-left {
-  left: -38px;
-  bottom: 6%;
+  left: 9%;
+  bottom: 18%;
 }
 
 .beectf-shape-ring-right {
-  right: -54px;
-  top: 36%;
+  right: 9%;
+  top: 28%;
   border-color: var(--bee-blue);
 }
 
@@ -535,14 +535,14 @@ body.beectf-theme main {
 }
 
 .beectf-shape-triangle-left {
-  left: -20px;
-  top: 44%;
+  left: 7%;
+  top: 34%;
   transform: rotate(48deg);
 }
 
 .beectf-shape-triangle-right {
-  right: -24px;
-  bottom: 27%;
+  right: 7%;
+  bottom: 30%;
   transform: rotate(182deg);
 }
 
@@ -554,8 +554,8 @@ body.beectf-theme main {
 }
 
 .beectf-shape-dot-top {
-  top: 10%;
-  left: 60%;
+  top: 11%;
+  left: 58%;
 }
 
 .beectf-shape-dot-bottom {
@@ -1047,9 +1047,7 @@ body.beectf-theme main {
     opacity: 0.55;
   }
 
-  .beectf-shape-triangle-left,
   .beectf-shape-dot-top,
-  .beectf-shape-dot-bottom,
   .beectf-shape-ring-right {
     display: none;
   }
