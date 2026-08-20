@@ -251,6 +251,8 @@ body.beectf-theme main {
 }
 
 .beectf-kicker {
+  position: relative;
+  z-index: 10;
   display: inline-flex;
   margin: 0 0 18px;
   padding: 9px 14px;
@@ -265,6 +267,8 @@ body.beectf-theme main {
 }
 
 .beectf-home h1 {
+  position: relative;
+  z-index: 10;
   max-width: 740px;
   margin: 0;
   color: var(--bee-navy);
@@ -281,6 +285,8 @@ body.beectf-theme main {
 }
 
 .beectf-home-text {
+  position: relative;
+  z-index: 10;
   max-width: 590px;
   margin: 18px 0 0;
   color: #24304d;
@@ -348,7 +354,7 @@ body.beectf-theme main {
 
 .beectf-window {
   position: relative;
-  z-index: 2;
+  z-index: 10;
   overflow: hidden;
   background: var(--bee-blue);
   border: 5px solid var(--bee-line);
@@ -498,7 +504,7 @@ body.beectf-theme main {
 
 .beectf-shape {
   position: absolute;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -510,13 +516,13 @@ body.beectf-theme main {
 }
 
 .beectf-shape-ring-left {
-  left: 9%;
-  bottom: 18%;
+  left: -38px;
+  bottom: 6%;
 }
 
 .beectf-shape-ring-right {
-  right: 9%;
-  top: 28%;
+  right: -54px;
+  top: 36%;
   border-color: var(--bee-blue);
 }
 
@@ -529,14 +535,14 @@ body.beectf-theme main {
 }
 
 .beectf-shape-triangle-left {
-  left: 7%;
-  top: 34%;
+  left: -20px;
+  top: 44%;
   transform: rotate(48deg);
 }
 
 .beectf-shape-triangle-right {
-  right: 7%;
-  bottom: 30%;
+  right: -24px;
+  bottom: 27%;
   transform: rotate(182deg);
 }
 
@@ -548,8 +554,8 @@ body.beectf-theme main {
 }
 
 .beectf-shape-dot-top {
-  top: 11%;
-  left: 58%;
+  top: 10%;
+  left: 60%;
 }
 
 .beectf-shape-dot-bottom {
@@ -1041,7 +1047,9 @@ body.beectf-theme main {
     opacity: 0.55;
   }
 
+  .beectf-shape-triangle-left,
   .beectf-shape-dot-top,
+  .beectf-shape-dot-bottom,
   .beectf-shape-ring-right {
     display: none;
   }
