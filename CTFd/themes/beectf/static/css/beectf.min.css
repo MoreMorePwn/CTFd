@@ -223,16 +223,14 @@ body.beectf-theme main {
 .beectf-home::after {
   content: "";
   position: absolute;
-  top: 68%;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
     linear-gradient(90deg, var(--bee-cream-grid) 2px, transparent 2px),
     linear-gradient(0deg, var(--bee-cream-grid) 2px, transparent 2px);
   background-size: var(--bee-home-grid-size) var(--bee-home-grid-size), var(--bee-home-grid-size) var(--bee-home-grid-size);
+  clip-path: inset(68% 0 0 0);
 }
 
 .beectf-home-inner {
