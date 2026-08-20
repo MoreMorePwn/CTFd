@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title or Configs.ctf_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="{{ Configs.ctf_small_icon }}" type="image/x-icon">
+
+  {{ meta | safe }}
+
+  {% block stylesheets %}
+    {{ Assets.css("assets/scss/main.scss") }}
+    <link rel="stylesheet" href="{{ url_for('views.themes', theme='beectf', path='css/beectf.css') }}">
+  {% endblock %}
+
+  {{ Plugins.styles }}
+
+  {{ Assets.js("assets/js/color_mode_switcher.js", type=None) }}
+
+  <script type="text/javascript">
+      window.init = {
+          'urlRoot': "{{ request.script_root }}",
+          'csrfNonce': "{{ Session.nonce }}",
+          'userMode': "{{ Configs.user_mode }}",
+          'userId': {{ Session.id }},
+          'userName': {{ User.name | tojson }},
+          'userEmail': {{ User.email | tojson }},
+          'userVerified': {{ User.verified | tojson }},
+          'teamId': {{ Team.id | tojson }},
+          'teamName': {{ Team.name | tojson }},
+          'start': {{ Configs.start | tojson }},
+          'end': {{ Configs.end | tojson }},
+          'themeSettings': {{ Configs.theme_settings | tojson }},
+          'eventSounds': [
+            "/themes/core/static/sounds/notification.webm",
+            "/themes/core/static/sounds/notification.mp3",
+          ],
+      }
+
+      const beeChartTextOptions = {
+          textStyle: {
+              color: "#17213d",
+              fontFamily: "Trebuchet MS, Arial, sans-serif",
+              fontWeight: 700,
+          },
+          title: {
+              textStyle: {
+                  color: "#17213d",
+                  fontFamily: "Trebuchet MS, Arial, sans-serif",
+                  fontWeight: 800,
+              },
+          },
+          legend: {
+              textStyle: {
+                  color: "#17213d",
+                  fontFamily: "Trebuchet MS, Arial, sans-serif",
+                  fontWeight: 700,
+              },
+              pageTextStyle: {
+                  color: "#17213d",
+              },
+          },
+          color: ["#ea1d4f", "#4d5ce7", "#28b7c7", "#ff8c1f", "#27bfa5", "#7b3ff2", "#ef253d"],
+          grid: {
+              top: 70,
+              right: 36,
+              bottom: 84,
+              left: 36,
+              containLabel: true,
+          },
+      }
+
+      window.scoreboardChartOptions = beeChartTextOptions
+      window.userScoreGraphChartOptions = beeChartTextOptions
+      window.teamScoreGraphChartOptions = beeChartTextOptions
+  </script>
+
+  {{ Configs.theme_header }}
+</head>
+<body class="beectf-theme">
+{% include "components/navbar.html" %}
+
+<main role="main">
+  {% block content %}
+  {% endblock %}
+</main>
+
+{% include "components/snackbar.html" %}
+
+<footer class="footer beectf-footer">
+  <div class="container text-center">
+    <small>BeeCTF 2026</small>
+  </div>
+</footer>
+
+{% include "components/notifications.html" %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/page.js") }}
+{% endblock %}
+
+{{ Plugins.scripts }}
+
+{{ Configs.theme_footer }}
+</body>
+</html>

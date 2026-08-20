@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if request.path == "/" %}
+    <section class="beectf-home" aria-label="BeeCTF 2026">
+      <div class="beectf-shape beectf-shape-ring beectf-shape-ring-left" aria-hidden="true"></div>
+      <div class="beectf-shape beectf-shape-ring beectf-shape-ring-right" aria-hidden="true"></div>
+      <div class="beectf-shape beectf-shape-triangle beectf-shape-triangle-left" aria-hidden="true"></div>
+      <div class="beectf-shape beectf-shape-triangle beectf-shape-triangle-right" aria-hidden="true"></div>
+      <div class="beectf-shape beectf-shape-dot beectf-shape-dot-top" aria-hidden="true"></div>
+      <div class="beectf-shape beectf-shape-dot beectf-shape-dot-bottom" aria-hidden="true"></div>
+
+      <div class="beectf-home-inner">
+        <div class="beectf-home-copy">
+          <p class="beectf-kicker">School of Computer Science Presents</p>
+          <h1>BeeCTF 2026</h1>
+          <p class="beectf-home-text">
+            Capture the flag in a bright, fast-paced arena built for puzzle solving, creative attacks, and clean teamwork.
+          </p>
+          <div class="beectf-home-actions">
+            <a class="btn beectf-primary-action" href="{{ url_for('challenges.listing') }}">
+              Challenges
+            </a>
+            {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
+              <a class="btn beectf-secondary-action" href="{{ url_for('scoreboard.listing') }}">
+                Scoreboard
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="beectf-window" aria-label="BeeCTF card">
+          <div class="beectf-window-bar">
+            <span class="beectf-window-title">beectf.exe</span>
+            <span class="beectf-window-controls" aria-hidden="true">
+              <span>_</span>
+              <span>□</span>
+              <span>×</span>
+            </span>
+          </div>
+          <div class="beectf-window-body">
+            <img
+              class="beectf-home-logo"
+              src="{{ url_for('views.themes', theme='beectf', path='img/logo_bgremoved.png') }}"
+              alt="BeeCTF 2026"
+            >
+            <p>Capture The Flag</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  {% else %}
+    <div class="container beectf-page">
+      {{ content | safe }}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/page.js") }}
+{% endblock %}
