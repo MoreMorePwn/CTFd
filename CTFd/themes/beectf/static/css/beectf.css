@@ -191,6 +191,7 @@ body.beectf-theme main {
 }
 
 .beectf-home {
+  --bee-home-grid-size: 144px;
   position: relative;
   isolation: isolate;
   min-height: calc(100svh - var(--bee-footer-height));
@@ -203,7 +204,7 @@ body.beectf-theme main {
     linear-gradient(90deg, rgba(255, 255, 255, 0.38) 2px, transparent 2px),
     linear-gradient(0deg, rgba(255, 255, 255, 0.38) 2px, transparent 2px),
     linear-gradient(180deg, var(--bee-yellow) 0%, var(--bee-yellow) 68%, var(--bee-cream) 68%, var(--bee-cream) 100%);
-  background-size: 160px 160px, 160px 160px, auto;
+  background-size: var(--bee-home-grid-size) var(--bee-home-grid-size), var(--bee-home-grid-size) var(--bee-home-grid-size), auto;
 }
 
 .beectf-home::before {
@@ -228,7 +229,7 @@ body.beectf-theme main {
   background:
     linear-gradient(90deg, var(--bee-cream-grid) 2px, transparent 2px),
     linear-gradient(0deg, var(--bee-cream-grid) 2px, transparent 2px);
-  background-size: 160px 160px, 160px 160px;
+  background-size: var(--bee-home-grid-size) var(--bee-home-grid-size), var(--bee-home-grid-size) var(--bee-home-grid-size);
   clip-path: inset(68% 0 0 0);
 }
 
