@@ -341,9 +341,24 @@ class BaseChallenge(object):
             user_agent=get_user_agent(request),
             browser_fingerprint=get_browser_fingerprint(request),
             provided=submission,
+            ai_source=serialize_ai_sources(request),
         )
-        db.session.add(wrong)
-        db.session.commit()
+
+        saved_solver_files = []
+        try:
+            db.session.add(wrong)
+            db.session.flush()
+            saved_solver_files = save_solver_files(
+                submission_id=wrong.id,
+                req=request,
+                commit=False,
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            delete_solver_file_locations(saved_solver_files)
+            raise
+
         analyze_submission(wrong)
 
 

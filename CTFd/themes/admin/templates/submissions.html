@@ -2,6 +2,37 @@
 
 {% block stylesheets %}
 <style>
+.submission-link-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.submission-solver-file {
+	align-items: center;
+	display: flex;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.submission-solver-file .solver-preview-button {
+	min-width: 0;
+	overflow: hidden;
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.solver-preview-code {
+	max-height: 65vh;
+	overflow: auto;
+	white-space: pre;
+}
+
+.solver-preview-code code {
+	white-space: pre;
+}
+
 @media (min-width: 992px) {
 	.admin-table-container {
 		max-width: none;
@@ -246,40 +277,70 @@
 						<td class="admin-col-type">
 							{{ sub.type }}
 						</td>
-						<td class="flag admin-col-provided" id="{{ sub.id }}">
-							<div class="submission-provided">
-								<button class="btn btn-link p-0 copy-flag" type="button">
-									<i class="fas fa-clipboard"></i>
-								</button>
-							{% if request.args.get('full') %}
-								<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided }}</pre>
-							{% else %}
-								<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided | truncate(45, True) }}</pre>
-								{% if sub.provided | length > 50 %}
-									<button class="btn btn-link p-0 show-flag" type="button">
-										<i class="fas fa-eye"></i>
+							<td class="flag admin-col-provided" id="{{ sub.id }}">
+								<div class="submission-provided">
+									<button class="btn btn-link p-0 copy-flag" type="button">
+										<i class="fas fa-clipboard"></i>
 									</button>
+								{% if request.args.get('full') %}
+									<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided }}</pre>
+								{% else %}
+									<pre class="mb-0" title="{{ sub.provided }}">{{ sub.provided | truncate(45, True) }}</pre>
+									{% if sub.provided | length > 50 %}
+										<button class="btn btn-link p-0 show-flag" type="button">
+											<i class="fas fa-eye"></i>
+										</button>
+									{% endif %}
 								{% endif %}
-							{% endif %}
-							</div>
-						</td>
-						<td class="admin-col-ai">
-							{% for source in sub.ai_sources %}
-								<a href="{{ source }}" target="_blank" rel="noopener noreferrer">
-									AI Source{% if sub.ai_sources | length > 1 %} {{ loop.index }}{% endif %}
-								</a>{% if not loop.last %}<br>{% endif %}
-							{% endfor %}
-						</td>
-						<td class="admin-col-solver">
-							{% for file in sub.solver_files %}
-								<a href="{{ url_for('views.files', path=file.location) }}" target="_blank" rel="noopener noreferrer">
-									Solver{% if sub.solver_files | length > 1 %} {{ loop.index }}{% endif %}
-								</a>{% if not loop.last %}<br>{% endif %}
-							{% endfor %}
-						</td>
-						<td class="text-center solve-time admin-col-date">
-							<span data-time="{{ sub.date | isoformat }}"></span>
-						</td>
+								</div>
+							</td>
+							<td class="admin-col-ai">
+								<div class="submission-link-list">
+								{% for source in sub.ai_sources %}
+									<a
+										href="{{ source }}"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="submission-ai-source-link"
+										data-toggle="tooltip"
+										title="{{ source }}"
+									>
+										AI Source{% if sub.ai_sources | length > 1 %} {{ loop.index }}{% endif %}
+									</a>
+								{% endfor %}
+								</div>
+							</td>
+							<td class="admin-col-solver">
+								<div class="submission-link-list">
+								{% for file in sub.solver_files %}
+									{% set solver_name = file.location.split('/')[-1] %}
+									<div class="submission-solver-file">
+										<button
+											type="button"
+											class="btn btn-link p-0 solver-preview-button"
+											data-solver-url="{{ url_for('views.files', path=file.location) }}"
+											data-solver-name="{{ solver_name }}"
+											data-toggle="tooltip"
+											title="Preview {{ solver_name }}"
+										>
+											Solver{% if sub.solver_files | length > 1 %} {{ loop.index }}{% endif %}
+										</button>
+										<a
+											href="{{ url_for('views.files', path=file.location) }}"
+											target="_blank"
+											rel="noopener noreferrer"
+											data-toggle="tooltip"
+											title="Download {{ solver_name }}"
+										>
+											<i class="fas fa-download"></i>
+										</a>
+									</div>
+								{% endfor %}
+								</div>
+							</td>
+							<td class="text-center solve-time admin-col-date">
+								<span data-time="{{ sub.date | isoformat }}"></span>
+							</td>
 						<td class="text-center align-middle admin-col-verified">
 							<div class="form-check d-flex justify-content-center mb-0">
 								<input
@@ -310,12 +371,31 @@
 				{% if submissions.next_num %}
 					<a href="{{ next_page }}">&gt;&gt;&gt;</a>
 				{% endif %}
+				</div>
+				{% endif %}
 			</div>
-			{% endif %}
+		</div>
+		<div class="modal fade" id="solver-preview-modal" tabindex="-1" role="dialog" aria-labelledby="solver-preview-title" aria-hidden="true">
+			<div class="modal-dialog modal-xl" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="solver-preview-title">Solver Preview</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<pre class="solver-preview-code bg-light border rounded p-3 mb-0"><code id="solver-preview-code"></code></pre>
+					</div>
+					<div class="modal-footer">
+						<a id="solver-preview-download" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer">Download</a>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
-</div>
-{% endblock %}
+	{% endblock %}
 
 {% block scripts %}
 {% endblock %}

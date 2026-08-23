@@ -1,9 +1,54 @@
 import "./main";
 import CTFd from "../compat/CTFd";
 import $ from "jquery";
+import hljs from "highlight.js";
 import { htmlEntities } from "@ctfdio/ctfd-js/utils/html";
 import { ezQuery } from "../compat/ezq";
 import "../compat/format";
+
+const SOLVER_LANGUAGES = {
+  bash: "bash",
+  bat: "dos",
+  c: "c",
+  cc: "cpp",
+  cpp: "cpp",
+  cs: "csharp",
+  css: "css",
+  go: "go",
+  h: "c",
+  hpp: "cpp",
+  html: "xml",
+  java: "java",
+  js: "javascript",
+  json: "json",
+  kt: "kotlin",
+  lua: "lua",
+  md: "markdown",
+  php: "php",
+  pl: "perl",
+  ps1: "powershell",
+  py: "python",
+  rb: "ruby",
+  rs: "rust",
+  sh: "bash",
+  sql: "sql",
+  ts: "typescript",
+  txt: "plaintext",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+};
+
+function getSolverLanguage(filename) {
+  const cleanName = (filename || "").split("?")[0].split("#")[0];
+  const parts = cleanName.split(".");
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  return SOLVER_LANGUAGES[parts.pop().toLowerCase()] || null;
+}
 
 function deleteCorrectSubmission(_event) {
   const key_id = $(this).data("submission-id");
@@ -186,6 +231,52 @@ function updateSubmissionVerified(event) {
     });
 }
 
+function setSolverPreviewContent(filename, content) {
+  const code = document.getElementById("solver-preview-code");
+  const language = getSolverLanguage(filename);
+
+  code.removeAttribute("data-highlighted");
+  code.className = "";
+  code.textContent = content;
+
+  if (language && language !== "plaintext" && hljs.getLanguage(language)) {
+    code.classList.add(`language-${language}`);
+    hljs.highlightElement(code);
+  } else {
+    code.classList.add("nohighlight");
+  }
+}
+
+function previewSolver(event) {
+  event.preventDefault();
+
+  const target = $(event.currentTarget);
+  const solverUrl = target.data("solver-url");
+  const solverName = target.data("solver-name") || "solver";
+
+  $("#solver-preview-title").text(solverName);
+  $("#solver-preview-download").attr("href", solverUrl);
+  setSolverPreviewContent(solverName, "Loading...");
+  $("#solver-preview-modal").modal("show");
+
+  CTFd.fetch(solverUrl, {
+    method: "GET",
+    credentials: "same-origin",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Unable to load solver file.");
+      }
+      return response.text();
+    })
+    .then((content) => {
+      setSolverPreviewContent(solverName, content);
+    })
+    .catch(() => {
+      setSolverPreviewContent(solverName, "Unable to load solver file.");
+    });
+}
+
 $(() => {
   $("#show-full-flags-button").click(showFlagsToggle);
   $("#show-short-flags-button").click(showFlagsToggle);
@@ -196,4 +287,5 @@ $(() => {
   $(".delete-correct-submission").click(deleteCorrectSubmission);
   $("#submission-delete-button").click(deleteSelectedSubmissions);
   $(".submission-verified-checkbox").change(updateSubmissionVerified);
+  $(".solver-preview-button").click(previewSolver);
 });

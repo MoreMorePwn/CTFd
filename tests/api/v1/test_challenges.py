@@ -9,7 +9,7 @@ from freezegun import freeze_time
 from sqlalchemy.exc import IntegrityError
 
 from CTFd.exceptions.challenges import ChallengeSolveException
-from CTFd.models import Challenges, Files, Flags, Hints, Solves, Tags, Tracking, Users
+from CTFd.models import Challenges, Fails, Files, Flags, Hints, Solves, Tags, Tracking, Users
 from CTFd.utils import set_config
 from tests.helpers import (
     create_ctfd,
@@ -1155,6 +1155,54 @@ def test_api_challenge_attempt_requires_ai_source_and_solver():
             with login_as_user(app, "admin") as admin_client:
                 admin_response = admin_client.get("/files/" + solver_location)
                 assert admin_response.status_code == 200
+
+    destroy_ctfd(app)
+
+
+def test_api_challenge_attempt_records_metadata_for_wrong_submission():
+    """Incorrect challenge attempts retain submitted AI Source metadata and solver files"""
+    app = create_ctfd()
+    with app.app_context():
+        challenge = gen_challenge(
+            app.db,
+            require_ai_source=True,
+            require_solver=True,
+        )
+        gen_flag(app.db, challenge.id)
+        challenge_id = challenge.id
+        register_user(app)
+
+        with login_as_user(app) as client:
+            with client.session_transaction() as sess:
+                nonce = sess.get("nonce")
+
+            r = client.post(
+                "/api/v1/challenges/attempt",
+                data={
+                    "challenge_id": challenge_id,
+                    "submission": "wrong",
+                    "ai_source": "https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m",
+                    "solver": (io.BytesIO(b"print('wrong')\n"), "wrong.py"),
+                    "nonce": nonce,
+                },
+            )
+            assert r.status_code == 200
+            assert r.get_json()["data"]["status"] == "incorrect"
+
+            fail = Fails.query.filter_by(challenge_id=challenge_id).first()
+            assert json.loads(fail.ai_source) == [
+                "https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m"
+            ]
+            assert len(fail.solver_files) == 1
+            assert fail.solver_files[0].location.endswith("/wrong.py")
+            solver_location = fail.solver_files[0].location
+
+            anonymous_response = app.test_client().get("/files/" + solver_location)
+            assert anonymous_response.status_code == 403
+
+            owner_response = client.get("/files/" + solver_location)
+            assert owner_response.status_code == 200
+            assert owner_response.get_data(as_text=True) == "print('wrong')\n"
 
     destroy_ctfd(app)
 
