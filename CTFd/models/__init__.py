@@ -1053,6 +1053,78 @@ class AntiCheatEvents(db.Model):
         super(AntiCheatEvents, self).__init__(**kwargs)
 
 
+class PostRevokeCalcAccounts(db.Model):
+    __tablename__ = "post_revoke_calc_accounts"
+    __table_args__ = (
+        db.UniqueConstraint("account_type", "account_id"),
+        {},
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    account_type = db.Column(db.String(16), nullable=False)
+    account_id = db.Column(db.Integer, nullable=False)
+    manual_banned = db.Column(db.Boolean, nullable=False, default=False)
+    note = db.Column(db.Text)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(PostRevokeCalcAccounts, self).__init__(**kwargs)
+
+
+class PostRevokeCalcSolves(db.Model):
+    __tablename__ = "post_revoke_calc_solves"
+    id = db.Column(db.Integer, primary_key=True)
+    solve_id = db.Column(
+        db.Integer,
+        db.ForeignKey("solves.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    percentage = db.Column(db.Float, nullable=False, default=100.0)
+    revoked = db.Column(db.Boolean, nullable=False, default=False)
+    note = db.Column(db.Text)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    solve = db.relationship("Solves", foreign_keys="PostRevokeCalcSolves.solve_id")
+
+    def __init__(self, *args, **kwargs):
+        super(PostRevokeCalcSolves, self).__init__(**kwargs)
+
+
+class PostRevokeCalcAwards(db.Model):
+    __tablename__ = "post_revoke_calc_awards"
+    id = db.Column(db.Integer, primary_key=True)
+    award_id = db.Column(
+        db.Integer,
+        db.ForeignKey("awards.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    percentage = db.Column(db.Float, nullable=False, default=100.0)
+    revoked = db.Column(db.Boolean, nullable=False, default=False)
+    note = db.Column(db.Text)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    award = db.relationship("Awards", foreign_keys="PostRevokeCalcAwards.award_id")
+
+    def __init__(self, *args, **kwargs):
+        super(PostRevokeCalcAwards, self).__init__(**kwargs)
+
+
 class Unlocks(db.Model):
     __tablename__ = "unlocks"
     id = db.Column(db.Integer, primary_key=True)

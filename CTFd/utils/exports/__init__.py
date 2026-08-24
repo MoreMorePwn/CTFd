@@ -35,6 +35,7 @@ from CTFd.utils.migrations import (
     get_current_revision,
     stamp_latest_revision,
 )
+from CTFd.utils.post_revoke_calc import POST_REVOKE_TABLES
 from CTFd.utils.uploads import get_uploader
 
 
@@ -277,6 +278,9 @@ def import_ctf(backup, erase=True, ignore_overrides=False):
         "db/topics.json",
         "db/submissions.json",
         "db/solves.json",
+        "db/post_revoke_calc_accounts.json",
+        "db/post_revoke_calc_solves.json",
+        "db/post_revoke_calc_awards.json",
         "db/files.json",
         "db/notifications.json",
         "db/pages.json",
@@ -299,6 +303,8 @@ def import_ctf(backup, erase=True, ignore_overrides=False):
 
     # Combine the database insertion code into a function so that we can pause
     # insertion between official database tables and plugin tables
+    replaced_post_revoke_tables = set()
+
     def insertion(table_filenames):
         for member in table_filenames:
             set_import_status(f"inserting {member}")
@@ -315,6 +321,13 @@ def import_ctf(backup, erase=True, ignore_overrides=False):
                     table = side_db[table_name]
 
                     saved = json.loads(data)
+                    if (
+                        table_name in POST_REVOKE_TABLES
+                        and table_name not in replaced_post_revoke_tables
+                    ):
+                        side_db.query("DELETE FROM {}".format(table_name))
+                        replaced_post_revoke_tables.add(table_name)
+
                     count = len(saved["results"])
                     for i, entry in enumerate(saved["results"]):
                         set_import_status(f"inserting {member} {i}/{count}")

@@ -16,6 +16,8 @@ ASSISTANT_PERMISSION_DEFINITIONS = [
     ("teams_read", "Teams Read"),
     ("teams_write", "Teams Write"),
     ("scoreboard", "Scoreboard"),
+    ("post_revoke_calc_read", "Post-Revoke Calc Read"),
+    ("post_revoke_calc_write", "Post-Revoke Calc Write"),
     ("challenges", "Challenges"),
     ("submissions_read", "Submissions Read"),
     ("submissions_write", "Submissions Write"),
@@ -36,6 +38,7 @@ ASSISTANT_PERMISSION_IMPLICATIONS = {
     "users_write": ["users_read"],
     "teams_write": ["teams_read"],
     "submissions_write": ["submissions_read"],
+    "post_revoke_calc_write": ["post_revoke_calc_read"],
 }
 
 LEGACY_PERMISSION_EXPANSIONS = {
@@ -58,6 +61,12 @@ ADMIN_ENDPOINT_PERMISSIONS = {
     "admin.teams_new": {"teams_write"},
     "admin.teams_detail": {"teams_read"},
     "admin.scoreboard_listing": {"scoreboard"},
+    "admin.post_revoke_calc": {"post_revoke_calc_read", "post_revoke_calc_write"},
+    "admin.post_revoke_calc_export": {
+        "post_revoke_calc_read",
+        "post_revoke_calc_write",
+    },
+    "admin.post_revoke_calc_reset": {"config"},
     "admin.challenges_listing": {"challenges"},
     "admin.challenges_detail": {"challenges"},
     "admin.challenges_preview": {"challenges"},
@@ -96,6 +105,13 @@ API_PATH_PERMISSIONS = [
         },
     ),
     ("/api/v1/scoreboard", {"scoreboard"}),
+    (
+        "/api/v1/post-revoke-calc",
+        {
+            "GET": {"post_revoke_calc_read", "post_revoke_calc_write"},
+            "PATCH": {"post_revoke_calc_write"},
+        },
+    ),
     ("/api/v1/challenges", {"challenges"}),
     ("/api/v1/flags", {"challenges"}),
     ("/api/v1/hints", {"challenges"}),
@@ -254,6 +270,7 @@ def first_allowed_admin_endpoint(user):
         ("users_read", "admin.users_listing"),
         ("teams_read", "admin.teams_listing"),
         ("scoreboard", "admin.scoreboard_listing"),
+        ("post_revoke_calc_read", "admin.post_revoke_calc"),
         ("challenges", "admin.challenges_listing"),
         ("submissions_read", "admin.submissions_listing"),
         ("anti_cheat", "admin.anti_cheat"),

@@ -72,6 +72,9 @@
 					{% if admin_can('scoreboard') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a></li>
 					{% endif %}
+					{% if admin_can('post_revoke_calc_read') %}
+					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.post_revoke_calc') }}">Post-Revoke Calc</a></li>
+					{% endif %}
 					{% if admin_can('challenges') %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
 					{% endif %}

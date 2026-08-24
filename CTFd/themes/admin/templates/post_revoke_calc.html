@@ -1,0 +1,217 @@
+{% extends "admin/base.html" %}
+
+{% block stylesheets %}
+<style>
+.post-revoke-container {
+	max-width: none;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+	width: 100%;
+}
+
+.post-revoke-toolbar {
+	align-items: end;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	justify-content: space-between;
+}
+
+.post-revoke-toolbar .form-row {
+	flex: 1 1 520px;
+}
+
+.post-revoke-summary {
+	font-size: 0.875rem;
+	line-height: 1.25;
+	table-layout: fixed;
+	width: 100%;
+}
+
+.post-revoke-summary th,
+.post-revoke-summary td,
+.post-revoke-detail-table th,
+.post-revoke-detail-table td {
+	overflow-wrap: anywhere;
+	vertical-align: middle;
+	word-break: break-word;
+}
+
+.post-revoke-summary .col-rank {
+	width: 5%;
+}
+
+.post-revoke-summary .col-account {
+	width: 19%;
+}
+
+.post-revoke-summary .col-bracket {
+	width: 12%;
+}
+
+.post-revoke-summary .col-score {
+	width: 10%;
+}
+
+.post-revoke-summary .col-banned {
+	width: 10%;
+}
+
+.post-revoke-summary .col-note {
+	width: 34%;
+}
+
+.post-revoke-note {
+	min-height: 2.25rem;
+	resize: vertical;
+}
+
+.post-revoke-detail-panel {
+	border: 1px solid #dee2e6;
+	border-radius: 0.25rem;
+	margin-top: 1.5rem;
+	padding: 1rem;
+}
+
+.post-revoke-detail-table {
+	font-size: 0.875rem;
+	table-layout: fixed;
+	width: 100%;
+}
+
+.post-revoke-detail-table .col-name {
+	width: 22%;
+}
+
+.post-revoke-detail-table .col-score {
+	width: 10%;
+}
+
+.post-revoke-detail-table .col-percent {
+	width: 11%;
+}
+
+.post-revoke-detail-table .col-revoke {
+	width: 9%;
+}
+
+.post-revoke-detail-table .col-note {
+	width: 38%;
+}
+
+.post-revoke-percent {
+	min-width: 5rem;
+}
+
+.post-revoke-status {
+	min-height: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+	<div class="container">
+		<h1>Post-Revoke Calc</h1>
+	</div>
+</div>
+
+<div class="container-fluid post-revoke-container">
+	<div class="post-revoke-toolbar mb-4">
+		<form method="GET" class="form-row align-items-end">
+			<div class="form-group col-md-4">
+				<label for="post-revoke-bracket">Bracket</label>
+				<select id="post-revoke-bracket" name="bracket_id" class="form-control custom-select">
+					<option value="">All Brackets</option>
+					{% for bracket in brackets %}
+					<option value="{{ bracket.id }}" {% if selected_bracket_id == bracket.id %}selected{% endif %}>
+						{{ bracket.name }}
+					</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group col-md-4">
+				<label for="post-revoke-sort">Sort</label>
+				<select id="post-revoke-sort" name="sort" class="form-control custom-select">
+					<option value="pre" {% if selected_sort == "pre" %}selected{% endif %}>Pre Score</option>
+					<option value="post" {% if selected_sort == "post" %}selected{% endif %}>Post Score</option>
+					<option value="name" {% if selected_sort == "name" %}selected{% endif %}>Name</option>
+				</select>
+			</div>
+			<div class="form-group col-md-4">
+				<button type="submit" class="btn btn-primary w-100">
+					<i class="fas fa-filter" aria-hidden="true"></i>
+				</button>
+			</div>
+		</form>
+		<div class="form-group mb-0">
+			<a class="btn btn-secondary" href="{{ url_for('admin.post_revoke_calc_export') }}{% if selected_bracket_id %}?bracket_id={{ selected_bracket_id }}{% endif %}">
+				<i class="fas fa-file-pdf" aria-hidden="true"></i>
+				Export PDF
+			</a>
+		</div>
+	</div>
+
+	<div class="post-revoke-status text-muted mb-2" id="post-revoke-status"></div>
+
+	<div class="table-responsive-lg">
+		<table class="table table-striped border post-revoke-summary">
+			<thead>
+				<tr>
+					<th class="text-center col-rank">Rank</th>
+					<th class="col-account">User / Team Name</th>
+					<th class="col-bracket">Bracket</th>
+					<th class="text-right col-score">Pre Score</th>
+					<th class="text-right col-score">Post Score</th>
+					<th class="text-center col-banned">Banned</th>
+					<th class="col-note">Note</th>
+				</tr>
+			</thead>
+			<tbody id="post-revoke-summary-body">
+				{% for row in rows %}
+				<tr data-account-row="{{ row.account_id }}">
+					<td class="text-center col-rank" data-rank>{{ row.rank }}</td>
+					<td class="col-account">
+						<button type="button" class="btn btn-link p-0 post-revoke-detail-button" data-account-id="{{ row.account_id }}">
+							{{ row.name }}
+						</button>
+						{% if row.real_banned %}
+						<span class="badge badge-danger ml-1">Real Ban</span>
+						{% endif %}
+					</td>
+					<td class="col-bracket" data-bracket>{{ row.bracket or "-" }}</td>
+					<td class="text-right col-score" data-pre-score>{{ row.pre_score_display }}</td>
+					<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
+					<td class="text-center col-banned">
+						<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>
+					</td>
+					<td class="col-note">
+						<textarea class="form-control post-revoke-note post-revoke-account-note" data-account-id="{{ row.account_id }}" rows="1" {% if not can_write %}disabled{% endif %}>{{ row.note }}</textarea>
+					</td>
+				</tr>
+				{% endfor %}
+				{% if rows|length == 0 %}
+				<tr>
+					<td colspan="7" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
+				</tr>
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+
+	<div class="post-revoke-detail-panel" id="post-revoke-detail-panel">
+		<div class="text-muted">Select a user or team to review solve and award adjustments.</div>
+	</div>
+</div>
+
+<script>
+	window.POST_REVOKE_CALC = {
+		canWrite: {{ can_write | tojson }},
+		bracketId: {{ selected_bracket_id | tojson }},
+		sort: {{ selected_sort | tojson }}
+	};
+</script>
+{{ Assets.js("assets/js/pages/post_revoke_calc.js", theme="admin") }}
+
+{% endblock %}

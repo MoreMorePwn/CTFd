@@ -12,6 +12,9 @@
 		<li class="nav-item">
 			<a class="nav-link" href="#import-csv" aria-controls="import-csv" role="tab" data-toggle="tab">Import CSV</a>
 		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="#post-revoke-reset" aria-controls="post-revoke-reset" role="tab" data-toggle="tab">Post-Revoke Calc</a>
+		</li>
 	</ul>
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="export-ctf">
@@ -90,6 +93,24 @@
 				<input type="submit" class="btn btn-warning" value="Import CSV">
 			</form>
 			{% endwith %}
+		</div>
+		<div role="tabpanel" class="tab-pane" id="post-revoke-reset">
+			<div class="form-group">
+				<p>Reset the Post-Revoke Calc simulation state without changing real users, teams, submissions, solves, awards, or bans.</p>
+				<p>A Post-Revoke Calc-only JSON backup is saved to <code>.export/post_revoke_calc/</code> before the reset.</p>
+				<div class="alert alert-warning" role="alert">
+					<small class="text-muted text-right">
+						<i class="fas fa-exclamation pr-2"></i>
+						This clears simulated bans, per-solve percentages, per-award percentages, revokes, and Post-Revoke Calc notes.
+					</small>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="post-revoke-calc-reset-confirmation">Confirmation</label>
+				<input type="text" class="form-control" id="post-revoke-calc-reset-confirmation" placeholder="RESET POST REVOKE CALC">
+				<small class="form-text text-muted">Type <code>RESET POST REVOKE CALC</code> exactly.</small>
+			</div>
+			<button type="button" class="btn btn-danger" id="post-revoke-calc-reset-button">Reset Post-Revoke Calc</button>
 		</div>
 	</div>
 </div>

@@ -13,6 +13,7 @@ from CTFd.api.v1.flags import flags_namespace
 from CTFd.api.v1.hints import hints_namespace
 from CTFd.api.v1.notifications import notifications_namespace
 from CTFd.api.v1.pages import pages_namespace
+from CTFd.api.v1.post_revoke_calc import post_revoke_calc_namespace
 from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     APISimpleErrorResponse,
@@ -75,3 +76,4 @@ CTFd_API_v1.add_namespace(brackets_namespace, "/brackets")
 CTFd_API_v1.add_namespace(exports_namespace, "/exports")
 CTFd_API_v1.add_namespace(solutions_namespace, "/solutions")
 CTFd_API_v1.add_namespace(anti_cheat_namespace, "/anti-cheat")
+CTFd_API_v1.add_namespace(post_revoke_calc_namespace, "/post-revoke-calc")

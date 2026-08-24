@@ -36,7 +36,9 @@ cffi==1.17.1
     #   cmarkgfm
     #   cryptography
 charset-normalizer==3.4.3
-    # via requests
+    # via
+    #   reportlab
+    #   requests
 click==8.2.1
     # via flask
 cmarkgfm==2024.11.20
@@ -126,7 +128,9 @@ packaging==25.0
 passlib==1.7.4
     # via -r requirements.in
 pillow==12.2.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   reportlab
 pycparser==2.22
     # via cffi
 pydantic==1.6.2
@@ -147,6 +151,8 @@ pytz==2025.2
     # via
     #   flask-babel
     #   flask-restx
+reportlab==5.0.1
+    # via -r requirements.in
 redis==4.5.5
     # via -r requirements.in
 referencing==0.36.2

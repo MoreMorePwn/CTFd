@@ -349,6 +349,50 @@ function exportConfig(event) {
   window.location.href = $(this).attr("href");
 }
 
+function resetPostRevokeCalc(event) {
+  event.preventDefault();
+  const confirmation = $("#post-revoke-calc-reset-confirmation").val();
+  if (confirmation !== "RESET POST REVOKE CALC") {
+    ezAlert({
+      title: "Error!",
+      body: "Type RESET POST REVOKE CALC exactly before resetting.",
+      button: "Okay",
+    });
+    return;
+  }
+
+  CTFd.fetch("/admin/post-revoke-calc/reset", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      confirmation: confirmation,
+    }),
+  })
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (response) {
+      if (response.success) {
+        ezAlert({
+          title: "Reset complete",
+          body: "Backup saved to " + response.data.backup,
+          button: "Okay",
+        });
+        $("#post-revoke-calc-reset-confirmation").val("");
+      } else {
+        ezAlert({
+          title: "Error!",
+          body: "Post-Revoke Calc reset failed.",
+          button: "Okay",
+        });
+      }
+    });
+}
+
 function insertTimezones(target) {
   let current = $("<option>").text(dayjs.tz.guess());
   $(target).append(current);
@@ -459,6 +503,7 @@ $(() => {
   $("#export-button").click(exportConfig);
   $("#import-button").click(importConfig);
   $("#import-csv-form").submit(importCSV);
+  $("#post-revoke-calc-reset-button").click(resetPostRevokeCalc);
   $("#config-color-update").click(function () {
     const hex_code = $("#config-color-picker").val();
     const user_css = theme_header_editor.getValue();
