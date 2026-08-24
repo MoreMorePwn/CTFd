@@ -39,6 +39,33 @@ const SOLVER_LANGUAGES = {
   yml: "yaml",
 };
 
+const SOLVER_LANGUAGE_LABELS = {
+  bash: "Bash",
+  c: "C",
+  cpp: "C++",
+  csharp: "C#",
+  css: "CSS",
+  dos: "Batch",
+  go: "Go",
+  java: "Java",
+  javascript: "JavaScript",
+  json: "JSON",
+  kotlin: "Kotlin",
+  lua: "Lua",
+  markdown: "Markdown",
+  perl: "Perl",
+  php: "PHP",
+  plaintext: "Plain text",
+  powershell: "PowerShell",
+  python: "Python",
+  ruby: "Ruby",
+  rust: "Rust",
+  sql: "SQL",
+  typescript: "TypeScript",
+  xml: "HTML/XML",
+  yaml: "YAML",
+};
+
 function getSolverLanguage(filename) {
   const cleanName = (filename || "").split("?")[0].split("#")[0];
   const parts = cleanName.split(".");
@@ -48,6 +75,10 @@ function getSolverLanguage(filename) {
   }
 
   return SOLVER_LANGUAGES[parts.pop().toLowerCase()] || null;
+}
+
+function getSolverLanguageLabel(language) {
+  return SOLVER_LANGUAGE_LABELS[language] || "Plain text";
 }
 
 function deleteCorrectSubmission(_event) {
@@ -234,10 +265,12 @@ function updateSubmissionVerified(event) {
 function setSolverPreviewContent(filename, content) {
   const code = document.getElementById("solver-preview-code");
   const language = getSolverLanguage(filename);
+  const languageLabel = getSolverLanguageLabel(language);
 
   code.removeAttribute("data-highlighted");
   code.className = "";
   code.textContent = content;
+  $("#solver-preview-language").text(languageLabel);
 
   if (language && language !== "plaintext" && hljs.getLanguage(language)) {
     code.classList.add(`language-${language}`);
@@ -245,6 +278,17 @@ function setSolverPreviewContent(filename, content) {
   } else {
     code.classList.add("nohighlight");
   }
+}
+
+function bindAiSourceTooltips() {
+  $(".submission-ai-source-link")
+    .tooltip("dispose")
+    .tooltip({
+      boundary: "window",
+      container: "body",
+      fallbackPlacement: ["top"],
+      placement: "top",
+    });
 }
 
 function previewSolver(event) {
@@ -288,4 +332,5 @@ $(() => {
   $("#submission-delete-button").click(deleteSelectedSubmissions);
   $(".submission-verified-checkbox").change(updateSubmissionVerified);
   $(".solver-preview-button").click(previewSolver);
+  bindAiSourceTooltips();
 });

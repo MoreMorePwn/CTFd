@@ -77,8 +77,10 @@ def test_admin_submissions_renders_ai_tooltip_and_solver_preview():
         assert r.status_code == 200
         assert 'class="submission-ai-source-link"' in html
         assert 'title="https://chat.deepseek.com/share/vn8ae7zevhkuwauy1m"' in html
+        assert 'data-placement="top"' in html
         assert 'class="btn btn-link p-0 solver-preview-button"' in html
         assert f'data-solver-url="/files/{solver_location}"' in html
         assert 'data-solver-name="solve.py"' in html
         assert 'id="solver-preview-modal"' in html
+        assert 'id="solver-preview-language"' in html
     destroy_ctfd(app)
