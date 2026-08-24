@@ -72,10 +72,14 @@ Added anti-cheat event detection and review tooling for shared IPs, shared user 
 
 ### Post-Revoke Calculator
 
-Added Post-Revoke Calc for simulated post-event score review, including simulated bans, solve/award revokes, percentage score adjustments, notes, challenge score recalculation, bracket filtering, reset backups, CTFd export/import support, and PDF export.
+Added Post-Revoke Calc for simulated post-event score review, including simulated bans, solve/award revokes, percentage score adjustments, notes, challenge score recalculation, bracket filtering, reset backups, CTFd export/import support, and PDF export. Challenge rows can be opened to review every correct submission for that challenge with the same score percentage, revoke, note, and banned-status controls.
 
 <p align="center">
   <img src="docs/screenshots/ctfd-admin-post-revoke-calc-modal.png" alt="Admin Post-Revoke Calculator score review">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-admin-post-revoke-challenge-detail.png" alt="Admin Post-Revoke challenge correct submission review">
 </p>
 
 ### Assistant Admin Role
