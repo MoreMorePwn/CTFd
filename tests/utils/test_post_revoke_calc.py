@@ -64,6 +64,12 @@ def test_post_revoke_calc_simulates_bans_revoke_and_partial_scores():
         assert _row(data, "bob")["score_delta_display"] == "+75"
         assert _row(data, "bob")["score_delta_class"] == "positive"
         assert _row(data, "carol")["post_score"] == 400
+        challenge_row = data["challenge_rows"][0]
+        assert challenge_row["name"] == "dynamic"
+        assert challenge_row["pre_score"] == 300
+        assert challenge_row["post_score"] == 400
+        assert challenge_row["score_delta_display"] == "+100"
+        assert challenge_row["solve_count_display"] == "2 / 3"
         assert Users.query.get(alice.id).banned is False
 
         update_solve_state(carol_solve.id, revoked=True)
@@ -118,6 +124,7 @@ def test_post_revoke_calc_assistant_permissions_read_and_write():
 
             r = client.get("/api/v1/post-revoke-calc")
             assert r.status_code == 200
+            assert "challenge_rows" in r.get_json()["data"]
 
             r = client.patch(
                 "/api/v1/post-revoke-calc/accounts/{}".format(user_id),

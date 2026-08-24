@@ -29,6 +29,7 @@ def _serialize(data, include_details=False):
             for bracket in data["brackets"]
         ],
         "rows": data["rows"],
+        "challenge_rows": data["challenge_rows"],
     }
     if include_details:
         serialized["details"] = data["details"]

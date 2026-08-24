@@ -322,10 +322,14 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
     }
 
     simulated_challenge_values = {}
+    challenge_solve_counts = {}
+    challenge_post_solve_counts = {}
     for challenge_id, challenge_solves in solves_by_challenge.items():
+        original_accounts = set()
         valid_accounts = set()
         for solve in challenge_solves:
             account_id = solve.team_id if is_team_mode() else solve.user_id
+            original_accounts.add(account_id)
             if effective_banned.get(account_id):
                 continue
             state = solve_states.get(solve.id)
@@ -338,6 +342,8 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
             challenge,
             len(valid_accounts),
         )
+        challenge_solve_counts[challenge_id] = len(original_accounts)
+        challenge_post_solve_counts[challenge_id] = len(valid_accounts)
 
     rows = []
     detail_map = {}
@@ -474,10 +480,47 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
             else None
         )
 
+    challenge_rows = []
+    for challenge in Challenges.query.order_by(
+        Challenges.position.asc(), Challenges.id.asc()
+    ).all():
+        pre_score = score_value(challenge.value)
+        post_score = score_value(
+            simulated_challenge_values.get(
+                challenge.id,
+                _simulated_dynamic_value(challenge, 0),
+            )
+        )
+        score_delta = score_value(post_score - pre_score)
+        pre_solve_count = challenge_solve_counts.get(challenge.id, 0)
+        post_solve_count = challenge_post_solve_counts.get(challenge.id, 0)
+        solve_count_display = str(post_solve_count)
+        if post_solve_count != pre_solve_count:
+            solve_count_display = "{} / {}".format(post_solve_count, pre_solve_count)
+
+        challenge_rows.append(
+            {
+                "challenge_id": challenge.id,
+                "name": challenge.name,
+                "category": challenge.category or "",
+                "pre_score": pre_score,
+                "post_score": post_score,
+                "score_delta": score_delta,
+                "pre_solve_count": pre_solve_count,
+                "post_solve_count": post_solve_count,
+                "solve_count_display": solve_count_display,
+                "pre_score_display": format_score(pre_score),
+                "post_score_display": format_score(post_score),
+                "score_delta_display": format_score_delta(score_delta),
+                "score_delta_class": score_delta_class(score_delta),
+            }
+        )
+
     return {
         "mode": get_config("user_mode"),
         "account_type": account_type,
         "rows": sorted_rows,
+        "challenge_rows": challenge_rows,
         "details": detail_map,
         "bracket_id": bracket_id,
         "brackets": get_brackets_for_current_mode(),
@@ -695,6 +738,7 @@ def build_pdf(bracket_id=None):
         Spacer(1, 6),
     ]
 
+    story.append(Paragraph("Scoreboard", heading_style))
     summary_rows = [
         [
             hp("Rank"),
@@ -737,6 +781,38 @@ def build_pdf(bracket_id=None):
     )
     table.setStyle(_pdf_table_style(panel_bg=panel_bg, header_bg=header_bg))
     story.append(table)
+
+    story.append(PageBreak())
+    story.append(Paragraph("Challenges", heading_style))
+    challenge_rows = [
+        [
+            hp("Challenge Name"),
+            hp("Pre Score"),
+            hp("Post Score"),
+            hp("Diff"),
+            hp("Solve Count"),
+        ]
+    ]
+    for row in data["challenge_rows"]:
+        challenge_rows.append(
+            [
+                p(row["name"]),
+                p(row["pre_score_display"]),
+                p(row["post_score_display"]),
+                delta_p(row),
+                p(row["solve_count_display"]),
+            ]
+        )
+
+    challenge_table = Table(
+        challenge_rows,
+        repeatRows=1,
+        colWidths=[90 * mm, 35 * mm, 35 * mm, 35 * mm, 35 * mm],
+    )
+    challenge_table.setStyle(
+        _pdf_table_style(panel_bg=panel_bg, header_bg=header_bg)
+    )
+    story.append(challenge_table)
 
     for row in data["rows"]:
         detail = data["details"][row["account_id"]]

@@ -100,6 +100,24 @@ function updateSummaryRows(rows) {
   });
 }
 
+function updateChallengeRows(rows) {
+  rows.forEach((row) => {
+    const tr = $(`[data-challenge-row="${row.challenge_id}"]`);
+    if (!tr.length) {
+      return;
+    }
+
+    tr.find("[data-challenge-pre-score]").text(row.pre_score_display);
+    tr.find("[data-challenge-post-score]").text(row.post_score_display);
+    tr
+      .find("[data-challenge-score-diff]")
+      .text(row.score_delta_display)
+      .removeClass("score-diff-positive score-diff-negative score-diff-zero")
+      .addClass(`score-diff-${row.score_delta_class || "zero"}`);
+    tr.find("[data-challenge-solve-count]").text(row.solve_count_display);
+  });
+}
+
 function scoreText(value) {
   if (value === null || value === undefined || value === "") {
     return "0";
@@ -218,6 +236,7 @@ function loadDetail(accountId) {
 
 function refreshAfter(data) {
   updateSummaryRows(data.rows || []);
+  updateChallengeRows(data.challenge_rows || []);
   if (activeAccountId) {
     loadDetail(activeAccountId);
   }
@@ -256,7 +275,25 @@ function debounceNote(key, callback) {
   noteTimers[key] = setTimeout(callback, 600);
 }
 
+function setActiveView(view) {
+  const isChallengeView = view === "challenges";
+  $("#post-revoke-scoreboard-view").toggleClass("d-none", isChallengeView);
+  $("#post-revoke-challenge-view").toggleClass("d-none", !isChallengeView);
+  $("[data-post-revoke-view-button]").each(function () {
+    const target = $(this);
+    const active = target.data("post-revoke-view-button") === view;
+    target
+      .toggleClass("active btn-primary", active)
+      .toggleClass("btn-outline-primary", !active)
+      .attr("aria-pressed", active ? "true" : "false");
+  });
+}
+
 $(() => {
+  $("[data-post-revoke-view-button]").on("click", function () {
+    setActiveView($(this).data("post-revoke-view-button"));
+  });
+
   $("#post-revoke-summary-body").on("click", ".post-revoke-detail-button", function () {
     loadDetail($(this).data("account-id"));
   });

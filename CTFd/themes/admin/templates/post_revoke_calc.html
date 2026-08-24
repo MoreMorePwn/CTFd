@@ -27,6 +27,12 @@
 	min-width: 12rem;
 }
 
+.post-revoke-view-switch {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
 .post-revoke-summary {
 	font-size: 0.875rem;
 	line-height: 1.25;
@@ -36,6 +42,8 @@
 
 .post-revoke-summary th,
 .post-revoke-summary td,
+.post-revoke-challenges th,
+.post-revoke-challenges td,
 .post-revoke-detail-table th,
 .post-revoke-detail-table td {
 	overflow-wrap: anywhere;
@@ -85,6 +93,29 @@
 
 .score-diff-zero {
 	color: #6c757d;
+}
+
+.post-revoke-challenges {
+	font-size: 0.875rem;
+	line-height: 1.25;
+	table-layout: fixed;
+	width: 100%;
+}
+
+.post-revoke-challenges .col-name {
+	width: 34%;
+}
+
+.post-revoke-challenges .col-score {
+	width: 14%;
+}
+
+.post-revoke-challenges .col-diff {
+	width: 14%;
+}
+
+.post-revoke-challenges .col-solves {
+	width: 14%;
 }
 
 .post-revoke-note {
@@ -146,6 +177,11 @@
 </div>
 
 <div class="container-fluid post-revoke-container">
+	<div class="post-revoke-view-switch mb-3" role="group" aria-label="Post-Revoke Calculator views">
+		<button type="button" class="btn btn-primary active" data-post-revoke-view-button="scoreboard">Scoreboard</button>
+		<button type="button" class="btn btn-outline-primary" data-post-revoke-view-button="challenges">Challenge</button>
+	</div>
+
 	<div class="post-revoke-toolbar mb-4">
 		<form method="GET" class="form-row align-items-end">
 			<div class="form-group col-md-4">
@@ -183,55 +219,89 @@
 
 	<div class="post-revoke-status text-muted mb-2" id="post-revoke-status"></div>
 
-	<div class="table-responsive-lg">
-		<table class="table table-striped border post-revoke-summary">
-			<thead>
-				<tr>
-					<th class="text-center col-rank">Rank</th>
-					<th class="col-account">User / Team Name</th>
-					<th class="col-bracket">Bracket</th>
-					<th class="text-right col-score">Pre Score</th>
-					<th class="text-right col-score">Post Score</th>
-					<th class="text-right col-diff">Diff</th>
-					<th class="text-center col-banned">Banned</th>
-					<th class="col-note">Note</th>
-				</tr>
-			</thead>
-			<tbody id="post-revoke-summary-body">
-				{% for row in rows %}
-				<tr data-account-row="{{ row.account_id }}">
-					<td class="text-center col-rank" data-rank>{{ row.rank }}</td>
-					<td class="col-account">
-						<button type="button" class="btn btn-link p-0 post-revoke-detail-button" data-account-id="{{ row.account_id }}">
-							{{ row.name }}
-						</button>
-						{% if row.real_banned %}
-						<span class="badge badge-danger ml-1">Real Ban</span>
-						{% endif %}
-					</td>
-					<td class="col-bracket" data-bracket>{{ row.bracket or "-" }}</td>
-					<td class="text-right col-score" data-pre-score>{{ row.pre_score_display }}</td>
-					<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
-					<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-score-diff>{{ row.score_delta_display }}</td>
-					<td class="text-center col-banned">
-						<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>
-					</td>
-					<td class="col-note">
-						<textarea class="form-control post-revoke-note post-revoke-account-note" data-account-id="{{ row.account_id }}" rows="1" {% if not can_write %}disabled{% endif %}>{{ row.note }}</textarea>
-					</td>
-				</tr>
-				{% endfor %}
-				{% if rows|length == 0 %}
-				<tr>
-					<td colspan="8" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
-				</tr>
-				{% endif %}
-			</tbody>
-		</table>
+	<div id="post-revoke-scoreboard-view">
+		<div class="table-responsive-lg">
+			<table class="table table-striped border post-revoke-summary">
+				<thead>
+					<tr>
+						<th class="text-center col-rank">Rank</th>
+						<th class="col-account">User / Team Name</th>
+						<th class="col-bracket">Bracket</th>
+						<th class="text-right col-score">Pre Score</th>
+						<th class="text-right col-score">Post Score</th>
+						<th class="text-right col-diff">Diff</th>
+						<th class="text-center col-banned">Banned</th>
+						<th class="col-note">Note</th>
+					</tr>
+				</thead>
+				<tbody id="post-revoke-summary-body">
+					{% for row in rows %}
+					<tr data-account-row="{{ row.account_id }}">
+						<td class="text-center col-rank" data-rank>{{ row.rank }}</td>
+						<td class="col-account">
+							<button type="button" class="btn btn-link p-0 post-revoke-detail-button" data-account-id="{{ row.account_id }}">
+								{{ row.name }}
+							</button>
+							{% if row.real_banned %}
+							<span class="badge badge-danger ml-1">Real Ban</span>
+							{% endif %}
+						</td>
+						<td class="col-bracket" data-bracket>{{ row.bracket or "-" }}</td>
+						<td class="text-right col-score" data-pre-score>{{ row.pre_score_display }}</td>
+						<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
+						<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-score-diff>{{ row.score_delta_display }}</td>
+						<td class="text-center col-banned">
+							<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>
+						</td>
+						<td class="col-note">
+							<textarea class="form-control post-revoke-note post-revoke-account-note" data-account-id="{{ row.account_id }}" rows="1" {% if not can_write %}disabled{% endif %}>{{ row.note }}</textarea>
+						</td>
+					</tr>
+					{% endfor %}
+					{% if rows|length == 0 %}
+					<tr>
+						<td colspan="8" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
+					</tr>
+					{% endif %}
+				</tbody>
+			</table>
+		</div>
+
+		<div class="post-revoke-detail-panel" id="post-revoke-detail-panel">
+			<div class="text-muted">Select a user or team to review solve and award adjustments.</div>
+		</div>
 	</div>
 
-	<div class="post-revoke-detail-panel" id="post-revoke-detail-panel">
-		<div class="text-muted">Select a user or team to review solve and award adjustments.</div>
+	<div id="post-revoke-challenge-view" class="d-none">
+		<div class="table-responsive-lg">
+			<table class="table table-striped border post-revoke-challenges">
+				<thead>
+					<tr>
+						<th class="col-name">Challenge Name</th>
+						<th class="text-right col-score">Pre Score</th>
+						<th class="text-right col-score">Post Score</th>
+						<th class="text-right col-diff">Diff</th>
+						<th class="text-right col-solves">Solve Count</th>
+					</tr>
+				</thead>
+				<tbody id="post-revoke-challenge-body">
+					{% for row in data.challenge_rows %}
+					<tr data-challenge-row="{{ row.challenge_id }}">
+						<td class="col-name">{{ row.name }}</td>
+						<td class="text-right col-score" data-challenge-pre-score>{{ row.pre_score_display }}</td>
+						<td class="text-right col-score" data-challenge-post-score>{{ row.post_score_display }}</td>
+						<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-challenge-score-diff>{{ row.score_delta_display }}</td>
+						<td class="text-right col-solves" data-challenge-solve-count>{{ row.solve_count_display }}</td>
+					</tr>
+					{% endfor %}
+					{% if data.challenge_rows|length == 0 %}
+					<tr>
+						<td colspan="5" class="text-center text-muted">No challenge rows are available for the selected filters.</td>
+					</tr>
+					{% endif %}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
 
