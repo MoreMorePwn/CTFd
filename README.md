@@ -24,6 +24,7 @@ After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`.
 - Added per-challenge `Need AI` and `Need Solver` settings, including challenge creation/editing controls and admin challenge-table indicators.
 - Added AI Source and Solver links to the admin submissions table, syntax-highlighted solver previews, AI Source tooltips, and a manual `Verified` checkbox for reviewer tracking.
 - Added anti-cheat event detection and review tooling for shared IPs, shared user agents, shared browser fingerprints, repeated wrong answers, rapid solves, challenge-file download timing, and churn-style signals.
+- Added Post-Revoke Calc for simulated post-event score review, including simulated bans, solve/award revokes, percentage score adjustments, notes, challenge score recalculation, bracket filtering, reset backups, CTFd export/import support, and PDF export.
 - Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, and Submissions.
 - Added `run.sh` to initialize fresh deployments, reuse existing credentials/data on normal starts, and reset local infrastructure on request.
 - Added `reset.sh` for full-instance reset with seven confirmations. It exports the current instance into `.reset`, archives `.export` into `.reset` with a timestamp, and then starts a fresh stack.
@@ -46,6 +47,8 @@ After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`.
 ![Admin submissions syntax-highlighted solver preview](docs/screenshots/ctfd-admin-submissions-solver-preview-highlight.png)
 
 ![Admin anti-cheat event review](docs/screenshots/ctfd-admin-anti-cheat-events.png)
+
+![Admin Post-Revoke Calculator score review](docs/screenshots/ctfd-admin-post-revoke-calc.png)
 
 ![Custom AI Source and solver limits configuration](docs/screenshots/ctfd-admin-custom-config.png)
 
