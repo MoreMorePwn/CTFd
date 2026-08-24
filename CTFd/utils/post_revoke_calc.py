@@ -21,6 +21,7 @@ from CTFd.models import (
     db,
 )
 from CTFd.plugins.challenges.decay import DECAY_FUNCTIONS
+from CTFd.utils.countries import lookup_country_code
 from CTFd.utils import config as ctf_config
 from CTFd.utils import get_config
 
@@ -240,6 +241,17 @@ def _state_revoked(state):
     return bool(state.revoked or clamp_percentage(state.percentage) == 0)
 
 
+def _account_metadata(account):
+    country_code = account.country or ""
+    country_name = lookup_country_code(country_code) if country_code else ""
+    return {
+        "email": account.email or "",
+        "affiliation": account.affiliation or "",
+        "country": country_name or country_code,
+        "country_code": country_code,
+    }
+
+
 def _simulated_dynamic_value(challenge, solve_count):
     if challenge.function not in DECAY_FUNCTIONS:
         return float(challenge.value or 0)
@@ -422,6 +434,7 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
             "account_id": account.id,
             "account_type": account_type,
             "name": account.name,
+            "metadata": _account_metadata(account),
             "bracket_id": account.bracket_id,
             "bracket": account.bracket.name if account.bracket else "",
             "pre_score": score_value(pre_score),

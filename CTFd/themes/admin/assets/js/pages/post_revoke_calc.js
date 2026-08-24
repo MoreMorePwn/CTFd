@@ -191,6 +191,34 @@ function renderDetailRows(kind, rows) {
   `;
 }
 
+function renderAccountMetadata(account) {
+  const metadata = account.metadata || {};
+  const items = [
+    ["Email", metadata.email],
+    ["Affiliation", metadata.affiliation],
+    ["Country", metadata.country],
+  ].filter((item) => item[1]);
+
+  if (!items.length) {
+    return "";
+  }
+
+  return `
+    <div class="post-revoke-account-meta mt-2">
+      ${items
+        .map(
+          ([label, value]) => `
+            <div class="post-revoke-account-meta-item">
+              <span class="text-muted">${htmlEntities(label)}</span>
+              <strong>${htmlEntities(value)}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderDetail(detail) {
   const account = detail.account;
   activeAccountId = account.account_id;
@@ -201,6 +229,7 @@ function renderDetail(detail) {
         <div class="text-muted">
           Rank ${account.rank} | Pre ${account.pre_score_display} | Post ${account.post_score_display} | Diff ${account.score_delta_display} | ${account.bracket || "No bracket"}
         </div>
+        ${renderAccountMetadata(account)}
       </div>
       <div>
         ${account.calc_banned ? '<span class="badge badge-danger">Banned</span>' : '<span class="badge badge-success">Included</span>'}
