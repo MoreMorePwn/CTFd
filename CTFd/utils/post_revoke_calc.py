@@ -692,6 +692,11 @@ def build_pdf(bracket_id=None):
         fontName="Helvetica-Bold",
         textColor=negative_color,
     )
+    danger_row_style = ParagraphStyle(
+        "PostRevokeDangerRow",
+        parent=normal_style,
+        textColor=negative_color,
+    )
     zero_style = ParagraphStyle(
         "PostRevokeZero",
         parent=normal_style,
@@ -718,6 +723,9 @@ def build_pdf(bracket_id=None):
         elif row["score_delta_class"] == "negative":
             style = negative_style
         return p(row["score_delta_display"], style)
+
+    def danger_delta_p(row):
+        return p(row["score_delta_display"], danger_row_style)
 
     def draw_page(canvas, document):
         canvas.saveState()
@@ -752,16 +760,18 @@ def build_pdf(bracket_id=None):
         ]
     ]
     for row in data["rows"]:
+        row_style = danger_row_style if row["calc_banned"] else normal_style
+        row_delta = danger_delta_p(row) if row["calc_banned"] else delta_p(row)
         summary_rows.append(
             [
-                p(row["rank"]),
-                p(row["name"]),
-                p(row["bracket"] or "-"),
-                p(row["pre_score_display"]),
-                p(row["post_score_display"]),
-                delta_p(row),
-                p("Yes" if row["calc_banned"] else "No"),
-                p(row["note"] or ""),
+                p(row["rank"], row_style),
+                p(row["name"], row_style),
+                p(row["bracket"] or "-", row_style),
+                p(row["pre_score_display"], row_style),
+                p(row["post_score_display"], row_style),
+                row_delta,
+                p("Yes" if row["calc_banned"] else "No", row_style),
+                p(row["note"] or "", row_style),
             ]
         )
 
@@ -847,14 +857,15 @@ def build_pdf(bracket_id=None):
         ]
         if detail["solves"]:
             for solve in detail["solves"]:
+                row_style = danger_row_style if solve["revoked"] else normal_style
                 solve_rows.append(
                     [
-                        p(solve["challenge_name"]),
-                        p(format_score(solve["original_score"])),
-                        p(format_score(solve["post_score"])),
-                        p(solve["percentage"]),
-                        p("Yes" if solve["revoked"] else "No"),
-                        p(solve["note"] or ""),
+                        p(solve["challenge_name"], row_style),
+                        p(format_score(solve["original_score"]), row_style),
+                        p(format_score(solve["post_score"]), row_style),
+                        p(solve["percentage"], row_style),
+                        p("Yes" if solve["revoked"] else "No", row_style),
+                        p(solve["note"] or "", row_style),
                     ]
                 )
         else:
@@ -881,14 +892,15 @@ def build_pdf(bracket_id=None):
         ]
         if detail["awards"]:
             for award in detail["awards"]:
+                row_style = danger_row_style if award["revoked"] else normal_style
                 award_rows.append(
                     [
-                        p(award["name"]),
-                        p(format_score(award["original_score"])),
-                        p(format_score(award["post_score"])),
-                        p(award["percentage"]),
-                        p("Yes" if award["revoked"] else "No"),
-                        p(award["note"] or ""),
+                        p(award["name"], row_style),
+                        p(format_score(award["original_score"]), row_style),
+                        p(format_score(award["post_score"]), row_style),
+                        p(award["percentage"], row_style),
+                        p("Yes" if award["revoked"] else "No", row_style),
+                        p(award["note"] or "", row_style),
                     ]
                 )
         else:
