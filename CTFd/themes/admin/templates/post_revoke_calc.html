@@ -48,23 +48,43 @@
 }
 
 .post-revoke-summary .col-account {
-	width: 19%;
+	width: 17%;
 }
 
 .post-revoke-summary .col-bracket {
-	width: 12%;
+	width: 10%;
 }
 
 .post-revoke-summary .col-score {
-	width: 10%;
+	width: 9%;
+}
+
+.post-revoke-summary .col-diff {
+	width: 9%;
 }
 
 .post-revoke-summary .col-banned {
-	width: 10%;
+	width: 8%;
 }
 
 .post-revoke-summary .col-note {
-	width: 34%;
+	width: 33%;
+}
+
+.post-revoke-score-diff {
+	font-weight: 600;
+}
+
+.score-diff-positive {
+	color: #198754;
+}
+
+.score-diff-negative {
+	color: #dc3545;
+}
+
+.score-diff-zero {
+	color: #6c757d;
 }
 
 .post-revoke-note {
@@ -90,11 +110,13 @@
 }
 
 .post-revoke-detail-table .col-score {
-	width: 10%;
+	width: 11%;
 }
 
 .post-revoke-detail-table .col-percent {
-	width: 11%;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	width: 13%;
 }
 
 .post-revoke-detail-table .col-revoke {
@@ -102,11 +124,11 @@
 }
 
 .post-revoke-detail-table .col-note {
-	width: 38%;
+	width: 34%;
 }
 
 .post-revoke-percent {
-	min-width: 5rem;
+	min-width: 6rem;
 }
 
 .post-revoke-status {
@@ -119,7 +141,7 @@
 
 <div class="jumbotron">
 	<div class="container">
-		<h1>Post-Revoke Calc</h1>
+		<h1>Post-Revoke Calculator</h1>
 	</div>
 </div>
 
@@ -170,6 +192,7 @@
 					<th class="col-bracket">Bracket</th>
 					<th class="text-right col-score">Pre Score</th>
 					<th class="text-right col-score">Post Score</th>
+					<th class="text-right col-diff">Diff</th>
 					<th class="text-center col-banned">Banned</th>
 					<th class="col-note">Note</th>
 				</tr>
@@ -189,6 +212,7 @@
 					<td class="col-bracket" data-bracket>{{ row.bracket or "-" }}</td>
 					<td class="text-right col-score" data-pre-score>{{ row.pre_score_display }}</td>
 					<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
+					<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-score-diff>{{ row.score_delta_display }}</td>
 					<td class="text-center col-banned">
 						<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>
 					</td>
@@ -199,7 +223,7 @@
 				{% endfor %}
 				{% if rows|length == 0 %}
 				<tr>
-					<td colspan="7" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
+					<td colspan="8" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
 				</tr>
 				{% endif %}
 			</tbody>

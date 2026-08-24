@@ -57,8 +57,12 @@ def test_post_revoke_calc_simulates_bans_revoke_and_partial_scores():
         data = calculate_post_revoke(sort_by="post")
         assert _row(data, "alice")["post_score"] == 0
         assert _row(data, "alice")["calc_banned"] is True
+        assert _row(data, "alice")["score_delta_display"] == "-300"
+        assert _row(data, "alice")["score_delta_class"] == "negative"
         assert _row(data, "alice")["note"] == "calc ban only"
         assert _row(data, "bob")["post_score"] == 425
+        assert _row(data, "bob")["score_delta_display"] == "+75"
+        assert _row(data, "bob")["score_delta_class"] == "positive"
         assert _row(data, "carol")["post_score"] == 400
         assert Users.query.get(alice.id).banned is False
 

@@ -83,6 +83,11 @@ function updateSummaryRows(rows) {
     tr.find("[data-rank]").text(row.rank);
     tr.find("[data-pre-score]").text(row.pre_score_display);
     tr.find("[data-post-score]").text(row.post_score_display);
+    tr
+      .find("[data-score-diff]")
+      .text(row.score_delta_display)
+      .removeClass("score-diff-positive score-diff-negative score-diff-zero")
+      .addClass(`score-diff-${row.score_delta_class || "zero"}`);
 
     const banInput = tr.find(".post-revoke-account-ban");
     banInput.prop("checked", row.calc_banned);
@@ -156,7 +161,7 @@ function renderDetailRows(kind, rows) {
           <tr>
             <th class="col-name">${nameHeader}</th>
             <th class="text-right col-score">Original</th>
-            <th class="text-right col-score">Calc</th>
+            <th class="text-right col-score">After</th>
             <th class="col-percent">Score %</th>
             <th class="text-center col-revoke">Revoke</th>
             <th class="col-note">Note</th>
@@ -176,11 +181,11 @@ function renderDetail(detail) {
       <div>
         <h3 class="mb-1">${htmlEntities(account.name)}</h3>
         <div class="text-muted">
-          Rank ${account.rank} | Pre ${account.pre_score_display} | Post ${account.post_score_display} | ${account.bracket || "No bracket"}
+          Rank ${account.rank} | Pre ${account.pre_score_display} | Post ${account.post_score_display} | Diff ${account.score_delta_display} | ${account.bracket || "No bracket"}
         </div>
       </div>
       <div>
-        ${account.calc_banned ? '<span class="badge badge-danger">Calc Banned</span>' : '<span class="badge badge-success">Included</span>'}
+        ${account.calc_banned ? '<span class="badge badge-danger">Banned</span>' : '<span class="badge badge-success">Included</span>'}
       </div>
     </div>
     ${renderDetailRows("solves", detail.solves)}

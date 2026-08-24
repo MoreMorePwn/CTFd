@@ -94,6 +94,24 @@ def format_score(value):
     return f"{value:.2f}".rstrip("0").rstrip(".")
 
 
+def format_score_delta(value):
+    value = score_value(value)
+    if value > 0:
+        return "+{}".format(format_score(value))
+    if value < 0:
+        return "-{}".format(format_score(abs(value)))
+    return "0"
+
+
+def score_delta_class(value):
+    value = float(value or 0)
+    if value > 0:
+        return "positive"
+    if value < 0:
+        return "negative"
+    return "zero"
+
+
 def get_brackets_for_current_mode():
     bracket_type = "teams" if is_team_mode() else "users"
     return Brackets.query.filter_by(type=bracket_type).order_by(Brackets.name.asc()).all()
@@ -391,6 +409,9 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
         if pre_score == 0 and post_score == 0 and not state:
             continue
 
+        effective_post_score = 0 if calc_banned else post_score
+        score_delta = score_value(effective_post_score - pre_score)
+
         row = {
             "account_id": account.id,
             "account_type": account_type,
@@ -398,7 +419,8 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
             "bracket_id": account.bracket_id,
             "bracket": account.bracket.name if account.bracket else "",
             "pre_score": score_value(pre_score),
-            "post_score": score_value(0 if calc_banned else post_score),
+            "post_score": score_value(effective_post_score),
+            "score_delta": score_delta,
             "real_banned": bool(account.banned),
             "manual_banned": bool(state.manual_banned) if state else False,
             "calc_banned": bool(calc_banned),
@@ -443,6 +465,8 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
     for row in rows:
         row["pre_score_display"] = format_score(row["pre_score"])
         row["post_score_display"] = format_score(row["post_score"])
+        row["score_delta_display"] = format_score_delta(row["score_delta"])
+        row["score_delta_class"] = score_delta_class(row["score_delta"])
         last_activity = row.get("last_activity")
         row["last_activity"] = (
             last_activity.isoformat()
@@ -541,6 +565,7 @@ def reset_state_with_backup():
 
 
 def build_pdf(bracket_id=None):
+    from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -554,6 +579,16 @@ def build_pdf(bracket_id=None):
     )
 
     data = calculate_post_revoke(bracket_id=bracket_id, sort_by="post")
+    page_bg = colors.HexColor("#0f172a")
+    panel_bg = colors.HexColor("#111827")
+    header_bg = colors.HexColor("#1e293b")
+    text_color = colors.HexColor("#e5e7eb")
+    muted_color = colors.HexColor("#94a3b8")
+    header_text_color = colors.HexColor("#f8fafc")
+    positive_color = colors.HexColor("#86efac")
+    negative_color = colors.HexColor("#fca5a5")
+    zero_color = colors.HexColor("#cbd5e1")
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -571,6 +606,7 @@ def build_pdf(bracket_id=None):
         fontSize=18,
         leading=22,
         spaceAfter=8,
+        textColor=header_text_color,
     )
     heading_style = ParagraphStyle(
         "PostRevokeHeading",
@@ -579,18 +615,44 @@ def build_pdf(bracket_id=None):
         leading=14,
         spaceBefore=8,
         spaceAfter=6,
+        textColor=header_text_color,
     )
     small_style = ParagraphStyle(
         "PostRevokeSmall",
         parent=styles["BodyText"],
         fontSize=7,
         leading=9,
+        textColor=muted_color,
     )
     normal_style = ParagraphStyle(
         "PostRevokeNormal",
         parent=styles["BodyText"],
         fontSize=8,
         leading=10,
+        textColor=text_color,
+    )
+    table_header_style = ParagraphStyle(
+        "PostRevokeTableHeader",
+        parent=normal_style,
+        fontName="Helvetica-Bold",
+        textColor=header_text_color,
+    )
+    positive_style = ParagraphStyle(
+        "PostRevokePositive",
+        parent=normal_style,
+        fontName="Helvetica-Bold",
+        textColor=positive_color,
+    )
+    negative_style = ParagraphStyle(
+        "PostRevokeNegative",
+        parent=normal_style,
+        fontName="Helvetica-Bold",
+        textColor=negative_color,
+    )
+    zero_style = ParagraphStyle(
+        "PostRevokeZero",
+        parent=normal_style,
+        textColor=zero_color,
     )
 
     def p(value, style=normal_style):
@@ -603,8 +665,25 @@ def build_pdf(bracket_id=None):
         )
         return Paragraph(text, style)
 
+    def hp(value):
+        return p(value, table_header_style)
+
+    def delta_p(row):
+        style = zero_style
+        if row["score_delta_class"] == "positive":
+            style = positive_style
+        elif row["score_delta_class"] == "negative":
+            style = negative_style
+        return p(row["score_delta_display"], style)
+
+    def draw_page(canvas, document):
+        canvas.saveState()
+        canvas.setFillColor(page_bg)
+        canvas.rect(0, 0, document.pagesize[0], document.pagesize[1], stroke=0, fill=1)
+        canvas.restoreState()
+
     story = [
-        Paragraph("Post-Revoke Calculation", title_style),
+        Paragraph("Post-Revoke Calculator", title_style),
         Paragraph(ctf_config.ctf_name(), heading_style),
         Paragraph(
             "Generated at {} UTC{}".format(
@@ -618,13 +697,14 @@ def build_pdf(bracket_id=None):
 
     summary_rows = [
         [
-            p("Rank"),
-            p("Name"),
-            p("Bracket"),
-            p("Pre Score"),
-            p("Post Score"),
-            p("Banned"),
-            p("Note"),
+            hp("Rank"),
+            hp("Name"),
+            hp("Bracket"),
+            hp("Pre Score"),
+            hp("Post Score"),
+            hp("Diff"),
+            hp("Banned"),
+            hp("Note"),
         ]
     ]
     for row in data["rows"]:
@@ -635,6 +715,7 @@ def build_pdf(bracket_id=None):
                 p(row["bracket"] or "-"),
                 p(row["pre_score_display"]),
                 p(row["post_score_display"]),
+                delta_p(row),
                 p("Yes" if row["calc_banned"] else "No"),
                 p(row["note"] or ""),
             ]
@@ -643,9 +724,18 @@ def build_pdf(bracket_id=None):
     table = Table(
         summary_rows,
         repeatRows=1,
-        colWidths=[14 * mm, 45 * mm, 35 * mm, 22 * mm, 24 * mm, 20 * mm, 105 * mm],
+        colWidths=[
+            14 * mm,
+            42 * mm,
+            28 * mm,
+            22 * mm,
+            22 * mm,
+            22 * mm,
+            20 * mm,
+            95 * mm,
+        ],
     )
-    table.setStyle(_pdf_table_style())
+    table.setStyle(_pdf_table_style(panel_bg=panel_bg, header_bg=header_bg))
     story.append(table)
 
     for row in data["rows"]:
@@ -654,10 +744,11 @@ def build_pdf(bracket_id=None):
         story.append(Paragraph(row["name"], heading_style))
         story.append(
             Paragraph(
-                "Rank {} | Pre {} | Post {} | Banned {}".format(
+                "Rank {} | Pre {} | Post {} | Diff {} | Banned {}".format(
                     row["rank"],
                     row["pre_score_display"],
                     row["post_score_display"],
+                    row["score_delta_display"],
                     "Yes" if row["calc_banned"] else "No",
                 ),
                 small_style,
@@ -668,7 +759,16 @@ def build_pdf(bracket_id=None):
         story.append(Spacer(1, 6))
 
         story.append(Paragraph("Solves", heading_style))
-        solve_rows = [[p("Challenge"), p("Original"), p("Calc"), p("%"), p("Revoked"), p("Note")]]
+        solve_rows = [
+            [
+                hp("Challenge"),
+                hp("Original"),
+                hp("After"),
+                hp("Score %"),
+                hp("Revoked"),
+                hp("Note"),
+            ]
+        ]
         if detail["solves"]:
             for solve in detail["solves"]:
                 solve_rows.append(
@@ -686,14 +786,23 @@ def build_pdf(bracket_id=None):
         solve_table = Table(
             solve_rows,
             repeatRows=1,
-            colWidths=[70 * mm, 22 * mm, 22 * mm, 18 * mm, 22 * mm, 110 * mm],
+            colWidths=[70 * mm, 22 * mm, 22 * mm, 24 * mm, 22 * mm, 104 * mm],
         )
-        solve_table.setStyle(_pdf_table_style())
+        solve_table.setStyle(_pdf_table_style(panel_bg=panel_bg, header_bg=header_bg))
         story.append(solve_table)
         story.append(Spacer(1, 8))
 
         story.append(Paragraph("Awards", heading_style))
-        award_rows = [[p("Award"), p("Original"), p("Calc"), p("%"), p("Revoked"), p("Note")]]
+        award_rows = [
+            [
+                hp("Award"),
+                hp("Original"),
+                hp("After"),
+                hp("Score %"),
+                hp("Revoked"),
+                hp("Note"),
+            ]
+        ]
         if detail["awards"]:
             for award in detail["awards"]:
                 award_rows.append(
@@ -711,27 +820,33 @@ def build_pdf(bracket_id=None):
         award_table = Table(
             award_rows,
             repeatRows=1,
-            colWidths=[70 * mm, 22 * mm, 22 * mm, 18 * mm, 22 * mm, 110 * mm],
+            colWidths=[70 * mm, 22 * mm, 22 * mm, 24 * mm, 22 * mm, 104 * mm],
         )
-        award_table.setStyle(_pdf_table_style())
+        award_table.setStyle(_pdf_table_style(panel_bg=panel_bg, header_bg=header_bg))
         story.append(award_table)
 
-    doc.build(story)
+    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
     buffer.seek(0)
     return buffer
 
 
-def _pdf_table_style():
+def _pdf_table_style(panel_bg, header_bg):
     from reportlab.lib import colors
     from reportlab.platypus import TableStyle
 
     return TableStyle(
         [
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f2937")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cbd5e1")),
+            ("BACKGROUND", (0, 0), (-1, 0), header_bg),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#334155")),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, -1),
+                [panel_bg, colors.HexColor("#0f172a")],
+            ),
+            ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#e5e7eb")),
             ("LEFTPADDING", (0, 0), (-1, -1), 4),
             ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ("TOPPADDING", (0, 0), (-1, -1), 4),
