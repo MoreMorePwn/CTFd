@@ -747,7 +747,7 @@ def build_pdf(bracket_id=None):
         canvas.restoreState()
 
     story = [
-        Paragraph("Post-Revoke Calculator", title_style),
+        Paragraph("Post-Revoke Scoreboard", title_style),
         Paragraph(ctf_config.ctf_name(), heading_style),
         Paragraph(
             "Generated at {} UTC{}".format(
