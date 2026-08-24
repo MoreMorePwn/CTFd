@@ -6,6 +6,7 @@ import { ezAlert } from "../compat/ezq";
 
 const settings = window.POST_REVOKE_CALC || {};
 let activeAccountId = null;
+let activeChallengeId = null;
 const noteTimers = {};
 
 function queryString() {
@@ -227,6 +228,7 @@ function renderAccountMetadata(account) {
 function renderDetail(detail) {
   const account = detail.account;
   activeAccountId = account.account_id;
+  activeChallengeId = null;
   $("#post-revoke-detail-modal-title").text(account.name || "Post-Revoke Detail");
   $("#post-revoke-detail-panel").html(`
     <div class="d-flex flex-wrap justify-content-between align-items-start">
@@ -249,8 +251,101 @@ function renderDetail(detail) {
   `);
 }
 
+function renderBannedStatus(item) {
+  const badgeClass = item.calc_banned ? "badge-danger" : "badge-success";
+  const label = item.calc_banned ? "Banned" : "Included";
+  const reason = item.banned_reason
+    ? `<span class="d-block text-muted small mt-1">${htmlEntities(item.banned_reason)}</span>`
+    : "";
+
+  return `<span class="badge ${badgeClass}">${label}</span>${reason}`;
+}
+
+function renderChallengeSolveRows(rows) {
+  const disabled = settings.canWrite ? "" : "disabled";
+  let body = "";
+
+  if (!rows.length) {
+    body = '<tr><td colspan="7" class="text-muted text-center">No correct submissions</td></tr>';
+  } else {
+    body = rows
+      .map((item) => {
+        const revoked = item.revoked ? "checked" : "";
+        const rowClass = item.calc_banned ? "table-danger" : "";
+        const bracket = item.bracket
+          ? `<span class="d-block text-muted small">${htmlEntities(item.bracket)}</span>`
+          : "";
+
+        return `
+          <tr class="${rowClass}">
+            <td class="col-account">
+              <span>${htmlEntities(item.name || "")}</span>
+              ${bracket}
+            </td>
+            <td class="text-right col-score">${scoreText(item.original_score)}</td>
+            <td class="text-right col-score">${scoreText(item.post_score)}</td>
+            <td class="col-percent">
+              <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm post-revoke-percent" data-kind="solves" data-item-id="${item.id}" value="${percentText(item.percentage)}" ${disabled}>
+            </td>
+            <td class="text-center col-revoke">
+              <input type="checkbox" class="post-revoke-item-revoke" data-kind="solves" data-item-id="${item.id}" ${revoked} ${disabled}>
+            </td>
+            <td class="col-note">
+              <textarea class="form-control form-control-sm post-revoke-note post-revoke-item-note" rows="1" data-kind="solves" data-item-id="${item.id}" ${disabled}>${htmlEntities(item.note || "")}</textarea>
+            </td>
+            <td class="text-center col-banned">${renderBannedStatus(item)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
+
+  return `
+    <div class="table-responsive-lg">
+      <table class="table table-sm table-striped border post-revoke-detail-table post-revoke-challenge-detail-table">
+        <thead>
+          <tr>
+            <th class="col-account">User / Team Name</th>
+            <th class="text-right col-score">Original</th>
+            <th class="text-right col-score">After</th>
+            <th class="col-percent">Score %</th>
+            <th class="text-center col-revoke">Revoke</th>
+            <th class="col-note">Note</th>
+            <th class="text-center col-banned">Banned</th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderChallengeDetail(detail) {
+  const challenge = detail.challenge;
+  activeAccountId = null;
+  activeChallengeId = challenge.challenge_id;
+
+  $("#post-revoke-detail-modal-title").text(challenge.name || "Challenge Detail");
+  $("#post-revoke-detail-panel").html(`
+    <div class="d-flex flex-wrap justify-content-between align-items-start">
+      <div>
+        <div class="text-muted post-revoke-detail-summary">
+          <span>Pre <strong>${htmlEntities(challenge.pre_score_display || "0")}</strong></span>
+          <span>Post <strong>${htmlEntities(challenge.post_score_display || "0")}</strong></span>
+          <span>Diff <strong class="score-diff-${challenge.score_delta_class || "zero"}">${htmlEntities(challenge.score_delta_display || "0")}</strong></span>
+          <span>Solves <strong>${htmlEntities(challenge.solve_count_display || "0 / 0")}</strong></span>
+          <span>${htmlEntities(challenge.category || "No category")}</span>
+        </div>
+      </div>
+    </div>
+    <h4 class="mt-3">Correct Submissions</h4>
+    ${renderChallengeSolveRows(detail.solves || [])}
+  `);
+}
+
 function loadDetail(accountId, showModal = true) {
   activeAccountId = accountId;
+  activeChallengeId = null;
   setStatus("Loading detail...");
   $("#post-revoke-detail-modal-title").text("Post-Revoke Detail");
   $("#post-revoke-detail-panel").html('<div class="text-muted">Loading detail...</div>');
@@ -277,11 +372,42 @@ function loadDetail(accountId, showModal = true) {
     });
 }
 
+function loadChallengeDetail(challengeId, showModal = true) {
+  activeAccountId = null;
+  activeChallengeId = challengeId;
+  setStatus("Loading challenge detail...");
+  $("#post-revoke-detail-modal-title").text("Challenge Detail");
+  $("#post-revoke-detail-panel").html('<div class="text-muted">Loading detail...</div>');
+  if (showModal) {
+    $("#post-revoke-detail-modal").modal("show");
+  }
+  return requestJSON(endpoint(`/challenges/${challengeId}`), {
+    method: "GET",
+  })
+    .then((response) => {
+      if (!response.success) {
+        throw response;
+      }
+      renderChallengeDetail(response.data);
+      setStatus("");
+    })
+    .catch((response) => {
+      setStatus(errorMessage(response), true);
+      ezAlert({
+        title: "Error!",
+        body: errorMessage(response),
+        button: "Okay",
+      });
+    });
+}
+
 function refreshAfter(data) {
   updateSummaryRows(data.rows || []);
   updateChallengeRows(data.challenge_rows || []);
   if (activeAccountId) {
     loadDetail(activeAccountId, false);
+  } else if (activeChallengeId) {
+    loadChallengeDetail(activeChallengeId, false);
   }
 }
 
@@ -341,6 +467,10 @@ $(() => {
     loadDetail($(this).data("account-id"));
   });
 
+  $("#post-revoke-challenge-body").on("click", ".post-revoke-challenge-detail-button", function () {
+    loadChallengeDetail($(this).data("challenge-id"));
+  });
+
   $("#post-revoke-summary-body").on("change", ".post-revoke-account-ban", function () {
     const target = $(this);
     saveAccount(target.data("account-id"), {
@@ -384,6 +514,7 @@ $(() => {
 
   $("#post-revoke-detail-modal").on("hidden.bs.modal", function () {
     activeAccountId = null;
+    activeChallengeId = null;
     $("#post-revoke-detail-modal-title").text("Post-Revoke Detail");
     $("#post-revoke-detail-panel").html('<div class="text-muted">Loading detail...</div>');
   });

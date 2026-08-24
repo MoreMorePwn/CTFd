@@ -195,6 +195,10 @@
 	width: 22%;
 }
 
+.post-revoke-detail-table .col-account {
+	width: 20%;
+}
+
 .post-revoke-detail-table .col-score {
 	width: 11%;
 }
@@ -211,6 +215,34 @@
 
 .post-revoke-detail-table .col-note {
 	width: 34%;
+}
+
+.post-revoke-detail-table .col-banned {
+	width: 10%;
+}
+
+.post-revoke-challenge-detail-table .col-account {
+	width: 18%;
+}
+
+.post-revoke-challenge-detail-table .col-score {
+	width: 10%;
+}
+
+.post-revoke-challenge-detail-table .col-percent {
+	width: 12%;
+}
+
+.post-revoke-challenge-detail-table .col-revoke {
+	width: 8%;
+}
+
+.post-revoke-challenge-detail-table .col-banned {
+	width: 10%;
+}
+
+.post-revoke-challenge-detail-table .col-note {
+	width: 32%;
 }
 
 .post-revoke-percent {
@@ -348,7 +380,11 @@
 				<tbody id="post-revoke-challenge-body">
 					{% for row in data.challenge_rows %}
 					<tr data-challenge-row="{{ row.challenge_id }}">
-						<td class="col-name">{{ row.name }}</td>
+						<td class="col-name">
+							<button type="button" class="btn btn-link p-0 post-revoke-challenge-detail-button" data-challenge-id="{{ row.challenge_id }}">
+								{{ row.name }}
+							</button>
+						</td>
 						<td class="text-right col-score" data-challenge-pre-score>{{ row.pre_score_display }}</td>
 						<td class="text-right col-score" data-challenge-post-score>{{ row.post_score_display }}</td>
 						<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-challenge-score-diff>{{ row.score_delta_display }}</td>

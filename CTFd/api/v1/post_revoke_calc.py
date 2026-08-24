@@ -5,6 +5,7 @@ from CTFd.utils.decorators import admins_only
 from CTFd.utils.post_revoke_calc import (
     calculate_post_revoke,
     get_account_detail,
+    get_challenge_detail,
     update_account_state,
     update_award_state,
     update_solve_state,
@@ -77,6 +78,20 @@ class PostRevokeCalcAccount(Resource):
             sort_by=request.args.get("sort", "pre"),
         )
         return {"success": True, "data": _serialize(refreshed)}
+
+
+@post_revoke_calc_namespace.route("/challenges/<int:challenge_id>")
+@post_revoke_calc_namespace.param("challenge_id", "A challenge ID")
+class PostRevokeCalcChallenge(Resource):
+    @admins_only
+    def get(self, challenge_id):
+        detail = get_challenge_detail(
+            challenge_id=challenge_id,
+            bracket_id=request.args.get("bracket_id"),
+        )
+        if detail is None:
+            return {"success": False, "errors": {"id": ["Challenge not found"]}}, 404
+        return {"success": True, "data": detail}
 
 
 @post_revoke_calc_namespace.route("/solves/<int:solve_id>")

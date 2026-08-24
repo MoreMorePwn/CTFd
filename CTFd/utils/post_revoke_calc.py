@@ -539,12 +539,71 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
             }
         )
 
+    challenge_detail_map = {
+        row["challenge_id"]: {
+            "challenge": row,
+            "solves": [],
+        }
+        for row in challenge_rows
+    }
+    for row in rows:
+        detail = detail_map.get(row["account_id"], {})
+        for solve in detail.get("solves", []):
+            challenge_detail = challenge_detail_map.setdefault(
+                solve["challenge_id"],
+                {
+                    "challenge": {
+                        "challenge_id": solve["challenge_id"],
+                        "name": solve["challenge_name"],
+                    },
+                    "solves": [],
+                },
+            )
+            challenge_detail["solves"].append(
+                {
+                    "id": solve["id"],
+                    "account_id": row["account_id"],
+                    "account_type": row["account_type"],
+                    "name": row["name"],
+                    "bracket": row["bracket"],
+                    "original_score": solve["original_score"],
+                    "post_challenge_score": solve["post_challenge_score"],
+                    "post_score": solve["post_score"],
+                    "percentage": solve["percentage"],
+                    "revoked": solve["revoked"],
+                    "note": solve["note"],
+                    "date": solve["date"],
+                    "real_banned": row["real_banned"],
+                    "manual_banned": row["manual_banned"],
+                    "calc_banned": row["calc_banned"],
+                    "banned_status": "Banned" if row["calc_banned"] else "Included",
+                    "banned_reason": (
+                        "Real ban"
+                        if row["real_banned"]
+                        else "Post-Revoke ban"
+                        if row["manual_banned"]
+                        else ""
+                    ),
+                }
+            )
+
+    for detail in challenge_detail_map.values():
+        detail["solves"] = sorted(
+            detail["solves"],
+            key=lambda solve: (
+                solve["date"] or "",
+                solve["name"].lower(),
+                solve["id"],
+            ),
+        )
+
     return {
         "mode": get_config("user_mode"),
         "account_type": account_type,
         "rows": sorted_rows,
         "challenge_rows": challenge_rows,
         "details": detail_map,
+        "challenge_details": challenge_detail_map,
         "bracket_id": bracket_id,
         "brackets": get_brackets_for_current_mode(),
     }
@@ -557,6 +616,15 @@ def get_account_detail(account_id, bracket_id=None):
     except (TypeError, ValueError):
         return None
     return data["details"].get(account_id)
+
+
+def get_challenge_detail(challenge_id, bracket_id=None):
+    data = calculate_post_revoke(bracket_id=bracket_id)
+    try:
+        challenge_id = int(challenge_id)
+    except (TypeError, ValueError):
+        return None
+    return data["challenge_details"].get(challenge_id)
 
 
 def export_state_data():

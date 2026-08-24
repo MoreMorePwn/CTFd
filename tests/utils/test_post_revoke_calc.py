@@ -3,6 +3,7 @@
 from CTFd.models import PostRevokeCalcAccounts, Users
 from CTFd.utils.post_revoke_calc import (
     calculate_post_revoke,
+    get_challenge_detail,
     update_account_state,
     update_award_state,
     update_solve_state,
@@ -133,12 +134,47 @@ def test_post_revoke_calc_sorts_by_solve_count():
     destroy_ctfd(app)
 
 
+def test_post_revoke_calc_challenge_detail_lists_correct_submission_statuses():
+    app = create_ctfd()
+    with app.app_context():
+        challenge = gen_challenge(app.db, name="detail-challenge", value=100)
+        alice = gen_user(app.db, name="alice", email="alice@examplectf.com")
+        bob = gen_user(app.db, name="bob", email="bob@examplectf.com")
+        alice_solve = gen_solve(app.db, user_id=alice.id, challenge_id=challenge.id)
+        bob_solve = gen_solve(app.db, user_id=bob.id, challenge_id=challenge.id)
+
+        update_solve_state(alice_solve.id, percentage=25, note="partial credit")
+        update_account_state(bob.id, manual_banned=True, note="calc ban only")
+
+        detail = get_challenge_detail(challenge.id)
+        assert detail["challenge"]["name"] == "detail-challenge"
+        assert detail["challenge"]["solve_count_display"] == "1 / 2"
+
+        solves_by_name = {solve["name"]: solve for solve in detail["solves"]}
+        assert solves_by_name["alice"]["original_score"] == 100
+        assert solves_by_name["alice"]["post_score"] == 25
+        assert solves_by_name["alice"]["percentage"] == 25
+        assert solves_by_name["alice"]["revoked"] is False
+        assert solves_by_name["alice"]["note"] == "partial credit"
+        assert solves_by_name["alice"]["calc_banned"] is False
+        assert solves_by_name["alice"]["banned_status"] == "Included"
+
+        assert solves_by_name["bob"]["id"] == bob_solve.id
+        assert solves_by_name["bob"]["post_score"] == 0
+        assert solves_by_name["bob"]["calc_banned"] is True
+        assert solves_by_name["bob"]["banned_status"] == "Banned"
+        assert solves_by_name["bob"]["banned_reason"] == "Post-Revoke ban"
+
+    destroy_ctfd(app)
+
+
 def test_post_revoke_calc_assistant_permissions_read_and_write():
     app = create_ctfd()
     with app.app_context():
         challenge = gen_challenge(app.db, name="static", value=100)
         user = gen_user(app.db, name="player", email="player@examplectf.com")
         gen_solve(app.db, user_id=user.id, challenge_id=challenge.id)
+        challenge_id = challenge.id
         user_id = user.id
 
         gen_user(
@@ -156,6 +192,10 @@ def test_post_revoke_calc_assistant_permissions_read_and_write():
             r = client.get("/api/v1/post-revoke-calc")
             assert r.status_code == 200
             assert "challenge_rows" in r.get_json()["data"]
+
+            r = client.get("/api/v1/post-revoke-calc/challenges/{}".format(challenge_id))
+            assert r.status_code == 200
+            assert r.get_json()["data"]["solves"][0]["name"] == "player"
 
             r = client.patch(
                 "/api/v1/post-revoke-calc/accounts/{}".format(user_id),
