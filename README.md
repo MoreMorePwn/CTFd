@@ -79,7 +79,7 @@ Added Post-Revoke Calc for simulated post-event score review, including simulate
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/ctfd-admin-post-revoke-challenge-detail.png" alt="Admin Post-Revoke challenge correct submission review">
+  <img src="docs/screenshots/ctfd-admin-post-revoke-challenge-detail-viewport.png" alt="Admin Post-Revoke challenge correct submission review">
 </p>
 
 ### Assistant Admin Role
