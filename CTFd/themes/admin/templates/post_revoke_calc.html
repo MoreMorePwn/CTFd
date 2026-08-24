@@ -103,10 +103,6 @@
 	font-weight: 700;
 }
 
-.post-revoke-solve-count-high {
-	color: #dc3545;
-}
-
 .post-revoke-challenges {
 	font-size: 0.875rem;
 	line-height: 1.25;
@@ -344,7 +340,7 @@
 						<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
 						<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-score-diff>{{ row.score_delta_display }}</td>
 						<td class="text-center col-solves">
-							<span class="post-revoke-solve-count {% if row.high_solve_count %}post-revoke-solve-count-high{% endif %}" data-solve-count>{{ row.solve_count_display }}</span>
+							<span class="post-revoke-solve-count" data-solve-count>{{ row.solve_count_display }}</span>
 						</td>
 						<td class="text-center col-banned">
 							<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>

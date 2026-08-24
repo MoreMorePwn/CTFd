@@ -129,7 +129,6 @@ def test_post_revoke_calc_sorts_by_solve_count():
         assert data["rows"][0]["name"] == "high-solver"
         assert data["rows"][0]["solve_count"] == 20
         assert data["rows"][0]["solve_count_display"] == "20"
-        assert data["rows"][0]["high_solve_count"] is True
 
     destroy_ctfd(app)
 

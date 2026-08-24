@@ -90,10 +90,7 @@ function updateSummaryRows(rows) {
       .removeClass("score-diff-positive score-diff-negative score-diff-zero")
       .addClass(`score-diff-${row.score_delta_class || "zero"}`);
 
-    tr
-      .find("[data-solve-count]")
-      .text(row.solve_count_display)
-      .toggleClass("post-revoke-solve-count-high", Boolean(row.high_solve_count));
+    tr.find("[data-solve-count]").text(row.solve_count_display);
 
     const banInput = tr.find(".post-revoke-account-ban");
     banInput.prop("checked", row.calc_banned);

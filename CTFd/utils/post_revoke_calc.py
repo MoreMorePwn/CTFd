@@ -497,7 +497,6 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
         row["score_delta_display"] = format_score_delta(row["score_delta"])
         row["score_delta_class"] = score_delta_class(row["score_delta"])
         row["solve_count_display"] = str(row["solve_count"])
-        row["high_solve_count"] = row["solve_count"] >= 20
         last_activity = row.get("last_activity")
         row["last_activity"] = (
             last_activity.isoformat()
