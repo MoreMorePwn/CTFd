@@ -10,7 +10,7 @@
 }
 
 .post-revoke-toolbar {
-	align-items: end;
+	align-items: flex-end;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 1rem;
@@ -19,6 +19,12 @@
 
 .post-revoke-toolbar .form-row {
 	flex: 1 1 520px;
+	margin-bottom: 0;
+}
+
+.post-revoke-export-group {
+	flex: 0 0 auto;
+	min-width: 12rem;
 }
 
 .post-revoke-summary {
@@ -145,8 +151,8 @@
 				</button>
 			</div>
 		</form>
-		<div class="form-group mb-0">
-			<a class="btn btn-secondary" href="{{ url_for('admin.post_revoke_calc_export') }}{% if selected_bracket_id %}?bracket_id={{ selected_bracket_id }}{% endif %}">
+		<div class="form-group post-revoke-export-group">
+			<a class="btn btn-secondary w-100" href="{{ url_for('admin.post_revoke_calc_export') }}{% if selected_bracket_id %}?bracket_id={{ selected_bracket_id }}{% endif %}">
 				<i class="fas fa-file-pdf" aria-hidden="true"></i>
 				Export PDF
 			</a>
