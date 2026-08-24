@@ -222,10 +222,10 @@ function renderAccountMetadata(account) {
 function renderDetail(detail) {
   const account = detail.account;
   activeAccountId = account.account_id;
+  $("#post-revoke-detail-modal-title").text(account.name || "Post-Revoke Detail");
   $("#post-revoke-detail-panel").html(`
     <div class="d-flex flex-wrap justify-content-between align-items-start">
       <div>
-        <h3 class="mb-1">${htmlEntities(account.name)}</h3>
         <div class="text-muted">
           Rank ${account.rank} | Pre ${account.pre_score_display} | Post ${account.post_score_display} | Diff ${account.score_delta_display} | ${account.bracket || "No bracket"}
         </div>
@@ -240,9 +240,14 @@ function renderDetail(detail) {
   `);
 }
 
-function loadDetail(accountId) {
+function loadDetail(accountId, showModal = true) {
   activeAccountId = accountId;
   setStatus("Loading detail...");
+  $("#post-revoke-detail-modal-title").text("Post-Revoke Detail");
+  $("#post-revoke-detail-panel").html('<div class="text-muted">Loading detail...</div>');
+  if (showModal) {
+    $("#post-revoke-detail-modal").modal("show");
+  }
   return requestJSON(endpoint(`/accounts/${accountId}`), {
     method: "GET",
   })
@@ -267,7 +272,7 @@ function refreshAfter(data) {
   updateSummaryRows(data.rows || []);
   updateChallengeRows(data.challenge_rows || []);
   if (activeAccountId) {
-    loadDetail(activeAccountId);
+    loadDetail(activeAccountId, false);
   }
 }
 
@@ -366,5 +371,11 @@ $(() => {
         note: target.val(),
       });
     });
+  });
+
+  $("#post-revoke-detail-modal").on("hidden.bs.modal", function () {
+    activeAccountId = null;
+    $("#post-revoke-detail-modal-title").text("Post-Revoke Detail");
+    $("#post-revoke-detail-panel").html('<div class="text-muted">Loading detail...</div>');
   });
 });

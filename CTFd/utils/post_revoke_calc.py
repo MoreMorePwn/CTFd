@@ -507,9 +507,7 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
         score_delta = score_value(post_score - pre_score)
         pre_solve_count = challenge_solve_counts.get(challenge.id, 0)
         post_solve_count = challenge_post_solve_counts.get(challenge.id, 0)
-        solve_count_display = str(post_solve_count)
-        if post_solve_count != pre_solve_count:
-            solve_count_display = "{} / {}".format(post_solve_count, pre_solve_count)
+        solve_count_display = "{} / {}".format(post_solve_count, pre_solve_count)
 
         challenge_rows.append(
             {

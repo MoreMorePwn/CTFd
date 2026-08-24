@@ -123,13 +123,6 @@
 	resize: vertical;
 }
 
-.post-revoke-detail-panel {
-	border: 1px solid #dee2e6;
-	border-radius: 0.25rem;
-	margin-top: 1.5rem;
-	padding: 1rem;
-}
-
 .post-revoke-account-meta {
 	display: flex;
 	flex-wrap: wrap;
@@ -187,6 +180,10 @@
 
 .post-revoke-status {
 	min-height: 1.5rem;
+}
+
+.post-revoke-detail-modal .modal-body {
+	overflow-x: auto;
 }
 </style>
 {% endblock %}
@@ -290,9 +287,6 @@
 			</table>
 		</div>
 
-		<div class="post-revoke-detail-panel" id="post-revoke-detail-panel">
-			<div class="text-muted">Select a user or team to review solve and award adjustments.</div>
-		</div>
 	</div>
 
 	<div id="post-revoke-challenge-view" class="d-none">
@@ -324,6 +318,28 @@
 					{% endif %}
 				</tbody>
 			</table>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade post-revoke-detail-modal" id="post-revoke-detail-modal" tabindex="-1" role="dialog" aria-labelledby="post-revoke-detail-modal-title" aria-hidden="true">
+	<div class="modal-dialog modal-xl" role="document">
+		<div class="modal-content">
+			<div class="modal-header text-center">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-md-12">
+							<h3 id="post-revoke-detail-modal-title">Post-Revoke Detail</h3>
+						</div>
+					</div>
+				</div>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="post-revoke-detail-panel">
+				<div class="text-muted">Loading detail...</div>
+			</div>
 		</div>
 	</div>
 </div>
