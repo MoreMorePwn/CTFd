@@ -469,6 +469,16 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
 
     if sort_by == "post":
         sorted_rows = post_ranked
+    elif sort_by == "solves":
+        sorted_rows = sorted(
+            rows,
+            key=lambda row: (
+                -int(row["solve_count"] or 0),
+                -float(row["post_score"] or 0),
+                row["last_activity"],
+                row["name"].lower(),
+            ),
+        )
     elif sort_by == "name":
         sorted_rows = sorted(rows, key=lambda row: row["name"].lower())
     else:
@@ -486,6 +496,8 @@ def calculate_post_revoke(bracket_id=None, sort_by="pre"):
         row["post_score_display"] = format_score(row["post_score"])
         row["score_delta_display"] = format_score_delta(row["score_delta"])
         row["score_delta_class"] = score_delta_class(row["score_delta"])
+        row["solve_count_display"] = str(row["solve_count"])
+        row["high_solve_count"] = row["solve_count"] >= 20
         last_activity = row.get("last_activity")
         row["last_activity"] = (
             last_activity.isoformat()
@@ -766,6 +778,7 @@ def build_pdf(bracket_id=None):
             hp("Pre Score"),
             hp("Post Score"),
             hp("Diff"),
+            hp("Solves"),
             hp("Banned"),
             hp("Note"),
         ]
@@ -781,6 +794,7 @@ def build_pdf(bracket_id=None):
                 p(row["pre_score_display"], row_style),
                 p(row["post_score_display"], row_style),
                 row_delta,
+                p(row["solve_count_display"], row_style),
                 p("Yes" if row["calc_banned"] else "No", row_style),
                 p(row["note"] or "", row_style),
             ]
@@ -796,8 +810,9 @@ def build_pdf(bracket_id=None):
             22 * mm,
             22 * mm,
             22 * mm,
+            18 * mm,
             20 * mm,
-            95 * mm,
+            77 * mm,
         ],
     )
     table.setStyle(_pdf_table_style(panel_bg=panel_bg, header_bg=header_bg))

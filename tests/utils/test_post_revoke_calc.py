@@ -102,6 +102,37 @@ def test_post_revoke_calc_real_ban_affects_calc_without_manual_ban():
     destroy_ctfd(app)
 
 
+def test_post_revoke_calc_sorts_by_solve_count():
+    app = create_ctfd()
+    with app.app_context():
+        challenges = [
+            gen_challenge(app.db, name="solve-count-{}".format(index), value=100)
+            for index in range(20)
+        ]
+        high_solver = gen_user(
+            app.db,
+            name="high-solver",
+            email="high-solver@examplectf.com",
+        )
+        low_solver = gen_user(
+            app.db,
+            name="low-solver",
+            email="low-solver@examplectf.com",
+        )
+
+        for challenge in challenges:
+            gen_solve(app.db, user_id=high_solver.id, challenge_id=challenge.id)
+        gen_solve(app.db, user_id=low_solver.id, challenge_id=challenges[0].id)
+
+        data = calculate_post_revoke(sort_by="solves")
+        assert data["rows"][0]["name"] == "high-solver"
+        assert data["rows"][0]["solve_count"] == 20
+        assert data["rows"][0]["solve_count_display"] == "20"
+        assert data["rows"][0]["high_solve_count"] is True
+
+    destroy_ctfd(app)
+
+
 def test_post_revoke_calc_assistant_permissions_read_and_write():
     app = create_ctfd()
     with app.app_context():

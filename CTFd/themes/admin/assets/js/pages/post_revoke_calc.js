@@ -89,6 +89,11 @@ function updateSummaryRows(rows) {
       .removeClass("score-diff-positive score-diff-negative score-diff-zero")
       .addClass(`score-diff-${row.score_delta_class || "zero"}`);
 
+    tr
+      .find("[data-solve-count]")
+      .text(row.solve_count_display)
+      .toggleClass("post-revoke-solve-count-high", Boolean(row.high_solve_count));
+
     const banInput = tr.find(".post-revoke-account-ban");
     banInput.prop("checked", row.calc_banned);
     banInput.prop("disabled", !settings.canWrite || row.real_banned);
@@ -226,8 +231,12 @@ function renderDetail(detail) {
   $("#post-revoke-detail-panel").html(`
     <div class="d-flex flex-wrap justify-content-between align-items-start">
       <div>
-        <div class="text-muted">
-          Rank ${account.rank} | Pre ${account.pre_score_display} | Post ${account.post_score_display} | Diff ${account.score_delta_display} | ${account.bracket || "No bracket"}
+        <div class="text-muted post-revoke-detail-summary">
+          <span>Rank <strong>${htmlEntities(account.rank)}</strong></span>
+          <span>Pre <strong>${htmlEntities(account.pre_score_display)}</strong></span>
+          <span>Post <strong>${htmlEntities(account.post_score_display)}</strong></span>
+          <span>Diff <strong class="score-diff-${account.score_delta_class || "zero"}">${htmlEntities(account.score_delta_display)}</strong></span>
+          <span>${htmlEntities(account.bracket || "No bracket")}</span>
         </div>
         ${renderAccountMetadata(account)}
       </div>

@@ -56,27 +56,31 @@
 }
 
 .post-revoke-summary .col-account {
-	width: 17%;
+	width: 16%;
 }
 
 .post-revoke-summary .col-bracket {
-	width: 10%;
+	width: 9%;
 }
 
 .post-revoke-summary .col-score {
-	width: 9%;
-}
-
-.post-revoke-summary .col-diff {
-	width: 9%;
-}
-
-.post-revoke-summary .col-banned {
 	width: 8%;
 }
 
+.post-revoke-summary .col-diff {
+	width: 8%;
+}
+
+.post-revoke-summary .col-solves {
+	width: 7%;
+}
+
+.post-revoke-summary .col-banned {
+	width: 7%;
+}
+
 .post-revoke-summary .col-note {
-	width: 33%;
+	width: 32%;
 }
 
 .post-revoke-score-diff {
@@ -93,6 +97,14 @@
 
 .score-diff-zero {
 	color: #6c757d;
+}
+
+.post-revoke-solve-count {
+	font-weight: 700;
+}
+
+.post-revoke-solve-count-high {
+	color: #dc3545;
 }
 
 .post-revoke-challenges {
@@ -144,6 +156,33 @@
 	font-size: 0.875rem;
 	font-weight: 600;
 	overflow-wrap: anywhere;
+}
+
+.post-revoke-detail-summary {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 0.65rem;
+}
+
+.post-revoke-detail-summary strong {
+	font-weight: 700;
+}
+
+.post-revoke-detail-summary strong:not(.score-diff-positive):not(.score-diff-negative):not(.score-diff-zero) {
+	color: #343a40;
+}
+
+.post-revoke-detail-summary .score-diff-positive {
+	color: #198754;
+}
+
+.post-revoke-detail-summary .score-diff-negative {
+	color: #dc3545;
+}
+
+.post-revoke-detail-summary .score-diff-zero {
+	color: #6c757d;
 }
 
 .post-revoke-detail-table {
@@ -220,6 +259,7 @@
 				<select id="post-revoke-sort" name="sort" class="form-control custom-select">
 					<option value="pre" {% if selected_sort == "pre" %}selected{% endif %}>Pre Score</option>
 					<option value="post" {% if selected_sort == "post" %}selected{% endif %}>Post Score</option>
+					<option value="solves" {% if selected_sort == "solves" %}selected{% endif %}>Solve Count</option>
 					<option value="name" {% if selected_sort == "name" %}selected{% endif %}>Name</option>
 				</select>
 			</div>
@@ -250,6 +290,7 @@
 						<th class="text-right col-score">Pre Score</th>
 						<th class="text-right col-score">Post Score</th>
 						<th class="text-right col-diff">Diff</th>
+						<th class="text-center col-solves">Solves</th>
 						<th class="text-center col-banned">Banned</th>
 						<th class="col-note">Note</th>
 					</tr>
@@ -270,6 +311,9 @@
 						<td class="text-right col-score" data-pre-score>{{ row.pre_score_display }}</td>
 						<td class="text-right col-score" data-post-score>{{ row.post_score_display }}</td>
 						<td class="text-right col-diff post-revoke-score-diff score-diff-{{ row.score_delta_class }}" data-score-diff>{{ row.score_delta_display }}</td>
+						<td class="text-center col-solves">
+							<span class="post-revoke-solve-count {% if row.high_solve_count %}post-revoke-solve-count-high{% endif %}" data-solve-count>{{ row.solve_count_display }}</span>
+						</td>
 						<td class="text-center col-banned">
 							<input type="checkbox" class="post-revoke-account-ban" data-account-id="{{ row.account_id }}" {% if row.calc_banned %}checked{% endif %} {% if not can_write or row.real_banned %}disabled{% endif %}>
 						</td>
@@ -280,7 +324,7 @@
 					{% endfor %}
 					{% if rows|length == 0 %}
 					<tr>
-						<td colspan="8" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
+						<td colspan="9" class="text-center text-muted">No scoreboard rows are available for the selected filters.</td>
 					</tr>
 					{% endif %}
 				</tbody>
