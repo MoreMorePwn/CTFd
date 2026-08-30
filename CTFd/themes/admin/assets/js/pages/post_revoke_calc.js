@@ -449,14 +449,14 @@ function setActiveView(view) {
     const target = $(this);
     const active = target.data("post-revoke-view-button") === view;
     target
-      .toggleClass("active btn-primary", active)
-      .toggleClass("btn-outline-primary", !active)
+      .toggleClass("active", active)
       .attr("aria-pressed", active ? "true" : "false");
   });
 }
 
 $(() => {
-  $("[data-post-revoke-view-button]").on("click", function () {
+  $("[data-post-revoke-view-button]").on("click", function (event) {
+    event.preventDefault();
     setActiveView($(this).data("post-revoke-view-button"));
   });
 

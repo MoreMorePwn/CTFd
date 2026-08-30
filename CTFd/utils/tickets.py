@@ -139,7 +139,7 @@ def create_ticket(
 ):
     target = _target_model().query.filter_by(id=target_id).first()
     if target is None:
-        raise TicketValidationError("Target not found")
+        raise TicketValidationError("User or team not found")
 
     ticket = Tickets(
         title=_strip_required(title, "Title"),

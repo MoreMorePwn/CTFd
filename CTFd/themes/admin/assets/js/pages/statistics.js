@@ -9,6 +9,11 @@ import ScoreboardMatrix from "../components/statistics/ScoreboardMatrix.vue";
 const graph_configs = {
   "#solves-graph": {
     data: () => CTFd.api.get_challenge_solve_statistics(),
+    resize: (response) => {
+      const count = (response.data || []).length;
+      const height = Math.min(1400, Math.max(420, 140 + count * 24));
+      $("#solves-graph").height(height);
+    },
     format: (response) => {
       const data = response.data;
       const chals = [];
@@ -62,6 +67,8 @@ const graph_configs = {
           axisLabel: {
             interval: 0,
             rotate: 0, //If the label names are too long you can manage this by rotating the label.
+            overflow: "truncate",
+            width: 150,
           },
         },
         dataZoom: [
@@ -651,7 +658,13 @@ const createGraphs = () => {
 
     cfg
       .data()
-      .then(cfg.format)
+      .then((response) => {
+        if (cfg.resize) {
+          cfg.resize(response);
+          chart.resize();
+        }
+        return cfg.format(response);
+      })
       .then((option) => {
         chart.setOption(option);
         $(window).on("resize", function () {
@@ -669,7 +682,13 @@ function updateGraphs() {
     let chart = echarts.init(document.querySelector(key));
     cfg
       .data()
-      .then(cfg.format)
+      .then((response) => {
+        if (cfg.resize) {
+          cfg.resize(response);
+          chart.resize();
+        }
+        return cfg.format(response);
+      })
       .then((option) => {
         chart.setOption(option);
       });

@@ -28,9 +28,7 @@
 }
 
 .post-revoke-view-switch {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
+	margin-bottom: 1.5rem;
 }
 
 .post-revoke-summary {
@@ -48,6 +46,26 @@
 .post-revoke-detail-table td {
 	overflow-wrap: anywhere;
 	vertical-align: middle;
+	word-break: break-word;
+}
+
+.post-revoke-summary td *,
+.post-revoke-challenges td *,
+.post-revoke-detail-table td *,
+.post-revoke-summary pre,
+.post-revoke-summary code,
+.post-revoke-challenges pre,
+.post-revoke-challenges code,
+.post-revoke-detail-table pre,
+.post-revoke-detail-table code,
+.post-revoke-summary button,
+.post-revoke-challenges button,
+.post-revoke-detail-table button,
+.post-revoke-summary a,
+.post-revoke-challenges a,
+.post-revoke-detail-table a {
+	overflow-wrap: anywhere;
+	white-space: normal;
 	word-break: break-word;
 }
 
@@ -264,9 +282,17 @@
 </div>
 
 <div class="container-fluid post-revoke-container">
-	<div class="post-revoke-view-switch mb-3" role="group" aria-label="Post-Revoke Calculator views">
-		<button type="button" class="btn btn-primary active" data-post-revoke-view-button="scoreboard">Scoreboard</button>
-		<button type="button" class="btn btn-outline-primary" data-post-revoke-view-button="challenges">Challenge</button>
+	<div class="row">
+		<div class="col-md-12">
+			<ul class="nav nav-tabs nav-fill post-revoke-view-switch" role="tablist" aria-label="Post-Revoke Calculator views">
+				<li class="nav-item">
+					<a class="nav-link active" href="#" role="tab" data-post-revoke-view-button="scoreboard" aria-pressed="true">Scoreboard</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#" role="tab" data-post-revoke-view-button="challenges" aria-pressed="false">Challenge</a>
+				</li>
+			</ul>
+		</div>
 	</div>
 
 	<div class="post-revoke-toolbar mb-4">

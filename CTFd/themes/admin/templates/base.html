@@ -64,10 +64,12 @@
 				aria-controls="admin-sidebar" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
-		<a href="{{ url_for('admin.view') }}" class="navbar-brand d-md-none ml-2">Admin</a>
+		<a href="{{ url_for('admin.view') }}" class="navbar-brand d-md-none ml-2">CTFd</a>
 		<div class="admin-topbar-actions ml-auto">
-			<a class="btn btn-sm btn-outline-light" href="{{ url_for('views.static_html', route='/') }}">View Site</a>
-			<a class="btn btn-sm btn-outline-light" href="https://docs.ctfd.io/" target="_blank" aria-label="CTFd docs">
+			<a class="admin-topbar-icon" href="{{ url_for('views.static_html', route='/') }}" aria-label="View site" title="View site">
+				<i class="fas fa-home" aria-hidden="true"></i>
+			</a>
+			<a class="admin-topbar-icon" href="https://docs.ctfd.io/" target="_blank" aria-label="CTFd docs" title="CTFd docs">
 				<i class="far fa-question-circle"></i>
 			</a>
 		</div>
@@ -75,8 +77,7 @@
 
 	<aside class="admin-sidebar collapse d-md-flex" id="admin-sidebar">
 		<div class="admin-sidebar-brand">
-			<a href="{{ url_for('admin.view') }}">CTFd Admin</a>
-			<small>{{ User.name }}</small>
+			<a href="{{ url_for('admin.view') }}">CTFd</a>
 		</div>
 		<nav class="admin-sidebar-scroll" aria-label="Admin navigation">
 			{% if admin_can('statistics') %}

@@ -106,7 +106,7 @@ function renderTickets() {
   const rows = tickets.map((ticket) => {
     const resolveNote = ticket.resolve_note
       ? `<div class="ticket-resolve-preview">${htmlEntities(ticket.resolve_note)}</div>`
-      : '<span class="text-muted">Blank</span>';
+      : '<span class="text-muted">-</span>';
     return `
       <tr data-ticket-id="${ticket.id}">
         <td class="col-id">${htmlEntities(ticket.id)}</td>
@@ -170,7 +170,7 @@ function renderTargets() {
   });
 
   $("#ticket-target-list").html(
-    rows.join("") || '<div class="ticket-empty">No matching targets.</div>',
+    rows.join("") || '<div class="ticket-empty">No matching users or teams.</div>',
   );
 }
 
@@ -204,7 +204,7 @@ function openCreateModal(target) {
 function createTicket(event) {
   event.preventDefault();
   if (!state.selectedTarget) {
-    showError("Choose a target first.");
+    showError("Choose a user or team first.");
     return;
   }
 
