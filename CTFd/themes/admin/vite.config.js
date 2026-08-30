@@ -63,6 +63,7 @@ export default defineConfig({
           __dirname,
           "assets/js/pages/notifications.js"
         ),
+        "pages/tickets": resolve(__dirname, "assets/js/pages/tickets.js"),
         "pages/post_revoke_calc": resolve(
           __dirname,
           "assets/js/pages/post_revoke_calc.js"

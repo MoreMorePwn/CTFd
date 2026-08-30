@@ -268,6 +268,7 @@ def import_ctf(backup, erase=True, ignore_overrides=False):
     first = [
         "db/teams.json",
         "db/users.json",
+        "db/tickets.json",
         "db/challenges.json",
         "db/dynamic_challenge.json",
         "db/flags.json",

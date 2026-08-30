@@ -76,6 +76,59 @@ class Notifications(db.Model):
         super(Notifications, self).__init__(**kwargs)
 
 
+class Tickets(db.Model):
+    __tablename__ = "tickets"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Text, nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(16), nullable=False, default="pending")
+    notification_type = db.Column(db.String(16), nullable=False, default="toast")
+    sound = db.Column(db.Boolean, nullable=False, default=True)
+    resolve_note = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
+    created_by_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    updated_by_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    resolved_by_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )
+    ongoing_at = db.Column(db.DateTime)
+    resolved_at = db.Column(db.DateTime)
+
+    user = db.relationship("Users", foreign_keys="Tickets.user_id", lazy="select")
+    team = db.relationship("Teams", foreign_keys="Tickets.team_id", lazy="select")
+    created_by = db.relationship(
+        "Users", foreign_keys="Tickets.created_by_id", lazy="select"
+    )
+    updated_by = db.relationship(
+        "Users", foreign_keys="Tickets.updated_by_id", lazy="select"
+    )
+    resolved_by = db.relationship(
+        "Users", foreign_keys="Tickets.resolved_by_id", lazy="select"
+    )
+
+    @property
+    def html(self):
+        from CTFd.utils.config.pages import build_markdown
+        from CTFd.utils.helpers import markup
+
+        return markup(build_markdown(self.message))
+
+    def __init__(self, *args, **kwargs):
+        super(Tickets, self).__init__(**kwargs)
+
+
 class Pages(db.Model):
     __tablename__ = "pages"
     id = db.Column(db.Integer, primary_key=True)
@@ -1037,11 +1090,15 @@ class AntiCheatEvents(db.Model):
     reviewed_at = db.Column(db.DateTime)
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
 
-    user = db.relationship("Users", foreign_keys="AntiCheatEvents.user_id", lazy="select")
+    user = db.relationship(
+        "Users", foreign_keys="AntiCheatEvents.user_id", lazy="select"
+    )
     reviewer = db.relationship(
         "Users", foreign_keys="AntiCheatEvents.reviewer_id", lazy="select"
     )
-    team = db.relationship("Teams", foreign_keys="AntiCheatEvents.team_id", lazy="select")
+    team = db.relationship(
+        "Teams", foreign_keys="AntiCheatEvents.team_id", lazy="select"
+    )
     challenge = db.relationship(
         "Challenges", foreign_keys="AntiCheatEvents.challenge_id", lazy="select"
     )

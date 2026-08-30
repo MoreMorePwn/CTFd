@@ -1,0 +1,265 @@
+{% extends "admin/base.html" %}
+
+{% block stylesheets %}
+<style>
+.ticket-container {
+	max-width: none;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+	width: 100%;
+}
+
+.ticket-toolbar {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	justify-content: space-between;
+}
+
+.ticket-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.ticket-table {
+	font-size: 0.875rem;
+	line-height: 1.25;
+	table-layout: fixed;
+	width: 100%;
+}
+
+.ticket-table th,
+.ticket-table td {
+	overflow-wrap: anywhere;
+	vertical-align: middle;
+	word-break: break-word;
+}
+
+.ticket-table .col-id {
+	width: 5rem;
+}
+
+.ticket-table .col-target {
+	width: 17%;
+}
+
+.ticket-table .col-message {
+	width: 31%;
+}
+
+.ticket-table .col-note {
+	width: 24%;
+}
+
+.ticket-table .col-status {
+	width: 8rem;
+}
+
+.ticket-table .col-action {
+	width: 11rem;
+}
+
+.ticket-message-preview,
+.ticket-resolve-preview {
+	max-height: 8rem;
+	overflow-y: auto;
+}
+
+.ticket-message-preview p:last-child,
+.ticket-resolve-preview p:last-child {
+	margin-bottom: 0;
+}
+
+.ticket-target-list {
+	max-height: 28rem;
+	overflow-y: auto;
+}
+
+.ticket-target-option {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	display: flex;
+	gap: 0.75rem;
+	justify-content: space-between;
+	padding: 0.75rem 1rem;
+	text-align: left;
+	width: 100%;
+}
+
+.ticket-target-option:hover,
+.ticket-target-option:focus {
+	background: #f8f9fa;
+	outline: none;
+}
+
+.ticket-target-name {
+	font-weight: 600;
+}
+
+.ticket-target-meta {
+	color: #6c757d;
+	font-size: 0.8rem;
+}
+
+.ticket-badges {
+	display: flex;
+	flex: 0 0 auto;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	justify-content: flex-end;
+}
+
+.ticket-empty {
+	color: #6c757d;
+	padding: 3rem 1rem;
+	text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Ticket</h1>
+	</div>
+</div>
+
+<div class="container-fluid ticket-container">
+	<div class="ticket-toolbar mb-4">
+		<div class="ticket-filters" role="group" aria-label="Ticket status filters">
+			<button type="button" class="btn btn-primary" data-ticket-filter="all">All</button>
+			<button type="button" class="btn btn-outline-primary" data-ticket-filter="pending">Pending</button>
+			<button type="button" class="btn btn-outline-primary" data-ticket-filter="ongoing">Ongoing</button>
+			<button type="button" class="btn btn-outline-primary" data-ticket-filter="resolved">Resolve</button>
+		</div>
+		<button type="button" class="btn btn-success" id="ticket-add-button">
+			<i class="fas fa-plus-circle mr-1"></i>Add
+		</button>
+	</div>
+
+	<div class="table-responsive">
+		<table class="table table-striped ticket-table" id="tickets-table">
+			<thead>
+			<tr>
+				<th class="col-id">ID</th>
+				<th class="col-target">User / Team Name</th>
+				<th class="col-message">Message</th>
+				<th class="col-note">Resolve Note</th>
+				<th class="col-status">Status</th>
+				<th class="col-action">Action</th>
+			</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<div class="ticket-empty d-none" id="tickets-empty">No tickets match this filter.</div>
+</div>
+
+<div class="modal fade" id="ticket-target-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Choose {{ "Team" if user_mode == "teams" else "User" }}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<input type="search" class="form-control mb-3" id="ticket-target-search" placeholder="Search name, email, or affiliation">
+				<div class="list-group ticket-target-list" id="ticket-target-list"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="ticket-create-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<form class="modal-content" id="ticket-create-form">
+			<div class="modal-header">
+				<h5 class="modal-title">Add Ticket</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label>Target</label>
+					<div class="form-control-plaintext font-weight-bold" id="ticket-selected-target"></div>
+				</div>
+				<div class="form-group">
+					<label for="ticket-title">Title</label>
+					<input type="text" class="form-control" id="ticket-title" name="title" required>
+				</div>
+				<div class="form-group">
+					<label for="ticket-message">Message</label>
+					<textarea class="form-control" id="ticket-message" name="message" rows="5" required></textarea>
+					<small class="form-text text-muted">Markdown is supported.</small>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-7">
+						<label class="d-block">Notification Type</label>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="notification_type" id="ticket-type-toast" value="toast" checked>
+							<label class="form-check-label" for="ticket-type-toast">Toast</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="notification_type" id="ticket-type-alert" value="alert">
+							<label class="form-check-label" for="ticket-type-alert">Alert</label>
+						</div>
+					</div>
+					<div class="form-group col-md-5">
+						<label class="d-block">Sound</label>
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="ticket-sound" checked>
+							<label class="form-check-label" for="ticket-sound">Play sound</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="modal fade" id="ticket-resolve-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<form class="modal-content" id="ticket-resolve-form">
+			<div class="modal-header">
+				<h5 class="modal-title">Resolve Ticket</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label for="ticket-resolve-note">Resolve Note</label>
+					<textarea class="form-control" id="ticket-resolve-note" rows="5" required></textarea>
+					<small class="form-text text-muted">This note is visible only in the admin ticket table.</small>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				<button type="submit" class="btn btn-primary">Resolve</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}
+
+{% block entrypoint %}
+	<script>
+		window.TICKETS_ADMIN = {
+			tickets: {{ tickets | tojson }},
+			targets: {{ targets | tojson }},
+			selectedStatus: {{ selected_status | tojson }},
+			userMode: {{ user_mode | tojson }}
+		};
+	</script>
+	{{ Assets.js("assets/js/pages/tickets.js", theme="admin") }}
+{% endblock %}

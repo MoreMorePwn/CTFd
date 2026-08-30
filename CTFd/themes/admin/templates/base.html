@@ -54,6 +54,9 @@
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.notifications') }}">Notifications</a>
 					</li>
 					{% endif %}
+					{% if admin_can('tickets') %}
+					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.tickets') }}">Ticket</a></li>
+					{% endif %}
 					{% if admin_can('pages') %}
 					<li class="nav-item dropdown">
 						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Pages</a>

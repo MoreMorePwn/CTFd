@@ -10,6 +10,7 @@ FULL_ADMIN_TYPE = "admin"
 ASSISTANT_PERMISSION_DEFINITIONS = [
     ("statistics", "Statistics"),
     ("notifications", "Notifications"),
+    ("tickets", "Tickets"),
     ("pages", "Pages"),
     ("users_read", "Users Read"),
     ("users_write", "Users Write"),
@@ -50,6 +51,7 @@ LEGACY_PERMISSION_EXPANSIONS = {
 ADMIN_ENDPOINT_PERMISSIONS = {
     "admin.statistics": {"statistics"},
     "admin.notifications": {"notifications"},
+    "admin.tickets": {"tickets"},
     "admin.pages_listing": {"pages"},
     "admin.pages_new": {"pages"},
     "admin.pages_preview": {"pages"},
@@ -85,6 +87,7 @@ ADMIN_ENDPOINT_PERMISSIONS = {
 API_PATH_PERMISSIONS = [
     ("/api/v1/statistics", {"statistics"}),
     ("/api/v1/notifications", {"notifications"}),
+    ("/api/v1/tickets", {"tickets"}),
     ("/api/v1/pages", {"pages"}),
     (
         "/api/v1/users",
@@ -266,6 +269,7 @@ def first_allowed_admin_endpoint(user):
     for permission, endpoint in [
         ("statistics", "admin.statistics"),
         ("notifications", "admin.notifications"),
+        ("tickets", "admin.tickets"),
         ("pages", "admin.pages_listing"),
         ("users_read", "admin.users_listing"),
         ("teams_read", "admin.teams_listing"),

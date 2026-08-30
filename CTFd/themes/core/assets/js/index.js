@@ -14,6 +14,7 @@ import collapse from "./utils/collapse";
 import eventAlerts from "./utils/notifications/alerts";
 import eventToasts from "./utils/notifications/toasts";
 import eventRead from "./utils/notifications/read";
+import ticketPendingAlerts from "./utils/tickets/pending";
 
 import "./components/language";
 
@@ -32,6 +33,7 @@ CTFd.init(window.init);
   eventRead();
   eventAlerts();
   eventToasts();
+  ticketPendingAlerts();
 })();
 
 export default CTFd;
