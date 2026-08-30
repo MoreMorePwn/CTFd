@@ -37,140 +37,178 @@
 	{% endfor %}
 </head>
 
-<body>
-	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-		<div class="container">
-			<a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand">CTFd</a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#base-navbars"
-					aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse" id="base-navbars">
-				<ul class="navbar-nav mr-auto">
-					{% if admin_can('statistics') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.statistics') }}">Statistics</a></li>
-					{% endif %}
-					{% if admin_can('notifications') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.notifications') }}">Notifications</a>
-					</li>
-					{% endif %}
-					{% if admin_can('tickets') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.tickets') }}">Ticket</a></li>
-					{% endif %}
-					{% if admin_can('pages') %}
-					<li class="nav-item dropdown">
-						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Pages</a>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="{{ url_for('admin.pages_listing') }}">All Pages</a>
-							<a class="dropdown-item" href="{{ url_for('admin.pages_new') }}">New Page</a>
-						</div>
-					</li>
-					{% endif %}
-					{% if admin_can('users_read') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a></li>
-					{% endif %}
-					{% if get_config('user_mode') == 'teams' and admin_can('teams_read') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a></li>
-					{% endif %}
-					{% if admin_can('scoreboard') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a></li>
-					{% endif %}
-					{% if admin_can('post_revoke_calc_read') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.post_revoke_calc') }}">Post-Revoke Calc</a></li>
-					{% endif %}
-					{% if admin_can('challenges') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
-					{% endif %}
-					{% if admin_can('submissions_read') %}
-					<li class="nav-item dropdown">
-						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-						   aria-haspopup="true" aria-expanded="true">Submissions</a>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing') }}">All Submissions</a>
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='correct') }}">Correct Submissions</a>
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='incorrect') }}">Incorrect Submissions</a>
-						</div>
-					</li>
-					{% endif %}
-					{% if admin_can('anti_cheat') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.anti_cheat') }}">Anti-Cheat</a></li>
-					{% endif %}
-					{% if admin_can('config') %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
-					{% endif %}
-					{% if admin_can('plugins') %}
-					{% set plugin_menu = get_admin_plugin_menu_bar() %}
-					{% set plugins = get_menubar_plugins() %}
-					{% if plugin_menu or plugins %}
-						<li class="nav-item">
-							<a class="nav-link d-none d-md-block d-lg-block">|</a>
-						</li>
+<body class="admin-sidebar-layout">
+	{% set current_endpoint = request.endpoint or '' %}
+	{% set current_path = request.path %}
+	{% set plugin_menu = get_admin_plugin_menu_bar() if admin_can('plugins') else [] %}
+	{% set plugins = get_menubar_plugins() if admin_can('plugins') else [] %}
+	{% set has_content_links = admin_can('challenges') or admin_can('pages') %}
+	{% set has_player_links = admin_can('users_read') or (get_config('user_mode') == 'teams' and admin_can('teams_read')) %}
+	{% set has_review_links = admin_can('submissions_read') or admin_can('anti_cheat') or admin_can('tickets') or admin_can('notifications') %}
+	{% set has_scoring_links = admin_can('scoreboard') or admin_can('post_revoke_calc_read') %}
+	{% set has_system_links = admin_can('config') or plugin_menu or plugins %}
+	{% macro sidebar_link(endpoint, title, icon, prefix=None, href=None, target=None) -%}
+		{% set active = current_endpoint == endpoint or (prefix and current_endpoint.startswith(prefix)) %}
+		<a class="admin-sidebar-link{% if active %} active{% endif %}" href="{{ href or url_for(endpoint) }}"{% if target %} target="{{ target }}"{% endif %}>
+			<i class="{{ icon }} admin-sidebar-icon"></i>
+			<span>{{ title }}</span>
+		</a>
+	{%- endmacro %}
+	{% macro sidebar_sub_link(endpoint, title, href=None) -%}
+		{% set active = (href and current_path == href) or (not href and current_endpoint == endpoint) %}
+		<a class="admin-sidebar-sublink{% if active %} active{% endif %}" href="{{ href or url_for(endpoint) }}">{{ title }}</a>
+	{%- endmacro %}
 
-						{% for menu in plugin_menu %}
-							{% if request.script_root %}
-								{% set route = '/' + request.script_root + '/' + menu.route %}
-							{% else %}
-								{% set route = menu.route %}
-							{% endif %}
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route }}" {% if menu.link_target %}target="{{ menu.link_target }}"{% endif %}>
-									{{ menu.title }}
-								</a>
-							</li>
-						{% endfor %}
-
-						{% if plugins %}
-						<li class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Plugins <span class="caret"></span></a>
-							<ul class="dropdown-menu">
-									{% for plugin in plugins %}
-											<a class="dropdown-item" href="{{ request.script_root }}{{ plugin.route }}">{{ plugin.name }}</a>
-									{% endfor %}
-							</ul>
-						</li>
-						{% endif %}
-					{% endif %}
-					{% endif %}
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li class="nav-item">
-						<a class="nav-link" href="https://docs.ctfd.io/" target="_blank">
-							<i class="far fa-question-circle"></i>
-						</a>
-					</li>
-				</ul>
-			</div>
+	<nav class="admin-topbar navbar navbar-dark bg-dark fixed-top">
+		<button class="navbar-toggler d-md-none" type="button" data-toggle="collapse" data-target="#admin-sidebar"
+				aria-controls="admin-sidebar" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<a href="{{ url_for('admin.view') }}" class="navbar-brand d-md-none ml-2">Admin</a>
+		<div class="admin-topbar-actions ml-auto">
+			<a class="btn btn-sm btn-outline-light" href="{{ url_for('views.static_html', route='/') }}">View Site</a>
+			<a class="btn btn-sm btn-outline-light" href="https://docs.ctfd.io/" target="_blank" aria-label="CTFd docs">
+				<i class="far fa-question-circle"></i>
+			</a>
 		</div>
 	</nav>
 
-	<main role="main">
-		{% if get_config('version_latest') %}
-		<div class="container-fluid bg-warning text-center py-3">
-			<div class="row">
-				<div class="col-md-12">
-					<a class="btn btn-warning" href="{{ get_config('version_latest') }}">
-						A new CTFd version is available!
-					</a>
+	<aside class="admin-sidebar collapse d-md-flex" id="admin-sidebar">
+		<div class="admin-sidebar-brand">
+			<a href="{{ url_for('admin.view') }}">CTFd Admin</a>
+			<small>{{ User.name }}</small>
+		</div>
+		<nav class="admin-sidebar-scroll" aria-label="Admin navigation">
+			{% if admin_can('statistics') %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">Dashboard</div>
+				{{ sidebar_link('admin.statistics', 'Statistics', 'fas fa-chart-line') }}
+			</div>
+			{% endif %}
+
+			{% if has_content_links %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">Content</div>
+				{% if admin_can('challenges') %}
+					{{ sidebar_link('admin.challenges_listing', 'Challenges', 'fas fa-flag', 'admin.challenges') }}
+				{% endif %}
+				{% if admin_can('pages') %}
+					{{ sidebar_link('admin.pages_listing', 'Pages', 'fas fa-file-alt', 'admin.pages') }}
+					<div class="admin-sidebar-subnav">
+						{{ sidebar_sub_link('admin.pages_listing', 'All Pages') }}
+						{{ sidebar_sub_link('admin.pages_new', 'New Page') }}
+					</div>
+				{% endif %}
+			</div>
+			{% endif %}
+
+			{% if has_player_links %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">Players</div>
+				{% if admin_can('users_read') %}
+					{{ sidebar_link('admin.users_listing', 'Users', 'fas fa-user', 'admin.users') }}
+				{% endif %}
+				{% if get_config('user_mode') == 'teams' and admin_can('teams_read') %}
+					{{ sidebar_link('admin.teams_listing', 'Teams', 'fas fa-users', 'admin.teams') }}
+				{% endif %}
+			</div>
+			{% endif %}
+
+			{% if has_review_links %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">Review</div>
+				{% if admin_can('submissions_read') %}
+					{{ sidebar_link('admin.submissions_listing', 'Submissions', 'fas fa-inbox', 'admin.submissions') }}
+					<div class="admin-sidebar-subnav">
+						{{ sidebar_sub_link('admin.submissions_listing', 'All Submissions') }}
+						{{ sidebar_sub_link('admin.submissions_listing', 'Correct Submissions', url_for('admin.submissions_listing', submission_type='correct')) }}
+						{{ sidebar_sub_link('admin.submissions_listing', 'Incorrect Submissions', url_for('admin.submissions_listing', submission_type='incorrect')) }}
+					</div>
+				{% endif %}
+				{% if admin_can('anti_cheat') %}
+					{{ sidebar_link('admin.anti_cheat', 'Anti-Cheat', 'fas fa-shield-alt') }}
+				{% endif %}
+				{% if admin_can('tickets') %}
+					{{ sidebar_link('admin.tickets', 'Tickets', 'fas fa-ticket-alt') }}
+				{% endif %}
+				{% if admin_can('notifications') %}
+					{{ sidebar_link('admin.notifications', 'Notifications', 'fas fa-bell') }}
+				{% endif %}
+			</div>
+			{% endif %}
+
+			{% if has_scoring_links %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">Scoring</div>
+				{% if admin_can('scoreboard') %}
+					{{ sidebar_link('admin.scoreboard_listing', 'Scoreboard', 'fas fa-list-ol') }}
+				{% endif %}
+				{% if admin_can('post_revoke_calc_read') %}
+					{{ sidebar_link('admin.post_revoke_calc', 'Post-Revoke Calc', 'fas fa-calculator') }}
+				{% endif %}
+			</div>
+			{% endif %}
+
+			{% if has_system_links %}
+			<div class="admin-sidebar-section">
+				<div class="admin-sidebar-heading">System</div>
+				{% if admin_can('config') %}
+					{{ sidebar_link('admin.config', 'Config', 'fas fa-cog') }}
+				{% endif %}
+				{% for menu in plugin_menu %}
+					{% if request.script_root %}
+						{% set route = '/' + request.script_root + '/' + menu.route %}
+					{% else %}
+						{% set route = menu.route %}
+					{% endif %}
+					{{ sidebar_link('', menu.title, 'fas fa-puzzle-piece', href=route, target=menu.link_target) }}
+				{% endfor %}
+				{% if plugins %}
+					<div class="admin-sidebar-link admin-sidebar-link-label">
+						<i class="fas fa-plug admin-sidebar-icon"></i>
+						<span>Plugins</span>
+					</div>
+					<div class="admin-sidebar-subnav">
+						{% for plugin in plugins %}
+							<a class="admin-sidebar-sublink" href="{{ request.script_root }}{{ plugin.route }}">{{ plugin.name }}</a>
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
+			{% endif %}
+		</nav>
+	</aside>
+
+	<div class="admin-content-wrapper">
+		<main class="admin-main" role="main">
+			{% if get_config('version_latest') %}
+			<div class="container-fluid bg-warning text-center py-3">
+				<div class="row">
+					<div class="col-md-12">
+						<a class="btn btn-warning" href="{{ get_config('version_latest') }}">
+							A new CTFd version is available!
+						</a>
+					</div>
 				</div>
 			</div>
-		</div>
-		{% endif %}
-		{% block content %}
-		{% endblock %}
-	</main>
+			{% endif %}
+			{% block content %}
+			{% endblock %}
+		</main>
 
-	<footer class="footer pt-2">
-		<div class="container text-center">
-			<a href="https://ctfd.io" class="text-secondary">
-				<small class="text-muted">
-					Powered by CTFd
-				</small>
-			</a>
-			<span>
-				<small class="text-muted"><br> Version {{ get_config('ctf_version') }}</small>
-			</span>
-		</div>
-	</footer>
+		<footer class="footer admin-footer pt-2">
+			<div class="container text-center">
+				<a href="https://ctfd.io" class="text-secondary">
+					<small class="text-muted">
+						Powered by CTFd
+					</small>
+				</a>
+				<span>
+					<small class="text-muted"><br> Version {{ get_config('ctf_version') }}</small>
+				</span>
+			</div>
+		</footer>
+	</div>
 
 	{% block entrypoint %}
 		{{ Assets.js("assets/js/pages/main.js", theme="admin") }}
