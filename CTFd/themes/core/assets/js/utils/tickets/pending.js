@@ -2,6 +2,8 @@ import { Modal, Toast } from "bootstrap";
 
 import CTFd from "../../index";
 
+const displayedTicketIds = new Set();
+
 function playTicketSound(ticket) {
   if (!ticket.sound || !CTFd.events || !CTFd.events.howl) {
     return;
@@ -80,6 +82,20 @@ function createModalElement(ticket) {
   return wrapper;
 }
 
+function markTicketDisplayed(ticket) {
+  if (!ticket || ticket.id === null || ticket.id === undefined) {
+    return true;
+  }
+
+  const key = String(ticket.id);
+  if (displayedTicketIds.has(key)) {
+    return false;
+  }
+
+  displayedTicketIds.add(key);
+  return true;
+}
+
 function showTicket(ticket, done) {
   if (ticket.type === "alert") {
     const modalElement = createModalElement(ticket);
@@ -123,6 +139,69 @@ function showTicketQueue(tickets, index) {
   showTicket(tickets[index], () => showTicketQueue(tickets, index + 1));
 }
 
+function showTickets(tickets) {
+  const unseenTickets = tickets.filter(markTicketDisplayed);
+  if (!unseenTickets.length) {
+    return;
+  }
+
+  showTicketQueue(unseenTickets, 0);
+}
+
+function isTicketForCurrentUser(ticket) {
+  if (!ticket || !ticket.target_id || !ticket.target_type) {
+    return false;
+  }
+
+  if (ticket.target_type === "team") {
+    return Number(ticket.target_id) === Number(CTFd.team && CTFd.team.id);
+  }
+
+  if (ticket.target_type === "user") {
+    return Number(ticket.target_id) === Number(CTFd.user && CTFd.user.id);
+  }
+
+  return false;
+}
+
+function handleRealtimeTicket(ticket) {
+  if (!isTicketForCurrentUser(ticket)) {
+    return;
+  }
+
+  showTickets([ticket]);
+}
+
+function connectRealtimeTickets() {
+  if (!CTFd.events || !CTFd.events.source || !CTFd.events.controller) {
+    return;
+  }
+
+  CTFd.events.source.addEventListener(
+    "ticket",
+    event => {
+      let ticket = null;
+      try {
+        ticket = JSON.parse(event.data);
+      } catch (e) {
+        return;
+      }
+
+      if (!isTicketForCurrentUser(ticket)) {
+        return;
+      }
+
+      CTFd.events.controller.broadcast("ticket", { ticket });
+      showTickets([ticket]);
+    },
+    false,
+  );
+
+  CTFd.events.controller.ticket = data => {
+    handleRealtimeTicket(data && data.ticket);
+  };
+}
+
 function loadPendingTickets() {
   CTFd.fetch("/api/v1/tickets/pending")
     .then(response => {
@@ -135,7 +214,7 @@ function loadPendingTickets() {
       if (!response || !response.success || !response.data.length) {
         return;
       }
-      showTicketQueue(response.data, 0);
+      showTickets(response.data);
     })
     .catch(() => {});
 }
@@ -144,6 +223,8 @@ export default () => {
   if (!CTFd.user || !CTFd.user.id) {
     return;
   }
+
+  connectRealtimeTickets();
 
   document.addEventListener(
     "alpine:initialized",

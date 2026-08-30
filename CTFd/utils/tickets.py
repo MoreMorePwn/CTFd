@@ -106,6 +106,17 @@ def serialize_pending_ticket(ticket):
     }
 
 
+def serialize_ticket_event(ticket):
+    data = serialize_pending_ticket(ticket)
+    data.update(
+        {
+            "target_id": ticket.team_id or ticket.user_id,
+            "target_type": "team" if ticket.team_id else "user",
+        }
+    )
+    return data
+
+
 def list_ticket_targets(query=None):
     model = _target_model()
     targets = model.query.order_by(model.name.asc()).all()

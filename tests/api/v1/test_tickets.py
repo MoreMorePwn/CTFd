@@ -121,6 +121,50 @@ def test_ticket_assistant_permission_controls_admin_access():
     destroy_ctfd(app)
 
 
+def test_ticket_creation_publishes_realtime_event():
+    """Ticket creation publishes a targeted SSE event for immediate alerts"""
+    app = create_ctfd(user_mode="teams")
+    with app.app_context():
+        team = gen_team(db, name="realtime_team", member_count=1)
+        published = []
+
+        def capture_event(data, type=None, id=None, channel="ctf"):
+            published.append(
+                {
+                    "data": data,
+                    "type": type,
+                    "id": id,
+                    "channel": channel,
+                }
+            )
+
+        app.events_manager.publish = capture_event
+
+        with login_as_user(app, "admin") as client:
+            r = client.post(
+                "/api/v1/tickets",
+                json={
+                    "target_id": team.id,
+                    "title": "Realtime ticket",
+                    "message": "Open now",
+                    "notification_type": "toast",
+                    "sound": True,
+                },
+            )
+
+        assert r.status_code == 200
+        assert len(published) == 1
+        assert published[0]["type"] == "ticket"
+        assert published[0]["channel"] == "ctf"
+        assert published[0]["data"]["target_id"] == team.id
+        assert published[0]["data"]["target_type"] == "team"
+        assert published[0]["data"]["title"] == "Realtime ticket"
+        assert published[0]["data"]["content"] == "Open now"
+        assert published[0]["data"]["type"] == "toast"
+        assert published[0]["data"]["sound"] is True
+    destroy_ctfd(app)
+
+
 def test_team_ticket_pending_alert_follows_current_membership():
     """Team-mode tickets alert every current team member while pending"""
     app = create_ctfd(user_mode="teams")

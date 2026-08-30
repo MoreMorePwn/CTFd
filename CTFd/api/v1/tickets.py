@@ -1,4 +1,4 @@
-from flask import request
+from flask import current_app, request
 from flask_restx import Namespace, Resource
 
 from CTFd.models import Tickets
@@ -12,6 +12,7 @@ from CTFd.utils.tickets import (
     pending_tickets_for_user,
     serialize_pending_ticket,
     serialize_ticket,
+    serialize_ticket_event,
     serialize_ticket_target,
     update_ticket_status,
 )
@@ -56,6 +57,11 @@ class TicketList(Resource):
             )
         except TicketValidationError as e:
             return _validation_error(str(e)), 400
+
+        current_app.events_manager.publish(
+            data=serialize_ticket_event(ticket),
+            type="ticket",
+        )
 
         return {"success": True, "data": serialize_ticket(ticket)}
 
