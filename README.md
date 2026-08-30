@@ -22,6 +22,14 @@ After startup, open CTFd at `http://<server>/` or `http://<server>:8000/`.
 - Removed the admin reset feature and Danger Zone UI. Switching back to user mode now requires a full CTFd reset from the CLI.
 - Added automatic exports every 20 minutes while the competition is running. Exports are saved in `.export`, and the oldest exports are removed when the folder reaches 1 GB.
 
+### Admin Sidebar Navigation
+
+Reworked the admin panel into a persistent left sidebar layout so high-use sections stay visible, including review workflows, scoring tools, and system configuration.
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-admin-sidebar-navigation.png" alt="Admin sidebar navigation">
+</p>
+
 ### Challenge Submission Metadata
 
 Added challenge submission metadata for `AI Source` links and solver/script uploads.
@@ -48,7 +56,7 @@ Added per-challenge `Need AI` and `Need Solver` settings, including challenge cr
 
 ### Submission Review Metadata
 
-Added AI Source and Solver links to the admin submissions table, syntax-highlighted solver previews, AI Source tooltips, and a manual `Verified` checkbox for reviewer tracking.
+Added AI Source and Solver links to the admin submissions table, syntax-highlighted solver previews, AI Source tooltips, and a manual `Verified` checkbox for reviewer tracking. Assistants with submission read and file permissions can review/download solver uploads without broad write access.
 
 <p align="center">
   <img src="docs/screenshots/ctfd-admin-submissions-ai-solver-links.png" alt="Admin submissions AI Source and Solver links">
@@ -62,12 +70,32 @@ Added AI Source and Solver links to the admin submissions table, syntax-highligh
   <img src="docs/screenshots/ctfd-admin-submissions-solver-preview-highlight.png" alt="Admin submissions syntax-highlighted solver preview">
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/ctfd-assistant-submissions-read-only.png" alt="Assistant read-only submissions access">
+</p>
+
 ### Anti-Cheat Review
 
 Added anti-cheat event detection and review tooling for shared IPs, shared user agents, shared browser fingerprints, repeated wrong answers, rapid solves, challenge-file download timing, and churn-style signals.
 
 <p align="center">
   <img src="docs/screenshots/ctfd-admin-anti-cheat-events.png" alt="Admin anti-cheat event review">
+</p>
+
+### Ticket Workflow
+
+Added a `Ticket` admin workflow for targeted user/team notifications. Pending tickets repeat on page refresh until moved to `Ongoing`; resolving a ticket requires a resolve note and is final. Tickets support toast or alert presentation, optional notification sound, and assistant access through the normal permission system.
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-admin-tickets-workflow.png" alt="Admin ticket status review">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-admin-ticket-add-target-modal.png" alt="Admin ticket target selection modal">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-ticket-user-alert-toast.png" alt="User-facing ticket alert and toast">
 </p>
 
 ### Post-Revoke Calculator
@@ -84,7 +112,7 @@ Added Post-Revoke Calc for simulated post-event score review, including simulate
 
 ### Assistant Admin Role
 
-Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, and Submissions.
+Added an `Assistant` admin role with configurable access control. Full admins can grant scoped access to admin sections, including separate read/write permissions for Users, Teams, Submissions, and Post-Revoke Calc.
 
 <p align="center">
   <img src="docs/screenshots/ctfd-admin-assistant-access-permissions.png" alt="Assistant role permission controls">
@@ -92,10 +120,6 @@ Added an `Assistant` admin role with configurable access control. Full admins ca
 
 <p align="center">
   <img src="docs/screenshots/ctfd-assistant-admin-panel-link.png" alt="Assistant Admin Panel link">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/ctfd-assistant-submissions-read-only.png" alt="Assistant read-only submissions access">
 </p>
 
 ### Deployment and Test Scripts
