@@ -3,15 +3,103 @@ import { Modal, Toast } from "bootstrap";
 import CTFd from "../../index";
 
 const displayedTicketIds = new Set();
+const activeTicketAudio = new Set();
 
-function playTicketSound(ticket) {
-  if (!ticket.sound || !CTFd.events || !CTFd.events.howl) {
+function getTicketSoundSources() {
+  return (CTFd.config.eventSounds || [])
+    .map(source => {
+      if (!source) {
+        return null;
+      }
+
+      const root = (CTFd.config.urlRoot || "").replace(/\/$/, "");
+      if (
+        source.startsWith("http://") ||
+        source.startsWith("https://") ||
+        source.startsWith("//") ||
+        (root && source.startsWith(`${root}/`))
+      ) {
+        return source;
+      }
+
+      if (source.startsWith("/")) {
+        return `${root}${source}`;
+      }
+
+      return `${root}/${source}`;
+    })
+    .filter(Boolean);
+}
+
+function isHowlerAudioLocked() {
+  return Boolean(
+    window.Howler &&
+      window.Howler._audioUnlocked === false &&
+      window.Howler.ctx &&
+      window.Howler.ctx.state !== "running",
+  );
+}
+
+function playHowlerTicketSound() {
+  if (!CTFd.events || !CTFd.events.howl) {
     return;
   }
 
   try {
     CTFd.events.howl.play();
   } catch (e) {}
+}
+
+function playTicketSoundWithHtmlAudio(index, fallback) {
+  const sources = getTicketSoundSources();
+  if (index >= sources.length) {
+    fallback();
+    return false;
+  }
+
+  const audio = new Audio(sources[index]);
+  let settled = false;
+
+  const cleanup = () => {
+    activeTicketAudio.delete(audio);
+  };
+  const tryNextSource = () => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    cleanup();
+    playTicketSoundWithHtmlAudio(index + 1, fallback);
+  };
+
+  activeTicketAudio.add(audio);
+  audio.preload = "auto";
+  audio.addEventListener("ended", cleanup, { once: true });
+  audio.addEventListener("error", tryNextSource, { once: true });
+
+  try {
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(tryNextSource);
+    }
+  } catch (e) {
+    tryNextSource();
+  }
+
+  return true;
+}
+
+function playTicketSound(ticket) {
+  if (!ticket.sound) {
+    return;
+  }
+
+  if (isHowlerAudioLocked()) {
+    playTicketSoundWithHtmlAudio(0, playHowlerTicketSound);
+    return;
+  }
+
+  playHowlerTicketSound();
 }
 
 function ticketTitle(ticket) {
@@ -110,8 +198,8 @@ function showTicket(ticket, done) {
       },
       { once: true },
     );
-    modal.show();
     playTicketSound(ticket);
+    modal.show();
     return;
   }
 
@@ -145,7 +233,17 @@ function showTickets(tickets) {
     return;
   }
 
-  showTicketQueue(unseenTickets, 0);
+  const alertTickets = [];
+  unseenTickets.forEach(ticket => {
+    if (ticket.type === "alert") {
+      alertTickets.push(ticket);
+      return;
+    }
+
+    showTicket(ticket, () => {});
+  });
+
+  showTicketQueue(alertTickets, 0);
 }
 
 function isTicketForCurrentUser(ticket) {
