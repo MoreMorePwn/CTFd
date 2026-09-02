@@ -604,6 +604,66 @@ function saveAnnouncerSettings(event) {
     });
 }
 
+function testAnnouncerSettings(event) {
+  event.preventDefault();
+  const data = collectAnnouncerSettings({ includeWebhook: true });
+  data.template = announcerTemplateEditor.getValue();
+
+  try {
+    JSON.parse(data.template);
+  } catch (e) {
+    ezAlert({
+      title: "Error!",
+      body: "Announcement JSON template is invalid JSON.",
+      button: "Okay",
+    });
+    return;
+  }
+
+  $("#announcer-test-button").prop("disabled", true);
+  CTFd.fetch("/api/v1/announcer-bot/test", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.success) {
+        ezAlert({
+          title: "Test sent",
+          body: `${response.data.count} test announcement(s) sent.`,
+          button: "Okay",
+        });
+        loadAnnouncerLogs();
+      } else {
+        const errors = response.errors || {};
+        const body =
+          Object.keys(errors)
+            .map((key) => errors[key].join("\n"))
+            .join("\n") || "Announcer Bot test could not be sent.";
+        ezAlert({
+          title: "Error!",
+          body: body,
+          button: "Okay",
+        });
+      }
+    })
+    .catch(() => {
+      ezAlert({
+        title: "Error!",
+        body: "Announcer Bot test could not be sent.",
+        button: "Okay",
+      });
+    })
+    .finally(() => {
+      $("#announcer-test-button").prop("disabled", false);
+    });
+}
+
 function insertTimezones(target) {
   let current = $("<option>").text(dayjs.tz.guess());
   $(target).append(current);
@@ -746,6 +806,7 @@ $(() => {
   $("#post-revoke-calc-reset-button").click(resetPostRevokeCalc);
   $("#announcer-template-set").click(setAnnouncerTemplate);
   $("#announcer-bot-form").submit(saveAnnouncerSettings);
+  $("#announcer-test-button").click(testAnnouncerSettings);
   $("#announcer-logs-refresh").click(loadAnnouncerLogs);
   loadAnnouncerLogs();
   $("#config-color-update").click(function () {

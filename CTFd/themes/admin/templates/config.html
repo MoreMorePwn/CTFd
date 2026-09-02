@@ -1,9 +1,5 @@
 {% extends "admin/base.html" %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" type="text/css" href="{{ url_for('views.themes', theme='admin', path='css/codemirror.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="jumbotron">
 	<div class="container">
@@ -93,9 +89,6 @@
 						<i class="fa fa-sliders action-icon"></i>Custom
 					</a>
 				</li>
-
-				<!-- System -->
-				<small class="section-title">System</small>
 				<li class="nav-item">
 					<a class="nav-link rounded-0 py-1" href="#announcer_bot" role="tab" data-toggle="tab">
 						<i class="fa fa-bullhorn action-icon"></i>Announcer Bot
@@ -219,8 +212,6 @@
 				<!-- Custom -->
 
 				{% include "admin/configs/custom.html" %}
-
-				<!-- System -->
 
 				{% include "admin/configs/announcer_bot.html" %}
 

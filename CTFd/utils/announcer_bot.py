@@ -60,6 +60,13 @@ ENABLE_KEYS = {
     "solve": "announce_solve",
 }
 
+EVENT_RANKS = {
+    "first_blood": 1,
+    "second_blood": 2,
+    "third_blood": 3,
+    "solve": 4,
+}
+
 IMAGE_EXTENSIONS = (
     ".apng",
     ".avif",
@@ -135,6 +142,31 @@ def validate_discord_webhook_url(value):
 
 def color_to_decimal(value):
     return int(normalize_color(value).lstrip("#"), 16)
+
+
+def merge_announcer_settings(data=None):
+    data = data or {}
+    settings = get_announcer_settings(include_webhook=True)
+
+    for public_key in CONFIG_KEYS:
+        if public_key not in data:
+            continue
+
+        value = data.get(public_key)
+        if public_key.startswith("announce_"):
+            settings[public_key] = normalize_bool(value)
+        elif public_key == "embed_color":
+            settings[public_key] = normalize_color(value)
+        elif value is None:
+            settings[public_key] = ""
+        else:
+            settings[public_key] = str(value).strip()
+
+    if "template" in data:
+        settings["template"] = data.get("template")
+
+    settings["webhook_configured"] = bool(settings.get("webhook_url"))
+    return settings
 
 
 def build_announcer_template(settings=None):
@@ -442,6 +474,37 @@ def build_announcement_context(solve, event_type, rank, settings):
     }
 
 
+def build_test_announcement_context(event_type, rank, settings):
+    now = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = unix_timestamp(now)
+    title = settings.get(TITLE_KEYS[event_type]) or ANNOUNCER_DEFAULTS[
+        TITLE_KEYS[event_type]
+    ]
+    return {
+        "title": title,
+        "event_type": event_type,
+        "solve_rank": rank,
+        "rank": rank,
+        "account_name": "Sussybaka",
+        "team": "Sussybaka",
+        "team_name": "Sussybaka",
+        "user": "Sussybaka",
+        "user_name": "Sussybaka",
+        "challenge": "Example",
+        "challenge_name": "Example",
+        "category": "Testing",
+        "timestamp": f"<t:{timestamp}:F>",
+        "relative_timestamp": f"<t:{timestamp}:R>",
+        "unix_timestamp": timestamp,
+        "iso_timestamp": utc_isoformat(now),
+        "challenge_url": "",
+        "bot_name": settings.get("bot_name") or ANNOUNCER_DEFAULTS["bot_name"],
+        "bot_profile_image_url": settings.get("bot_profile_image_url", ""),
+        "bot_thumbnail_image_url": settings.get("bot_thumbnail_image_url", ""),
+        "footer": settings.get("footer", ""),
+    }
+
+
 def log_announcement(
     solve,
     event_type,
@@ -452,6 +515,7 @@ def log_announcement(
     response_status=None,
     response_body=None,
     error=None,
+    challenge_name=None,
 ):
     log = AnnouncerBotLogs(
         event_type=event_type,
@@ -460,7 +524,13 @@ def log_announcement(
         user_id=solve.user_id if solve else None,
         team_id=solve.team_id if solve else None,
         challenge_id=solve.challenge_id if solve else None,
-        challenge_name=solve.challenge.name if solve and solve.challenge else None,
+        challenge_name=(
+            challenge_name
+            if challenge_name is not None
+            else solve.challenge.name
+            if solve and solve.challenge
+            else None
+        ),
         payload=json.dumps(payload, separators=(",", ":")) if payload else None,
         response_status=response_status,
         response_body=response_body,
@@ -482,6 +552,52 @@ def send_webhook(webhook_url, payload):
     return response
 
 
+def dispatch_announcement(webhook_url, template_text, context, solve=None):
+    template, error = validate_announcer_template(template_text)
+
+    if error:
+        return log_announcement(
+            solve=solve,
+            event_type=context["event_type"],
+            title=context["title"],
+            account_name=context["account_name"],
+            success=False,
+            error=error,
+            challenge_name=context.get("challenge_name"),
+        )
+
+    payload = render_template_value(deepcopy(template), context)
+    payload = prune_empty_values(payload)
+    payload["allowed_mentions"] = {"parse": []}
+
+    try:
+        response = send_webhook(webhook_url, payload)
+        success = 200 <= response.status_code < 300
+        return log_announcement(
+            solve=solve,
+            event_type=context["event_type"],
+            title=context["title"],
+            account_name=context["account_name"],
+            payload=payload,
+            success=success,
+            response_status=response.status_code,
+            response_body=(response.text or "")[:2000],
+            error=None if success else "Discord webhook returned an error.",
+            challenge_name=context.get("challenge_name"),
+        )
+    except RequestException as e:
+        return log_announcement(
+            solve=solve,
+            event_type=context["event_type"],
+            title=context["title"],
+            account_name=context["account_name"],
+            payload=payload,
+            success=False,
+            error=str(e),
+            challenge_name=context.get("challenge_name"),
+        )
+
+
 def announce_solve(solve):
     settings = get_announcer_settings(include_webhook=True)
     webhook_url = settings.get("webhook_url")
@@ -494,44 +610,37 @@ def announce_solve(solve):
         return None
 
     template_text = settings.get("template")
-    template, error = validate_announcer_template(template_text)
     context = build_announcement_context(solve, event_type, rank, settings)
+    return dispatch_announcement(webhook_url, template_text, context, solve=solve)
 
-    if error:
-        return log_announcement(
-            solve=solve,
-            event_type=event_type,
-            title=context["title"],
-            account_name=context["account_name"],
-            success=False,
-            error=error,
-        )
 
-    payload = render_template_value(deepcopy(template), context)
-    payload = prune_empty_values(payload)
-    payload["allowed_mentions"] = {"parse": []}
+def send_test_announcements(data=None):
+    settings = merge_announcer_settings(data)
+    webhook_url = settings.get("webhook_url")
+    if not webhook_url:
+        return False, {"webhook_url": ["Discord webhook link is required."]}, []
 
-    try:
-        response = send_webhook(webhook_url, payload)
-        success = 200 <= response.status_code < 300
-        return log_announcement(
-            solve=solve,
-            event_type=event_type,
-            title=context["title"],
-            account_name=context["account_name"],
-            payload=payload,
-            success=success,
-            response_status=response.status_code,
-            response_body=(response.text or "")[:2000],
-            error=None if success else "Discord webhook returned an error.",
-        )
-    except RequestException as e:
-        return log_announcement(
-            solve=solve,
-            event_type=event_type,
-            title=context["title"],
-            account_name=context["account_name"],
-            payload=payload,
-            success=False,
-            error=str(e),
-        )
+    webhook_error = validate_discord_webhook_url(webhook_url)
+    if webhook_error:
+        return False, {"webhook_url": [webhook_error]}, []
+
+    template_text = settings.get("template")
+    _template, template_error = validate_announcer_template(template_text)
+    if template_error:
+        return False, {"template": [template_error]}, []
+
+    event_types = [
+        event_type
+        for event_type in ("first_blood", "second_blood", "third_blood", "solve")
+        if settings.get(ENABLE_KEYS[event_type])
+    ]
+    if not event_types:
+        return False, {"options": ["Enable at least one announcement option."]}, []
+
+    logs = []
+    for event_type in event_types:
+        rank = EVENT_RANKS[event_type]
+        context = build_test_announcement_context(event_type, rank, settings)
+        logs.append(dispatch_announcement(webhook_url, template_text, context))
+
+    return True, {}, [serialize_announcer_log(log) for log in logs]

@@ -40,7 +40,7 @@
 
   {{ Configs.theme_header }}
 </head>
-<body class="ifest2026-theme">
+<body class="ifest2026-theme {{ 'ifest2026-homepage' if request.path == '/' else '' }}">
 {% include "components/navbar.html" %}
 
 <main role="main">

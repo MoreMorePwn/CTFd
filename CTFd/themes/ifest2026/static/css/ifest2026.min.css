@@ -69,8 +69,19 @@ body.ifest2026-theme {
   letter-spacing: 0;
 }
 
+body.ifest2026-theme.ifest2026-homepage {
+  height: 100vh;
+  height: 100svh;
+  overflow-y: hidden;
+}
+
 body.ifest2026-theme main {
   flex: 1 0 auto;
+}
+
+body.ifest2026-theme:not(.ifest2026-homepage) main {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .ifest2026-theme h1,
@@ -136,6 +147,7 @@ body.ifest2026-theme main {
   align-items: center;
   gap: 10px;
   min-width: 172px;
+  margin-right: clamp(24px, 4vw, 54px);
   text-decoration: none;
 }
 
@@ -211,14 +223,14 @@ body.ifest2026-theme main {
   min-width: 40px;
   padding: 0 !important;
   color: var(--ifest-blue-deep) !important;
-  border: 1px solid var(--ifest-border);
-  background: rgba(33, 74, 254, 0.04);
+  border: 0;
+  background: transparent;
 }
 
 .ifest-nav-icon:hover,
 .ifest-nav-icon:focus {
   color: var(--ifest-blue) !important;
-  background: rgba(33, 74, 254, 0.1);
+  background: transparent;
 }
 
 .ifest-nav-icon .badge-notification {
@@ -240,7 +252,8 @@ body.ifest2026-theme main {
 .ifest-home {
   position: relative;
   isolation: isolate;
-  min-height: calc(100svh - 80px);
+  height: calc(100svh - 80px);
+  min-height: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -461,7 +474,9 @@ body.ifest2026-theme main {
 }
 
 .ifest2026-theme .jumbotron {
+  margin-top: 0;
   margin-bottom: 0;
+  border-radius: 0;
   color: #ffffff;
   background:
     linear-gradient(rgba(33, 74, 254, 0.16) 1px, transparent 1px),
@@ -469,6 +484,11 @@ body.ifest2026-theme main {
     var(--ifest-blue-deep);
   background-size: 18px 18px, 18px 18px, auto;
   border-bottom: 2px solid var(--ifest-blue);
+}
+
+.ifest2026-theme .jumbotron + .container {
+  padding-top: 32px;
+  padding-bottom: 48px;
 }
 
 .ifest2026-theme .jumbotron h1 {
@@ -512,6 +532,10 @@ body.ifest2026-theme main {
   font-weight: 700;
 }
 
+.ifest2026-homepage .ifest-footer {
+  display: none;
+}
+
 @media (max-width: 991.98px) {
   .ifest-nav-menu,
   .ifest-nav-account {
@@ -537,6 +561,10 @@ body.ifest2026-theme main {
   .ifest-nav-inner {
     width: min(100% - 24px, 1280px);
     flex-wrap: wrap;
+  }
+
+  .ifest-brand {
+    margin-right: 0;
   }
 
   .ifest-brand-logo {
@@ -566,7 +594,8 @@ body.ifest2026-theme main {
   }
 
   .ifest-home {
-    min-height: calc(100svh - 70px);
+    height: calc(100svh - 70px);
+    min-height: 0;
     padding: 24px 18px;
   }
 

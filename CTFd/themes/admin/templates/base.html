@@ -155,7 +155,6 @@
 				<div class="admin-sidebar-heading">System</div>
 				{% if admin_can('config') %}
 					{{ sidebar_link('admin.config', 'Config', 'fas fa-cog') }}
-					{{ sidebar_link('', 'Announcer Bot', 'fas fa-bullhorn', href=url_for('admin.config') + '#announcer_bot') }}
 				{% endif %}
 				{% for menu in plugin_menu %}
 					{% if request.script_root %}

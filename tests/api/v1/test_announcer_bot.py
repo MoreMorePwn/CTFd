@@ -132,3 +132,48 @@ def test_announcer_logs_webhook_failures_without_breaking_solves():
         assert "webhook timed out" in log.error
         assert json.loads(log.payload)["embeds"][0]["title"] == "First Blood"
     destroy_ctfd(app)
+
+
+def test_announcer_test_endpoint_sends_checked_event_types_only():
+    app = create_ctfd()
+    with app.app_context():
+        response = Mock(status_code=204, text="")
+        with patch("CTFd.utils.announcer_bot.requests.post", return_value=response) as post:
+            with login_as_user(app, "admin") as client:
+                r = client.post(
+                    "/api/v1/announcer-bot/test",
+                    json={
+                        "webhook_url": "https://discord.com/api/webhooks/test/test",
+                        "announce_first_blood": True,
+                        "announce_second_blood": False,
+                        "announce_third_blood": True,
+                        "announce_solve": True,
+                    },
+                )
+
+        assert r.status_code == 200
+        data = r.get_json()["data"]
+        assert data["count"] == 3
+        assert post.call_count == 3
+        titles = [
+            call.kwargs["json"]["embeds"][0]["title"]
+            for call in post.call_args_list
+        ]
+        assert titles == ["First Blood", "Third Blood", "Solved"]
+        descriptions = [
+            call.kwargs["json"]["embeds"][0]["description"]
+            for call in post.call_args_list
+        ]
+        assert all(
+            description == "Sussybaka has solved Example!"
+            for description in descriptions
+        )
+        assert [log.event_type for log in AnnouncerBotLogs.query.all()] == [
+            "first_blood",
+            "third_blood",
+            "solve",
+        ]
+        assert all(
+            log.challenge_name == "Example" for log in AnnouncerBotLogs.query.all()
+        )
+    destroy_ctfd(app)

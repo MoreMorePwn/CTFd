@@ -112,11 +112,16 @@
 		<div class="form-group">
 			<div class="d-flex align-items-center justify-content-between">
 				<label for="announcer-template" class="mb-0">Announcement JSON Template</label>
-				<button type="button" class="btn btn-sm btn-secondary" id="announcer-template-set">
-					<i class="fas fa-wand-magic-sparkles action-icon"></i>Set
-				</button>
+				<div>
+					<button type="button" class="btn btn-sm btn-secondary" id="announcer-template-set">
+						<i class="fas fa-wand-magic-sparkles action-icon"></i>Set
+					</button>
+					<button type="button" class="btn btn-sm btn-info ml-2" id="announcer-test-button">
+						<i class="fas fa-paper-plane action-icon"></i>Test
+					</button>
+				</div>
 			</div>
-			<textarea class="form-control mt-2" id="announcer-template" rows="16">{{ announcer_bot_template }}</textarea>
+			<textarea class="form-control mt-4" id="announcer-template" rows="16">{{ announcer_bot_template }}</textarea>
 			<small class="form-text text-muted">
 				Available variables include <code>{title}</code>, <code>{account_name}</code>, <code>{team}</code>, <code>{user}</code>, <code>{challenge_name}</code>, <code>{category}</code>, <code>{timestamp}</code>, and <code>{iso_timestamp}</code>.
 			</small>
