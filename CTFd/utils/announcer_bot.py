@@ -339,6 +339,7 @@ def serialize_announcer_log(log):
         "response_body": log.response_body,
         "success": log.success,
         "error": log.error,
+        "can_resend": bool(log.payload),
         "created": log.created.isoformat() if log.created else None,
     }
 
@@ -620,6 +621,61 @@ def dispatch_announcement(webhook_url, template_text, context, solve=None):
             error=str(e),
             challenge_name=context.get("challenge_name"),
         )
+
+
+def resend_announcer_log(original_log):
+    settings = get_announcer_settings(include_webhook=True)
+    webhook_url = settings.get("webhook_url")
+    if not webhook_url:
+        return False, {"webhook_url": ["Discord webhook link is required."]}, None
+
+    if not original_log.payload:
+        return False, {"payload": ["This log has no saved payload to resend."]}, None
+
+    try:
+        payload = json.loads(original_log.payload)
+    except (TypeError, ValueError):
+        return False, {"payload": ["This log has an invalid saved payload."]}, None
+
+    if not isinstance(payload, dict):
+        return False, {"payload": ["This log has an invalid saved payload."]}, None
+
+    payload["allowed_mentions"] = {"parse": []}
+
+    try:
+        response = send_webhook(webhook_url, payload)
+        success = 200 <= response.status_code < 300
+        resent_log = AnnouncerBotLogs(
+            event_type=original_log.event_type,
+            title=original_log.title,
+            account_name=original_log.account_name,
+            user_id=original_log.user_id,
+            team_id=original_log.team_id,
+            challenge_id=original_log.challenge_id,
+            challenge_name=original_log.challenge_name,
+            payload=json.dumps(payload, separators=(",", ":")),
+            success=success,
+            response_status=response.status_code,
+            response_body=(response.text or "")[:2000],
+            error=None if success else "Discord webhook returned an error.",
+        )
+    except RequestException as e:
+        resent_log = AnnouncerBotLogs(
+            event_type=original_log.event_type,
+            title=original_log.title,
+            account_name=original_log.account_name,
+            user_id=original_log.user_id,
+            team_id=original_log.team_id,
+            challenge_id=original_log.challenge_id,
+            challenge_name=original_log.challenge_name,
+            payload=json.dumps(payload, separators=(",", ":")),
+            success=False,
+            error=str(e),
+        )
+
+    db.session.add(resent_log)
+    db.session.commit()
+    return True, {}, serialize_announcer_log(resent_log)
 
 
 def announce_solve(solve):

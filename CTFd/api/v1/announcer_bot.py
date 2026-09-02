@@ -1,10 +1,12 @@
 from flask import request
 from flask_restx import Namespace, Resource
 
+from CTFd.models import AnnouncerBotLogs as AnnouncerBotLogModel
 from CTFd.utils.announcer_bot import (
     build_announcer_template,
     get_announcer_settings,
     list_announcer_logs,
+    resend_announcer_log,
     save_announcer_settings,
     send_test_announcements,
     set_announcer_active,
@@ -67,3 +69,14 @@ class AnnouncerBotLogs(Resource):
     @admins_only
     def get(self):
         return {"success": True, "data": list_announcer_logs()}
+
+
+@announcer_bot_namespace.route("/logs/<int:log_id>/resend")
+class AnnouncerBotLogResend(Resource):
+    @admins_only
+    def post(self, log_id):
+        log = AnnouncerBotLogModel.query.filter_by(id=log_id).first_or_404()
+        success, errors, resent_log = resend_announcer_log(log)
+        if not success:
+            return {"success": False, "errors": errors}, 400
+        return {"success": True, "data": resent_log}

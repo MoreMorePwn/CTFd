@@ -219,6 +219,83 @@ def test_announcer_test_endpoint_sends_checked_event_types_only():
     destroy_ctfd(app)
 
 
+def test_announcer_resends_saved_log_payload():
+    app = create_ctfd()
+    with app.app_context():
+        set_config("announcer_bot_webhook_url", "https://discord.example/webhook")
+        payload = {
+            "username": "First Blood Bot",
+            "embeds": [
+                {
+                    "title": "First Blood",
+                    "description": "`alpha` has solved `Honey Vault`!",
+                }
+            ],
+        }
+        original = AnnouncerBotLogs(
+            event_type="first_blood",
+            title="First Blood",
+            account_name="alpha",
+            challenge_name="Honey Vault",
+            payload=json.dumps(payload),
+            success=False,
+            error="webhook timed out",
+        )
+        app.db.session.add(original)
+        app.db.session.commit()
+        original_id = original.id
+
+        response = Mock(status_code=204, text="")
+        with patch("CTFd.utils.announcer_bot.requests.post", return_value=response) as post:
+            with login_as_user(app, "admin") as client:
+                r = client.post(f"/api/v1/announcer-bot/logs/{original_id}/resend")
+
+        assert r.status_code == 200
+        assert post.call_count == 1
+        sent_payload = post.call_args.kwargs["json"]
+        assert sent_payload["embeds"][0]["description"] == (
+            "`alpha` has solved `Honey Vault`!"
+        )
+        assert sent_payload["allowed_mentions"] == {"parse": []}
+
+        data = r.get_json()["data"]
+        assert data["id"] != original_id
+        assert data["event_type"] == "first_blood"
+        assert data["account_name"] == "alpha"
+        assert data["challenge_name"] == "Honey Vault"
+        assert data["success"] is True
+        assert data["can_resend"] is True
+        assert AnnouncerBotLogs.query.count() == 2
+    destroy_ctfd(app)
+
+
+def test_announcer_resend_requires_saved_payload():
+    app = create_ctfd()
+    with app.app_context():
+        set_config("announcer_bot_webhook_url", "https://discord.example/webhook")
+        original = AnnouncerBotLogs(
+            event_type="first_blood",
+            title="First Blood",
+            account_name="alpha",
+            challenge_name="Honey Vault",
+            success=False,
+            error="Invalid announcement JSON template.",
+        )
+        app.db.session.add(original)
+        app.db.session.commit()
+        original_id = original.id
+
+        with login_as_user(app, "admin") as client:
+            r = client.post(f"/api/v1/announcer-bot/logs/{original_id}/resend")
+
+        assert r.status_code == 400
+        assert r.get_json()["errors"]["payload"] == [
+            "This log has no saved payload to resend."
+        ]
+        assert AnnouncerBotLogs.query.count() == 1
+    destroy_ctfd(app)
+
+
 def test_announcer_default_template_is_embed_only():
     template = build_announcer_template({"embed_color": "#ed1c24"})
 

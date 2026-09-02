@@ -526,7 +526,7 @@ function renderAnnouncerLogs(logs) {
     tbody.append(
       $("<tr>").append(
         $("<td>")
-          .attr("colspan", 7)
+          .attr("colspan", 8)
           .addClass("text-center text-muted")
           .text("No announcement logs yet."),
       ),
@@ -539,6 +539,16 @@ function renderAnnouncerLogs(logs) {
     const details = log.success
       ? log.response_status || "-"
       : log.error || log.response_body || "-";
+    const resendButton = $("<button>")
+      .attr({
+        type: "button",
+        "data-log-id": log.id,
+        title: log.can_resend ? "Resend this announcement" : "No saved payload",
+      })
+      .addClass("btn btn-sm btn-secondary announcer-log-resend")
+      .prop("disabled", !log.can_resend)
+      .text("Resend");
+
     tbody.append(
       $("<tr>").append(
         $("<td>").text(log.id),
@@ -554,6 +564,7 @@ function renderAnnouncerLogs(logs) {
             .text(status),
         ),
         $("<td>").addClass("text-break").text(details),
+        $("<td>").append(resendButton),
       ),
     );
   });
@@ -575,6 +586,61 @@ function loadAnnouncerLogs() {
       if (response.success) {
         renderAnnouncerLogs(response.data || []);
       }
+    });
+}
+
+function resendAnnouncerLog(event) {
+  event.preventDefault();
+  const button = $(event.currentTarget);
+  const logId = button.attr("data-log-id");
+
+  if (!logId) {
+    return;
+  }
+
+  button.prop("disabled", true).text("Sending...");
+  CTFd.fetch(`/api/v1/announcer-bot/logs/${logId}/resend`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.success) {
+        const log = response.data || {};
+        ezAlert({
+          title: log.success ? "Resent" : "Resend failed",
+          body: log.success
+            ? "Announcement resent."
+            : log.error || log.response_body || "Discord webhook returned an error.",
+          button: "Okay",
+        });
+        loadAnnouncerLogs();
+      } else {
+        const errors = response.errors || {};
+        const body =
+          Object.keys(errors)
+            .map((key) => errors[key].join("\n"))
+            .join("\n") || "Announcement could not be resent.";
+        ezAlert({
+          title: "Error!",
+          body: body,
+          button: "Okay",
+        });
+      }
+    })
+    .catch(() => {
+      ezAlert({
+        title: "Error!",
+        body: "Announcement could not be resent.",
+        button: "Okay",
+      });
+    })
+    .finally(() => {
+      button.prop("disabled", false).text("Resend");
     });
 }
 
@@ -888,6 +954,11 @@ $(() => {
   $("#announcer-bot-form").submit(saveAnnouncerSettings);
   $("#announcer-test-button").click(testAnnouncerSettings);
   $("#announcer-logs-refresh").click(loadAnnouncerLogs);
+  $("#announcer-logs-table").on(
+    "click",
+    ".announcer-log-resend",
+    resendAnnouncerLog,
+  );
   loadAnnouncerLogs();
   $("#config-color-update").click(function () {
     const hex_code = $("#config-color-picker").val();
