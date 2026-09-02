@@ -355,6 +355,24 @@ body.ifest2026-theme main {
   );
 }
 
+.ifest-side-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  width: clamp(28px, 2.8vw, 38px);
+  background: var(--ifest-blue-deep);
+  pointer-events: none;
+}
+
+.ifest-side-rail-left {
+  left: 0;
+}
+
+.ifest-side-rail-right {
+  right: 0;
+}
+
 .ifest-rect {
   position: absolute;
   z-index: -1;
