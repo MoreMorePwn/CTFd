@@ -623,7 +623,25 @@ body.ifest2026-theme main {
 }
 
 .ifest2026-theme .page-select {
+  width: 72px;
   min-width: 72px;
+  height: 40px;
+  padding: 0 18px;
+  color: var(--ifest-ink);
+  line-height: 40px;
+  text-align: center;
+  text-align-last: center;
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--ifest-blue-deep) 50%),
+    linear-gradient(135deg, var(--ifest-blue-deep) 50%, transparent 50%),
+    #ffffff;
+  background-position: calc(100% - 17px) 50%, calc(100% - 11px) 50%, 0 0;
+  background-repeat: no-repeat;
+  background-size: 6px 6px, 6px 6px, auto;
+}
+
+.ifest2026-theme .page-select option {
   text-align: center;
 }
 

@@ -233,6 +233,21 @@
   justify-content: flex-start;
 }
 
+.page-select {
+  min-width: 4.5rem;
+  text-align: center;
+  text-align-last: center;
+}
+
+.page-select option {
+  text-align: center;
+}
+
+.announcer-logs-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
 .admin-sidebar-layout .footer {
   position: static;
   bottom: auto;
