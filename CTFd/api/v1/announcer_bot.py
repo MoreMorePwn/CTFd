@@ -7,6 +7,7 @@ from CTFd.utils.announcer_bot import (
     list_announcer_logs,
     save_announcer_settings,
     send_test_announcements,
+    set_announcer_active,
 )
 from CTFd.utils.decorators import admins_only
 
@@ -46,6 +47,19 @@ class AnnouncerBotTest(Resource):
         if not success:
             return {"success": False, "errors": errors}, 400
         return {"success": True, "data": {"count": len(logs), "logs": logs}}
+
+
+@announcer_bot_namespace.route("/status")
+class AnnouncerBotStatus(Resource):
+    @admins_only
+    def post(self):
+        data = request.get_json() or {}
+        settings = get_announcer_settings(include_webhook=True)
+        active = data.get("active", not settings.get("active"))
+        success, errors = set_announcer_active(active)
+        if not success:
+            return {"success": False, "errors": errors}, 400
+        return {"success": True, "data": get_announcer_settings(include_webhook=False)}
 
 
 @announcer_bot_namespace.route("/logs")

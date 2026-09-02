@@ -13,6 +13,7 @@ from CTFd.utils import get_config, set_config
 from CTFd.utils.config import is_teams_mode
 
 ANNOUNCER_DEFAULTS = {
+    "active": False,
     "webhook_url": "",
     "bot_name": "First Blood Bot",
     "bot_profile_image_url": "",
@@ -30,6 +31,7 @@ ANNOUNCER_DEFAULTS = {
 }
 
 CONFIG_KEYS = {
+    "active": "announcer_bot_active",
     "webhook_url": "announcer_bot_webhook_url",
     "bot_name": "announcer_bot_name",
     "bot_profile_image_url": "announcer_bot_profile_image_url",
@@ -153,7 +155,7 @@ def merge_announcer_settings(data=None):
             continue
 
         value = data.get(public_key)
-        if public_key.startswith("announce_"):
+        if public_key == "active" or public_key.startswith("announce_"):
             settings[public_key] = normalize_bool(value)
         elif public_key == "embed_color":
             settings[public_key] = normalize_color(value)
@@ -166,6 +168,9 @@ def merge_announcer_settings(data=None):
         settings["template"] = data.get("template")
 
     settings["webhook_configured"] = bool(settings.get("webhook_url"))
+    settings["active"] = bool(
+        settings.get("active") and settings["webhook_configured"]
+    )
     return settings
 
 
@@ -176,11 +181,10 @@ def build_announcer_template(settings=None):
         "username": "{bot_name}",
         "avatar_url": "{bot_profile_image_url}",
         "allowed_mentions": {"parse": []},
-        "content": "**{title}**",
         "embeds": [
             {
                 "title": "{title}",
-                "description": "{account_name} has solved {challenge_name}!",
+                "description": "`{account_name}` has solved `{challenge_name}`!",
                 "color": color,
                 "fields": [
                     {
@@ -207,9 +211,11 @@ def build_announcer_template(settings=None):
 def get_announcer_settings(include_webhook=False):
     settings = {}
     for public_key, config_key in CONFIG_KEYS.items():
-        default = ANNOUNCER_DEFAULTS[public_key]
+        default = None if public_key == "active" else ANNOUNCER_DEFAULTS[public_key]
         value = get_config(config_key, default=default)
-        if public_key.startswith("announce_"):
+        if public_key == "active":
+            value = normalize_bool(value) if value is not None else None
+        elif public_key.startswith("announce_"):
             value = normalize_bool(value)
         elif public_key == "embed_color":
             value = normalize_color(value)
@@ -219,6 +225,10 @@ def get_announcer_settings(include_webhook=False):
 
     webhook_url = settings.pop("webhook_url")
     settings["webhook_configured"] = bool(webhook_url)
+    settings["active"] = bool(
+        (settings["active"] if settings["active"] is not None else webhook_url)
+        and webhook_url
+    )
     if include_webhook:
         settings["webhook_url"] = webhook_url
 
@@ -284,7 +294,7 @@ def save_announcer_settings(data):
             continue
 
         value = data.get(public_key)
-        if public_key.startswith("announce_"):
+        if public_key == "active" or public_key.startswith("announce_"):
             value = "true" if normalize_bool(value) else "false"
         elif public_key == "embed_color":
             value = normalize_color(value)
@@ -297,6 +307,20 @@ def save_announcer_settings(data):
     if template is not None:
         set_config("announcer_bot_template", template)
 
+    clear_config()
+    return True, {}
+
+
+def set_announcer_active(active):
+    settings = get_announcer_settings(include_webhook=True)
+    active = normalize_bool(active)
+
+    if active and not settings.get("webhook_configured"):
+        return False, {
+            "active": ["Configure Discord webhook before activating Announcer Bot."]
+        }
+
+    set_config(CONFIG_KEYS["active"], "true" if active else "false")
     clear_config()
     return True, {}
 
@@ -600,6 +624,9 @@ def dispatch_announcement(webhook_url, template_text, context, solve=None):
 
 def announce_solve(solve):
     settings = get_announcer_settings(include_webhook=True)
+    if not settings.get("active"):
+        return None
+
     webhook_url = settings.get("webhook_url")
     if not webhook_url:
         return None

@@ -7,6 +7,7 @@ from requests.exceptions import Timeout
 
 from CTFd.models import AnnouncerBotLogs
 from CTFd.utils import set_config
+from CTFd.utils.announcer_bot import build_announcer_template
 from tests.helpers import (
     create_ctfd,
     destroy_ctfd,
@@ -43,6 +44,7 @@ def test_announcer_config_hides_webhook_and_validates_template():
             assert r.status_code == 200
             data = r.get_json()["data"]
             assert data["webhook_configured"] is True
+            assert data["active"] is True
             assert "webhook_url" not in data
 
             r = client.patch(
@@ -79,7 +81,8 @@ def test_announcer_posts_first_second_third_blood_for_visible_accounts():
             call.kwargs["json"]["embeds"][0]["description"]
             for call in post.call_args_list
         ]
-        assert descriptions[0] == "alpha has solved Honey Vault!"
+        assert descriptions[0] == "`alpha` has solved `Honey Vault`!"
+        assert "content" not in post.call_args_list[0].kwargs["json"]
         assert all(call.kwargs["json"]["allowed_mentions"] == {"parse": []} for call in post.call_args_list)
         assert AnnouncerBotLogs.query.count() == 3
     destroy_ctfd(app)
@@ -105,7 +108,44 @@ def test_announcer_ignores_hidden_and_banned_accounts_for_blood_rank():
         assert post.call_count == 1
         payload = post.call_args.kwargs["json"]
         assert payload["embeds"][0]["title"] == "First Blood"
-        assert payload["embeds"][0]["description"] == "visible_solver has solved Hidden Filter!"
+        assert (
+            payload["embeds"][0]["description"]
+            == "`visible_solver` has solved `Hidden Filter`!"
+        )
+    destroy_ctfd(app)
+
+
+def test_announcer_active_status_controls_live_announcements():
+    app = create_ctfd()
+    with app.app_context():
+        set_config("announcer_bot_webhook_url", "https://discord.example/webhook")
+        set_config("announcer_bot_active", "false")
+
+        challenge = gen_challenge(app.db, name="Inactive Challenge", category="misc")
+        gen_flag(app.db, challenge_id=challenge.id, content="flag")
+        gen_user(app.db, name="quiet_solver", email="quiet@examplectf.com")
+
+        response = Mock(status_code=204, text="")
+        with patch("CTFd.utils.announcer_bot.requests.post", return_value=response) as post:
+            r = submit_flag(app, "quiet_solver", challenge.id)
+
+        assert r.status_code == 200
+        assert r.get_json()["data"]["status"] == "correct"
+        assert post.call_count == 0
+        assert AnnouncerBotLogs.query.count() == 0
+    destroy_ctfd(app)
+
+
+def test_announcer_status_requires_saved_webhook_to_activate():
+    app = create_ctfd()
+    with app.app_context():
+        with login_as_user(app, "admin") as client:
+            r = client.post("/api/v1/announcer-bot/status", json={"active": True})
+
+        assert r.status_code == 400
+        assert r.get_json()["errors"]["active"] == [
+            "Configure Discord webhook before activating Announcer Bot."
+        ]
     destroy_ctfd(app)
 
 
@@ -165,7 +205,7 @@ def test_announcer_test_endpoint_sends_checked_event_types_only():
             for call in post.call_args_list
         ]
         assert all(
-            description == "Sussybaka has solved Example!"
+            description == "`Sussybaka` has solved `Example`!"
             for description in descriptions
         )
         assert [log.event_type for log in AnnouncerBotLogs.query.all()] == [
@@ -177,3 +217,13 @@ def test_announcer_test_endpoint_sends_checked_event_types_only():
             log.challenge_name == "Example" for log in AnnouncerBotLogs.query.all()
         )
     destroy_ctfd(app)
+
+
+def test_announcer_default_template_is_embed_only():
+    template = build_announcer_template({"embed_color": "#ed1c24"})
+
+    assert "content" not in template
+    assert (
+        template["embeds"][0]["description"]
+        == "`{account_name}` has solved `{challenge_name}`!"
+    )

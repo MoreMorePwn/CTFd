@@ -10,6 +10,9 @@
 	{% set announcer_bot_embed_color = get_config("announcer_bot_embed_color", "#ed1c24") %}
 	{% set announcer_bot_template = get_config("announcer_bot_template", "") %}
 	{% set webhook_configured = get_config("announcer_bot_webhook_url") %}
+	{% set announcer_bot_active_config = get_config("announcer_bot_active") %}
+	{% set announcer_bot_active_value = announcer_bot_active_config|string|lower %}
+	{% set announcer_bot_active = webhook_configured and announcer_bot_active_config != False and announcer_bot_active_value != "false" and announcer_bot_active_value != "0" %}
 	{% set announce_first_blood = get_config("announcer_bot_announce_first_blood", True) %}
 	{% set announce_second_blood = get_config("announcer_bot_announce_second_blood", True) %}
 	{% set announce_third_blood = get_config("announcer_bot_announce_third_blood", True) %}
@@ -32,6 +35,28 @@
 					Webhook not configured.
 				{% endif %}
 			</small>
+		</div>
+
+		<div class="form-group">
+			<label>Status</label>
+			<div class="d-flex align-items-center flex-wrap">
+				<button
+					type="button"
+					class="btn btn-sm {{ 'btn-success' if announcer_bot_active else 'btn-outline-secondary' }}"
+					id="announcer-active-toggle"
+					data-active="{{ 'true' if announcer_bot_active else 'false' }}"
+					data-webhook-configured="{{ 'true' if webhook_configured else 'false' }}"
+				>
+					{{ "Active" if announcer_bot_active else "Inactive" }}
+				</button>
+				<span class="ml-3 text-muted" id="announcer-active-help">
+					{% if webhook_configured %}
+						Webhook configured.
+					{% else %}
+						Webhook not configured. Save a webhook before activating.
+					{% endif %}
+				</span>
+			</div>
 		</div>
 
 		<div class="form-row">
@@ -110,7 +135,7 @@
 		</div>
 
 		<div class="form-group">
-			<div class="d-flex align-items-center justify-content-between">
+			<div class="d-flex align-items-center justify-content-between mb-3">
 				<label for="announcer-template" class="mb-0">Announcement JSON Template</label>
 				<div>
 					<button type="button" class="btn btn-sm btn-secondary" id="announcer-template-set">
@@ -121,7 +146,7 @@
 					</button>
 				</div>
 			</div>
-			<textarea class="form-control mt-4" id="announcer-template" rows="16">{{ announcer_bot_template }}</textarea>
+			<textarea class="form-control" id="announcer-template" rows="16">{{ announcer_bot_template }}</textarea>
 			<small class="form-text text-muted">
 				Available variables include <code>{title}</code>, <code>{account_name}</code>, <code>{team}</code>, <code>{user}</code>, <code>{challenge_name}</code>, <code>{category}</code>, <code>{timestamp}</code>, and <code>{iso_timestamp}</code>.
 			</small>
@@ -133,7 +158,7 @@
 	<div class="clearfix"></div>
 
 	<div class="mt-5">
-		<div class="d-flex align-items-center justify-content-between mb-2">
+		<div class="d-flex align-items-center justify-content-between mb-4">
 			<h4 class="mb-0">Announcement Logs</h4>
 			<button type="button" class="btn btn-sm btn-secondary" id="announcer-logs-refresh">
 				<i class="fas fa-sync action-icon"></i>Refresh

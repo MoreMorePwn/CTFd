@@ -435,6 +435,35 @@ function collectAnnouncerSettings(options) {
   return data;
 }
 
+function updateAnnouncerStatus(settings) {
+  const button = $("#announcer-active-toggle");
+  if (!button.length) {
+    return;
+  }
+
+  const webhookConfigured = Boolean(settings.webhook_configured);
+  const active = Boolean(settings.active && webhookConfigured);
+
+  button
+    .attr("data-active", active ? "true" : "false")
+    .attr("data-webhook-configured", webhookConfigured ? "true" : "false")
+    .toggleClass("btn-success", active)
+    .toggleClass("btn-outline-secondary", !active)
+    .text(active ? "Active" : "Inactive");
+
+  $("#announcer-active-help").text(
+    webhookConfigured
+      ? "Webhook configured."
+      : "Webhook not configured. Save a webhook before activating.",
+  );
+
+  $("#announcer-webhook-status").text(
+    webhookConfigured
+      ? "Webhook configured. Enter a new URL only if you want to replace it."
+      : "Webhook not configured.",
+  );
+}
+
 function buildAnnouncerTemplate(settings) {
   return {
     username: "{bot_name}",
@@ -442,11 +471,10 @@ function buildAnnouncerTemplate(settings) {
     allowed_mentions: {
       parse: [],
     },
-    content: "**{title}**",
     embeds: [
       {
         title: "{title}",
-        description: "{account_name} has solved {challenge_name}!",
+        description: "`{account_name}` has solved `{challenge_name}`!",
         color: announcerColorToDecimal(settings.embed_color),
         fields: [
           {
@@ -579,11 +607,7 @@ function saveAnnouncerSettings(event) {
     .then((response) => {
       if (response.success) {
         $("#announcer-webhook-url").val("");
-        if (data.webhook_url) {
-          $("#announcer-webhook-status").text(
-            "Webhook configured. Enter a new URL only if you want to replace it.",
-          );
-        }
+        updateAnnouncerStatus(response.data);
         ezAlert({
           title: "Saved",
           body: "Announcer Bot settings saved.",
@@ -601,6 +625,61 @@ function saveAnnouncerSettings(event) {
           button: "Okay",
         });
       }
+    });
+}
+
+function toggleAnnouncerActive(event) {
+  event.preventDefault();
+  const button = $("#announcer-active-toggle");
+  const active = button.attr("data-active") === "true";
+  const webhookConfigured = button.attr("data-webhook-configured") === "true";
+  const nextActive = !active;
+
+  if (nextActive && !webhookConfigured) {
+    ezAlert({
+      title: "Error!",
+      body: "Configure Discord webhook before activating Announcer Bot.",
+      button: "Okay",
+    });
+    return;
+  }
+
+  button.prop("disabled", true);
+  CTFd.fetch("/api/v1/announcer-bot/status", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ active: nextActive }),
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.success) {
+        updateAnnouncerStatus(response.data);
+      } else {
+        const errors = response.errors || {};
+        const body =
+          Object.keys(errors)
+            .map((key) => errors[key].join("\n"))
+            .join("\n") || "Announcer Bot status could not be updated.";
+        ezAlert({
+          title: "Error!",
+          body: body,
+          button: "Okay",
+        });
+      }
+    })
+    .catch(() => {
+      ezAlert({
+        title: "Error!",
+        body: "Announcer Bot status could not be updated.",
+        button: "Okay",
+      });
+    })
+    .finally(() => {
+      button.prop("disabled", false);
     });
 }
 
@@ -805,6 +884,7 @@ $(() => {
   $("#import-csv-form").submit(importCSV);
   $("#post-revoke-calc-reset-button").click(resetPostRevokeCalc);
   $("#announcer-template-set").click(setAnnouncerTemplate);
+  $("#announcer-active-toggle").click(toggleAnnouncerActive);
   $("#announcer-bot-form").submit(saveAnnouncerSettings);
   $("#announcer-test-button").click(testAnnouncerSettings);
   $("#announcer-logs-refresh").click(loadAnnouncerLogs);

@@ -77,9 +77,6 @@ body.ifest2026-theme.ifest2026-homepage {
 
 body.ifest2026-theme main {
   flex: 1 0 auto;
-}
-
-body.ifest2026-theme:not(.ifest2026-homepage) main {
   margin-top: 0;
   padding-top: 0;
 }
@@ -299,12 +296,12 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
 }
 
 .ifest-corner-top-left {
-  top: 0;
+  top: -84px;
   left: 0;
 }
 
 .ifest-corner-top-right {
-  top: 0;
+  top: -126px;
   right: 0;
 }
 
@@ -317,6 +314,45 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   right: 0;
   bottom: 0;
   width: min(26vw, 300px);
+}
+
+.ifest-top-block {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  width: min(20vw, 272px);
+  height: 74px;
+  pointer-events: none;
+}
+
+.ifest-top-block-left {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    #214afe 0%,
+    #214afe 14%,
+    #1335ca 14%,
+    #1335ca 29%,
+    #214afe 29%,
+    #214afe 86%,
+    transparent 86%,
+    transparent 100%
+  );
+}
+
+.ifest-top-block-right {
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 14%,
+    #214afe 14%,
+    #214afe 71%,
+    #1335ca 71%,
+    #1335ca 86%,
+    #214afe 86%,
+    #214afe 100%
+  );
 }
 
 .ifest-rect {
@@ -637,6 +673,20 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   .ifest-corner {
     width: 52vw;
     opacity: 0.8;
+  }
+
+  .ifest-corner-top-left,
+  .ifest-corner-top-right {
+    top: -48px;
+  }
+
+  .ifest-corner-top-right {
+    top: -72px;
+  }
+
+  .ifest-top-block {
+    width: 46vw;
+    height: 38px;
   }
 
   .ifest-rect-two,
