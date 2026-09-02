@@ -397,7 +397,7 @@ body.ifest2026-theme main {
 
 .ifest-rect-three {
   bottom: 20%;
-  left: 23%;
+  left: 14%;
   width: clamp(44px, 6vw, 100px);
   aspect-ratio: 2 / 3;
 }
@@ -411,7 +411,7 @@ body.ifest2026-theme main {
   position: relative;
   z-index: 2;
   width: min(920px, 100%);
-  margin-top: 0;
+  margin-top: clamp(36px, 6svh, 58px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -672,7 +672,7 @@ body.ifest2026-theme main {
   .ifest-home-inner {
     width: 100%;
     max-width: calc(100vw - 36px);
-    margin-top: 0;
+    margin-top: clamp(14px, 3svh, 28px);
   }
 
   .ifest-home h1 {
