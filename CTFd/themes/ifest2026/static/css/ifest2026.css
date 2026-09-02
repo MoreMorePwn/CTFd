@@ -588,6 +588,45 @@ body.ifest2026-theme main {
   border-color: rgba(33, 74, 254, 0.22);
 }
 
+.ifest2026-theme .page-jumper {
+  margin-top: 24px;
+}
+
+.ifest2026-theme .page-jumper-label {
+  margin-bottom: 8px;
+  color: var(--ifest-blue-deep);
+  font-family: var(--ifest-pixel-font);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ifest2026-theme .page-jumper-controls {
+  display: grid;
+  grid-template-columns: 68px max-content 68px;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.ifest2026-theme .page-jumper-arrow {
+  display: flex;
+  min-width: 68px;
+  align-items: center;
+}
+
+.ifest2026-theme .page-jumper-arrow-prev {
+  justify-content: flex-end;
+}
+
+.ifest2026-theme .page-jumper-arrow-next {
+  justify-content: flex-start;
+}
+
+.ifest2026-theme .page-select {
+  min-width: 72px;
+  text-align: center;
+}
+
 .ifest-footer {
   flex: 0 0 auto;
   padding: 18px 0;

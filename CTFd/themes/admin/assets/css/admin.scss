@@ -202,6 +202,37 @@
   padding-top: calc(var(--admin-topbar-height) + 18px);
 }
 
+.page-jumper {
+  margin: 1rem 0;
+}
+
+.page-jumper-label {
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
+
+.page-jumper-controls {
+  display: grid;
+  grid-template-columns: 4rem max-content 4rem;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-jumper-arrow {
+  display: flex;
+  min-width: 4rem;
+  align-items: center;
+}
+
+.page-jumper-arrow-prev {
+  justify-content: flex-end;
+}
+
+.page-jumper-arrow-next {
+  justify-content: flex-start;
+}
+
 .admin-sidebar-layout .footer {
   position: static;
   bottom: auto;
