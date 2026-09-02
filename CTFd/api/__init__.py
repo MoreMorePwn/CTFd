@@ -3,6 +3,7 @@ from flask_restx import Api
 
 from CTFd.api.v1.awards import awards_namespace
 from CTFd.api.v1.anti_cheat import anti_cheat_namespace
+from CTFd.api.v1.announcer_bot import announcer_bot_namespace
 from CTFd.api.v1.brackets import brackets_namespace
 from CTFd.api.v1.challenges import challenges_namespace
 from CTFd.api.v1.comments import comments_namespace
@@ -79,3 +80,4 @@ CTFd_API_v1.add_namespace(exports_namespace, "/exports")
 CTFd_API_v1.add_namespace(solutions_namespace, "/solutions")
 CTFd_API_v1.add_namespace(anti_cheat_namespace, "/anti-cheat")
 CTFd_API_v1.add_namespace(post_revoke_calc_namespace, "/post-revoke-calc")
+CTFd_API_v1.add_namespace(announcer_bot_namespace, "/announcer-bot")

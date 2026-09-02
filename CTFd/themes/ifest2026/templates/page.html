@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if request.path == "/" %}
+    <section class="ifest-home" aria-label="IFEST 2026">
+      <img class="ifest-corner ifest-corner-top-left" src="{{ url_for('views.themes', theme='ifest2026', path='img/bg-topleft.svg') }}" alt="">
+      <img class="ifest-corner ifest-corner-top-right" src="{{ url_for('views.themes', theme='ifest2026', path='img/bg-topright.svg') }}" alt="">
+      <img class="ifest-corner ifest-corner-bottom-left" src="{{ url_for('views.themes', theme='ifest2026', path='img/bg-botleft.svg') }}" alt="">
+      <img class="ifest-corner ifest-corner-bottom-right" src="{{ url_for('views.themes', theme='ifest2026', path='img/bg-botright.svg') }}" alt="">
+
+      <div class="ifest-rect ifest-rect-one"></div>
+      <div class="ifest-rect ifest-rect-two"></div>
+      <div class="ifest-rect ifest-rect-three"></div>
+      <div class="ifest-rect ifest-rect-four"></div>
+
+      <div class="ifest-home-inner">
+        <div class="ifest-hero-mark">
+          <img class="ifest-hero-logo" src="{{ url_for('views.themes', theme='ifest2026', path='img/logo-ifest.webp') }}" alt="">
+          <img class="ifest-hero-wordmark" src="{{ url_for('views.themes', theme='ifest2026', path='img/text-ifest.webp') }}" alt="IFEST 2026">
+        </div>
+
+        <p class="ifest-kicker">Informatics Festival 2026</p>
+        <h1>Empowering Your Tech Journey</h1>
+        <p class="ifest-hero-copy">Join IFEST 2026 to compete, collaborate, and solve real-world security challenges with future IT talents.</p>
+
+        <div class="ifest-actions">
+          <a class="ifest-button ifest-button-primary" href="{{ url_for('challenges.listing') }}">
+            <span>Start Challenges</span>
+          </a>
+          {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
+            <a class="ifest-button ifest-button-secondary" href="{{ url_for('scoreboard.listing') }}">
+              <span>View Scoreboard</span>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  {% else %}
+    <div class="ifest-page-shell">
+      {{ content | safe }}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/page.js") }}
+{% endblock %}

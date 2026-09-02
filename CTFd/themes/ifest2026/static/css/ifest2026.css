@@ -1,0 +1,608 @@
+@font-face {
+  font-family: "IFEST IBM Plex";
+  src: url("../fonts/ibm-plex-sans.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IFEST Pixel";
+  src: url("../fonts/pixelify-sans.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IFEST Unbounded";
+  src: url("../fonts/unbounded.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  --ifest-blue: #214afe;
+  --ifest-blue-deep: #000f51;
+  --ifest-blue-mid: #133ae0;
+  --ifest-cyan: #00f0ff;
+  --ifest-sky: #2bedec;
+  --ifest-pink: #ff4ea3;
+  --ifest-ink: #0a1028;
+  --ifest-gray: #566078;
+  --ifest-paper: #ffffff;
+  --ifest-border: rgba(33, 74, 254, 0.16);
+  --ifest-shadow: rgba(33, 74, 254, 0.28);
+  --ifest-body-font: "IFEST IBM Plex", Arial, sans-serif;
+  --ifest-display-font: "IFEST Unbounded", "Arial Black", Arial, sans-serif;
+  --ifest-pixel-font: "IFEST Pixel", "Courier New", monospace;
+  --bs-body-bg: var(--ifest-paper);
+  --bs-body-color: var(--ifest-ink);
+  --bs-primary: var(--ifest-blue);
+  --bs-primary-rgb: 33, 74, 254;
+  --bs-link-color: var(--ifest-blue);
+  --bs-link-hover-color: var(--ifest-blue-deep);
+  color-scheme: light;
+}
+
+html {
+  background: var(--ifest-paper);
+}
+
+body.ifest2026-theme {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 80px;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(33, 74, 254, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33, 74, 254, 0.08) 1px, transparent 1px),
+    #ffffff;
+  background-size: 24px 24px, 24px 24px, auto;
+  color: var(--ifest-ink);
+  font-family: var(--ifest-body-font);
+  letter-spacing: 0;
+}
+
+body.ifest2026-theme main {
+  flex: 1 0 auto;
+}
+
+.ifest2026-theme h1,
+.ifest2026-theme h2,
+.ifest2026-theme h3,
+.ifest2026-theme h4,
+.ifest2026-theme h5,
+.ifest2026-theme h6,
+.ifest2026-theme .modal-title,
+.ifest2026-theme .card-title {
+  color: var(--ifest-ink);
+  font-family: var(--ifest-display-font);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.ifest-navbar {
+  min-height: 80px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 0;
+}
+
+.ifest-navbar::before,
+.ifest-navbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    #214afe 0%,
+    #214afe 25%,
+    #0088ff 25%,
+    #0088ff 50%,
+    #00c0ff 50%,
+    #00c0ff 75%,
+    #00f0ff 75%,
+    #00f0ff 100%
+  );
+}
+
+.ifest-navbar::before {
+  top: 0;
+}
+
+.ifest-navbar::after {
+  bottom: 0;
+}
+
+.ifest-nav-inner {
+  width: min(100% - 40px, 1280px);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.ifest-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 172px;
+  text-decoration: none;
+}
+
+.ifest-brand-logo {
+  width: 48px;
+  height: auto;
+  display: block;
+}
+
+.ifest-brand-text {
+  width: 106px;
+  height: auto;
+  display: block;
+}
+
+.ifest-nav-collapse {
+  justify-content: space-between;
+}
+
+.ifest-nav-menu,
+.ifest-nav-account {
+  align-items: center;
+  gap: 22px;
+}
+
+.ifest-nav-link,
+.ifest-nav-cta,
+.ifest-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 0 !important;
+  color: #5b6478 !important;
+  font-family: var(--ifest-pixel-font);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 2px dashed transparent;
+  transition: color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.ifest-nav-link:hover,
+.ifest-nav-link:focus,
+.ifest-nav-link.active {
+  color: var(--ifest-blue) !important;
+  border-bottom-color: var(--ifest-blue);
+  transform: translateY(-1px);
+}
+
+.ifest-nav-cta {
+  min-width: 90px;
+  padding: 11px 18px !important;
+  color: #ffffff !important;
+  background: var(--ifest-blue);
+  border: 2px solid rgba(0, 15, 81, 0.3);
+  box-shadow: 4px 4px 0 var(--ifest-shadow);
+}
+
+.ifest-nav-cta:hover,
+.ifest-nav-cta:focus {
+  color: #ffffff !important;
+  background: var(--ifest-blue-deep);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ifest-shadow);
+}
+
+.ifest-nav-icon {
+  position: relative;
+  width: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  color: var(--ifest-blue-deep) !important;
+  border: 1px solid var(--ifest-border);
+  background: rgba(33, 74, 254, 0.04);
+}
+
+.ifest-nav-icon:hover,
+.ifest-nav-icon:focus {
+  color: var(--ifest-blue) !important;
+  background: rgba(33, 74, 254, 0.1);
+}
+
+.ifest-nav-icon .badge-notification {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 3px 5px;
+  font-family: var(--ifest-body-font);
+  font-size: 0.62rem;
+}
+
+.ifest-toggler {
+  border: 2px solid var(--ifest-blue);
+  background: rgba(33, 74, 254, 0.08);
+}
+
+.ifest-home {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 80px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(16px, 3vw, 36px) 24px;
+  background: #ffffff;
+}
+
+.ifest-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(33, 74, 254, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33, 74, 254, 0.09) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.ifest-home::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.045) 2px,
+    rgba(0, 0, 0, 0.045) 4px
+  );
+  opacity: 0.45;
+}
+
+.ifest-corner {
+  position: absolute;
+  z-index: -1;
+  width: min(34vw, 390px);
+  max-width: 46%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ifest-corner-top-left {
+  top: 0;
+  left: 0;
+}
+
+.ifest-corner-top-right {
+  top: 0;
+  right: 0;
+}
+
+.ifest-corner-bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.ifest-corner-bottom-right {
+  right: 0;
+  bottom: 0;
+  width: min(26vw, 300px);
+}
+
+.ifest-rect {
+  position: absolute;
+  z-index: -1;
+  width: clamp(36px, 5vw, 86px);
+  aspect-ratio: 1;
+  background: var(--ifest-sky);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.ifest-rect-one {
+  top: 19%;
+  left: 14%;
+}
+
+.ifest-rect-two {
+  top: 28%;
+  right: 18%;
+  width: clamp(52px, 8vw, 130px);
+  aspect-ratio: 2 / 3;
+}
+
+.ifest-rect-three {
+  bottom: 20%;
+  left: 23%;
+  width: clamp(44px, 6vw, 100px);
+  aspect-ratio: 2 / 3;
+}
+
+.ifest-rect-four {
+  right: 26%;
+  bottom: 14%;
+}
+
+.ifest-home-inner {
+  position: relative;
+  z-index: 2;
+  width: min(920px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ifest-hero-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: clamp(10px, 1.6vw, 18px);
+}
+
+.ifest-hero-logo {
+  width: clamp(96px, 12vw, 160px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 20px 35px rgba(33, 74, 254, 0.18));
+}
+
+.ifest-hero-wordmark {
+  width: clamp(168px, 19vw, 260px);
+  height: auto;
+  display: block;
+}
+
+.ifest-kicker {
+  margin: 0 0 8px;
+  color: var(--ifest-pink);
+  font-family: var(--ifest-pixel-font);
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ifest-home h1 {
+  width: min(820px, 100%);
+  margin: 0;
+  color: #0e1326;
+  font-size: clamp(1.9rem, 4vw, 3.45rem);
+  line-height: 1.02;
+}
+
+.ifest-hero-copy {
+  width: min(680px, 100%);
+  margin: 12px 0 0;
+  color: var(--ifest-gray);
+  font-size: clamp(0.96rem, 1.25vw, 1.1rem);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.ifest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ifest-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  min-height: 48px;
+  padding: 14px 22px;
+  color: #ffffff;
+  font-family: var(--ifest-pixel-font);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid rgba(0, 15, 81, 0.3);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.ifest-button span {
+  position: relative;
+  z-index: 2;
+}
+
+.ifest-button-primary {
+  background: var(--ifest-blue);
+  box-shadow: 5px 5px 0 rgba(33, 74, 254, 0.25);
+}
+
+.ifest-button-secondary {
+  color: var(--ifest-blue-deep);
+  background: #ffffff;
+  border-color: rgba(33, 74, 254, 0.3);
+  box-shadow: 5px 5px 0 rgba(0, 240, 255, 0.45);
+}
+
+.ifest-button:hover,
+.ifest-button:focus {
+  color: #ffffff;
+  background: var(--ifest-blue-deep);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(33, 74, 254, 0.2);
+}
+
+.ifest-button-secondary:hover,
+.ifest-button-secondary:focus {
+  color: #ffffff;
+}
+
+.ifest-page-shell {
+  width: min(100% - 32px, 1180px);
+  min-height: calc(100svh - 150px);
+  margin: 0 auto;
+  padding: 42px 0 56px;
+}
+
+.ifest2026-theme .jumbotron {
+  margin-bottom: 0;
+  color: #ffffff;
+  background:
+    linear-gradient(rgba(33, 74, 254, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33, 74, 254, 0.16) 1px, transparent 1px),
+    var(--ifest-blue-deep);
+  background-size: 18px 18px, 18px 18px, auto;
+  border-bottom: 2px solid var(--ifest-blue);
+}
+
+.ifest2026-theme .jumbotron h1 {
+  color: #ffffff;
+}
+
+.ifest2026-theme .btn-primary,
+.ifest2026-theme .challenge-button {
+  background: var(--ifest-blue);
+  border-color: var(--ifest-blue);
+}
+
+.ifest2026-theme .btn-primary:hover,
+.ifest2026-theme .challenge-button:hover {
+  background: var(--ifest-blue-deep);
+  border-color: var(--ifest-blue-deep);
+}
+
+.ifest2026-theme .card,
+.ifest2026-theme .modal-content,
+.ifest2026-theme .table {
+  border-color: var(--ifest-border);
+}
+
+.ifest2026-theme .form-control,
+.ifest2026-theme .custom-select {
+  border-color: rgba(33, 74, 254, 0.22);
+}
+
+.ifest-footer {
+  flex: 0 0 auto;
+  padding: 18px 0;
+  color: #ffffff;
+  background: var(--ifest-blue-deep);
+  border-top: 2px solid var(--ifest-blue);
+}
+
+.ifest-footer small {
+  color: #ffffff;
+  font-family: var(--ifest-pixel-font);
+  font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+  .ifest-nav-menu,
+  .ifest-nav-account {
+    gap: 12px;
+  }
+
+  .ifest-nav-link,
+  .ifest-nav-cta {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  body.ifest2026-theme {
+    padding-top: 70px;
+  }
+
+  .ifest-navbar,
+  .ifest-nav-inner {
+    min-height: 70px;
+  }
+
+  .ifest-nav-inner {
+    width: min(100% - 24px, 1280px);
+    flex-wrap: wrap;
+  }
+
+  .ifest-brand-logo {
+    width: 42px;
+  }
+
+  .ifest-brand-text {
+    width: 92px;
+  }
+
+  .ifest-nav-collapse {
+    width: 100%;
+    padding: 16px 0;
+    background: #ffffff;
+  }
+
+  .ifest-nav-menu,
+  .ifest-nav-account {
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ifest-nav-link,
+  .ifest-nav-cta,
+  .ifest-nav-icon {
+    width: 100%;
+  }
+
+  .ifest-home {
+    min-height: calc(100svh - 70px);
+    padding: 24px 18px;
+  }
+
+  .ifest-home-inner {
+    width: 100%;
+    max-width: calc(100vw - 36px);
+  }
+
+  .ifest-home h1 {
+    width: 100%;
+    max-width: 300px;
+    font-size: 1.42rem;
+    line-height: 1.08;
+  }
+
+  .ifest-hero-copy {
+    width: 100%;
+    max-width: 300px;
+    font-size: 0.88rem;
+  }
+
+  .ifest-corner {
+    width: 52vw;
+    opacity: 0.8;
+  }
+
+  .ifest-rect-two,
+  .ifest-rect-three {
+    opacity: 0.55;
+  }
+
+  .ifest-actions {
+    width: 100%;
+  }
+
+  .ifest-button {
+    width: min(100%, 304px);
+  }
+}

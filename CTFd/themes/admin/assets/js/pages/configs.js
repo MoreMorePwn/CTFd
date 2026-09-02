@@ -393,6 +393,217 @@ function resetPostRevokeCalc(event) {
     });
 }
 
+let announcerTemplateEditor = null;
+
+function announcerColorToDecimal(color) {
+  const value = (color || "#ed1c24").replace("#", "");
+  const parsed = parseInt(value, 16);
+  if (Number.isNaN(parsed)) {
+    return parseInt("ed1c24", 16);
+  }
+  return parsed;
+}
+
+function collectAnnouncerSettings(options) {
+  const includeWebhook = options && options.includeWebhook;
+  const webhookUrl = $("#announcer-webhook-url").val().trim();
+  const data = {
+    bot_name: $("#announcer-bot-name").val().trim() || "First Blood Bot",
+    bot_profile_image_url: $("#announcer-bot-profile-image-url").val().trim(),
+    bot_thumbnail_image_url: $("#announcer-bot-thumbnail-image-url")
+      .val()
+      .trim(),
+    first_blood_title:
+      $("#announcer-first-blood-title").val().trim() || "First Blood",
+    second_blood_title:
+      $("#announcer-second-blood-title").val().trim() || "Second Blood",
+    third_blood_title:
+      $("#announcer-third-blood-title").val().trim() || "Third Blood",
+    solve_title: $("#announcer-solve-title").val().trim() || "Solved",
+    footer: $("#announcer-bot-footer").val().trim(),
+    embed_color: $("#announcer-bot-embed-color").val() || "#ed1c24",
+    announce_first_blood: $("#announcer-announce-first-blood").is(":checked"),
+    announce_second_blood: $("#announcer-announce-second-blood").is(":checked"),
+    announce_third_blood: $("#announcer-announce-third-blood").is(":checked"),
+    announce_solve: $("#announcer-announce-solve").is(":checked"),
+  };
+
+  if (includeWebhook && webhookUrl.length) {
+    data.webhook_url = webhookUrl;
+  }
+
+  return data;
+}
+
+function buildAnnouncerTemplate(settings) {
+  return {
+    username: "{bot_name}",
+    avatar_url: "{bot_profile_image_url}",
+    allowed_mentions: {
+      parse: [],
+    },
+    content: "**{title}**",
+    embeds: [
+      {
+        title: "{title}",
+        description: "{account_name} has solved {challenge_name}!",
+        color: announcerColorToDecimal(settings.embed_color),
+        fields: [
+          {
+            name: "Team / User",
+            value: "{account_name}",
+            inline: true,
+          },
+          {
+            name: "Challenge",
+            value: "{challenge_name}",
+            inline: true,
+          },
+          {
+            name: "Category",
+            value: "{category}",
+            inline: true,
+          },
+          {
+            name: "Timestamp",
+            value: "{timestamp}",
+            inline: false,
+          },
+        ],
+        thumbnail: {
+          url: "{bot_thumbnail_image_url}",
+        },
+        footer: {
+          text: "{footer}",
+        },
+        timestamp: "{iso_timestamp}",
+      },
+    ],
+  };
+}
+
+function setAnnouncerTemplate(event) {
+  event.preventDefault();
+  const settings = collectAnnouncerSettings({ includeWebhook: false });
+  const template = buildAnnouncerTemplate(settings);
+  announcerTemplateEditor.getDoc().setValue(JSON.stringify(template, null, 2));
+  announcerTemplateEditor.refresh();
+}
+
+function renderAnnouncerLogs(logs) {
+  const tbody = $("#announcer-logs-table tbody");
+  tbody.empty();
+
+  if (!logs.length) {
+    tbody.append(
+      $("<tr>").append(
+        $("<td>")
+          .attr("colspan", 7)
+          .addClass("text-center text-muted")
+          .text("No announcement logs yet."),
+      ),
+    );
+    return;
+  }
+
+  logs.forEach((log) => {
+    const status = log.success ? "Success" : "Failure";
+    const details = log.success
+      ? log.response_status || "-"
+      : log.error || log.response_body || "-";
+    tbody.append(
+      $("<tr>").append(
+        $("<td>").text(log.id),
+        $("<td>").text(log.created || "-"),
+        $("<td>").text(log.event_type || "-"),
+        $("<td>").text(log.account_name || "-"),
+        $("<td>").text(log.challenge_name || "-"),
+        $("<td>").append(
+          $("<span>")
+            .addClass(
+              log.success ? "badge badge-success" : "badge badge-danger",
+            )
+            .text(status),
+        ),
+        $("<td>").addClass("text-break").text(details),
+      ),
+    );
+  });
+}
+
+function loadAnnouncerLogs() {
+  if (!document.getElementById("announcer-logs-table")) {
+    return;
+  }
+  CTFd.fetch("/api/v1/announcer-bot/logs", {
+    method: "GET",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.success) {
+        renderAnnouncerLogs(response.data || []);
+      }
+    });
+}
+
+function saveAnnouncerSettings(event) {
+  event.preventDefault();
+  const data = collectAnnouncerSettings({ includeWebhook: true });
+  data.template = announcerTemplateEditor.getValue();
+
+  try {
+    JSON.parse(data.template);
+  } catch (e) {
+    ezAlert({
+      title: "Error!",
+      body: "Announcement JSON template is invalid JSON.",
+      button: "Okay",
+    });
+    return;
+  }
+
+  CTFd.fetch("/api/v1/announcer-bot", {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.success) {
+        $("#announcer-webhook-url").val("");
+        if (data.webhook_url) {
+          $("#announcer-webhook-status").text(
+            "Webhook configured. Enter a new URL only if you want to replace it.",
+          );
+        }
+        ezAlert({
+          title: "Saved",
+          body: "Announcer Bot settings saved.",
+          button: "Okay",
+        });
+      } else {
+        const errors = response.errors || {};
+        const body =
+          Object.keys(errors)
+            .map((key) => errors[key].join("\n"))
+            .join("\n") || "Announcer Bot settings could not be saved.";
+        ezAlert({
+          title: "Error!",
+          body: body,
+          button: "Okay",
+        });
+      }
+    });
+}
+
 function insertTimezones(target) {
   let current = $("<option>").text(dayjs.tz.guess());
   $(target).append(current);
@@ -434,12 +645,41 @@ $(() => {
     },
   );
 
+  const announcerTemplate = document.getElementById("announcer-template");
+  if (announcerTemplate) {
+    announcerTemplateEditor = CodeMirror.fromTextArea(announcerTemplate, {
+      lineNumbers: true,
+      lineWrapping: true,
+      mode: { name: "javascript", json: true },
+    });
+    if (!announcerTemplateEditor.getValue().trim()) {
+      announcerTemplateEditor
+        .getDoc()
+        .setValue(
+          JSON.stringify(
+            buildAnnouncerTemplate(
+              collectAnnouncerSettings({ includeWebhook: false }),
+            ),
+            null,
+            2,
+          ),
+        );
+    }
+  }
+
   // Handle refreshing codemirror when switching tabs.
   // Better than the autorefresh approach b/c there's no flicker
   $("a[href='#theme']").on("shown.bs.tab", function (_e) {
     theme_header_editor.refresh();
     theme_footer_editor.refresh();
     theme_settings_editor.refresh();
+  });
+
+  $("a[href='#announcer_bot']").on("shown.bs.tab", function (_e) {
+    if (announcerTemplateEditor) {
+      announcerTemplateEditor.refresh();
+    }
+    loadAnnouncerLogs();
   });
 
   $(
@@ -504,6 +744,10 @@ $(() => {
   $("#import-button").click(importConfig);
   $("#import-csv-form").submit(importCSV);
   $("#post-revoke-calc-reset-button").click(resetPostRevokeCalc);
+  $("#announcer-template-set").click(setAnnouncerTemplate);
+  $("#announcer-bot-form").submit(saveAnnouncerSettings);
+  $("#announcer-logs-refresh").click(loadAnnouncerLogs);
+  loadAnnouncerLogs();
   $("#config-color-update").click(function () {
     const hex_code = $("#config-color-picker").val();
     const user_css = theme_header_editor.getValue();
@@ -580,4 +824,12 @@ $(() => {
   let bracketListContainer = document.createElement("div");
   document.querySelector("#brackets-list").appendChild(bracketListContainer);
   new bracketList({}).$mount(bracketListContainer);
+
+  const configHash = window.location.hash;
+  if (configHash && /^#[A-Za-z0-9_-]+$/.test(configHash)) {
+    const tabLink = $(`#config-sidebar a[href='${configHash}']`);
+    if (tabLink.length) {
+      tabLink.tab("show");
+    }
+  }
 });

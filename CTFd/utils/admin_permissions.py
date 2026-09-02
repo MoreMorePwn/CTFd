@@ -136,6 +136,7 @@ API_PATH_PERMISSIONS = [
     ("/api/v1/comments", {"comments", "challenges", "pages"}),
     ("/api/v1/files", {"files", "challenges", "pages"}),
     ("/api/v1/configs", {"config"}),
+    ("/api/v1/announcer-bot", {"config"}),
     ("/api/v1/brackets", {"config", "users_write", "teams_write"}),
     ("/api/v1/exports", {"import_export"}),
 ]

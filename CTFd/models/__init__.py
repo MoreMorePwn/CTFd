@@ -129,6 +129,39 @@ class Tickets(db.Model):
         super(Tickets, self).__init__(**kwargs)
 
 
+class AnnouncerBotLogs(db.Model):
+    __tablename__ = "announcer_bot_logs"
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(32), nullable=False)
+    title = db.Column(db.Text)
+    account_name = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
+    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="SET NULL"))
+    challenge_id = db.Column(
+        db.Integer, db.ForeignKey("challenges.id", ondelete="SET NULL")
+    )
+    challenge_name = db.Column(db.Text)
+    payload = db.Column(db.Text)
+    response_status = db.Column(db.Integer)
+    response_body = db.Column(db.Text)
+    success = db.Column(db.Boolean, nullable=False, default=False)
+    error = db.Column(db.Text)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    user = db.relationship(
+        "Users", foreign_keys="AnnouncerBotLogs.user_id", lazy="select"
+    )
+    team = db.relationship(
+        "Teams", foreign_keys="AnnouncerBotLogs.team_id", lazy="select"
+    )
+    challenge = db.relationship(
+        "Challenges", foreign_keys="AnnouncerBotLogs.challenge_id", lazy="select"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(AnnouncerBotLogs, self).__init__(**kwargs)
+
+
 class Pages(db.Model):
     __tablename__ = "pages"
     id = db.Column(db.Integer, primary_key=True)

@@ -1,0 +1,20 @@
+<svg width="750" height="600" viewBox="0 0 750 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="75" height="75" transform="matrix(1 0 0 -1 0 600)" fill="#1335CA"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 0 525)" fill="#1335CA"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 0 300)" fill="#214AFE"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 375 75)" fill="#214AFE"/>
+<rect width="75" height="150" transform="matrix(1 0 0 -1 450 150)" fill="#012CEA"/>
+<rect width="75" height="150" transform="matrix(1 0 0 -1 75 150)" fill="#214AFE"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 150 300)" fill="#214AFE"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 75 225)" fill="#0123B7"/>
+<rect width="150" height="75" transform="matrix(1 0 0 -1 225 75)" fill="#000F51"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 0 375)" fill="#1335CA"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 75 300)" fill="#1335CA"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 150 225)" fill="#1335CA"/>
+<rect width="75" height="150" transform="matrix(1 0 0 -1 150 150)" fill="#1335CA"/>
+<rect width="225" height="150" transform="matrix(1 0 0 -1 225 225)" fill="#133AE0"/>
+<rect width="225" height="75" transform="matrix(1 0 0 -1 525 75)" fill="#133AE0"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 0 450)" fill="#133AE0"/>
+<rect width="75" height="225" transform="matrix(1 0 0 -1 0 225)" fill="#133AE0"/>
+<rect width="75" height="75" transform="matrix(1 0 0 -1 75 375)" fill="#133AE0"/>
+</svg>

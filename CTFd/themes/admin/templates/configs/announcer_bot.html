@@ -1,0 +1,158 @@
+<div role="tabpanel" class="tab-pane config-section" id="announcer_bot">
+	{% set announcer_bot_name = get_config("announcer_bot_name", "First Blood Bot") %}
+	{% set announcer_bot_profile_image_url = get_config("announcer_bot_profile_image_url", "") %}
+	{% set announcer_bot_thumbnail_image_url = get_config("announcer_bot_thumbnail_image_url", "") %}
+	{% set announcer_bot_first_blood_title = get_config("announcer_bot_first_blood_title", "First Blood") %}
+	{% set announcer_bot_second_blood_title = get_config("announcer_bot_second_blood_title", "Second Blood") %}
+	{% set announcer_bot_third_blood_title = get_config("announcer_bot_third_blood_title", "Third Blood") %}
+	{% set announcer_bot_solve_title = get_config("announcer_bot_solve_title", "Solved") %}
+	{% set announcer_bot_footer = get_config("announcer_bot_footer", "") %}
+	{% set announcer_bot_embed_color = get_config("announcer_bot_embed_color", "#ed1c24") %}
+	{% set announcer_bot_template = get_config("announcer_bot_template", "") %}
+	{% set webhook_configured = get_config("announcer_bot_webhook_url") %}
+	{% set announce_first_blood = get_config("announcer_bot_announce_first_blood", True) %}
+	{% set announce_second_blood = get_config("announcer_bot_announce_second_blood", True) %}
+	{% set announce_third_blood = get_config("announcer_bot_announce_third_blood", True) %}
+	{% set announce_solve = get_config("announcer_bot_announce_solve", False) %}
+
+	<form method="POST" autocomplete="off" class="w-100 custom-config-form" id="announcer-bot-form">
+		<div class="form-group">
+			<label for="announcer-webhook-url">Discord Webhook Link</label>
+			<input
+				type="password"
+				class="form-control"
+				id="announcer-webhook-url"
+				placeholder="https://discord.com/api/webhooks/..."
+				autocomplete="new-password"
+			>
+			<small class="form-text text-muted" id="announcer-webhook-status">
+				{% if webhook_configured %}
+					Webhook configured. Enter a new URL only if you want to replace it.
+				{% else %}
+					Webhook not configured.
+				{% endif %}
+			</small>
+		</div>
+
+		<div class="form-row">
+			<div class="form-group col-md-6">
+				<label for="announcer-bot-name">Bot Name</label>
+				<input type="text" class="form-control" id="announcer-bot-name" placeholder="First Blood Bot" value="{{ announcer_bot_name }}">
+			</div>
+			<div class="form-group col-md-6">
+				<label for="announcer-bot-profile-image-url">Bot Profile Image Link</label>
+				<input type="url" class="form-control" id="announcer-bot-profile-image-url" placeholder="https://example.com/avatar.png" value="{{ announcer_bot_profile_image_url }}">
+			</div>
+		</div>
+
+		<div class="form-row">
+			<div class="form-group col-md-6">
+				<label for="announcer-bot-thumbnail-image-url">Bot Thumbnail Image Link</label>
+				<input type="url" class="form-control" id="announcer-bot-thumbnail-image-url" placeholder="https://example.com/thumbnail.png" value="{{ announcer_bot_thumbnail_image_url }}">
+			</div>
+			<div class="form-group col-md-3">
+				<label for="announcer-bot-footer">Footer</label>
+				<input type="text" class="form-control" id="announcer-bot-footer" placeholder="CTF" value="{{ announcer_bot_footer }}">
+			</div>
+			<div class="form-group col-md-3">
+				<label for="announcer-bot-embed-color">Embed Color</label>
+				<input type="color" class="form-control custom-color-picker d-block" id="announcer-bot-embed-color" value="{{ announcer_bot_embed_color }}">
+			</div>
+		</div>
+
+		<div class="form-row">
+			<div class="form-group col-md-3">
+				<label for="announcer-first-blood-title">First Blood Title</label>
+				<input type="text" class="form-control" id="announcer-first-blood-title" placeholder="First Blood" value="{{ announcer_bot_first_blood_title }}">
+			</div>
+			<div class="form-group col-md-3">
+				<label for="announcer-second-blood-title">Second Blood Title</label>
+				<input type="text" class="form-control" id="announcer-second-blood-title" placeholder="Second Blood" value="{{ announcer_bot_second_blood_title }}">
+			</div>
+			<div class="form-group col-md-3">
+				<label for="announcer-third-blood-title">Third Blood Title</label>
+				<input type="text" class="form-control" id="announcer-third-blood-title" placeholder="Third Blood" value="{{ announcer_bot_third_blood_title }}">
+			</div>
+			<div class="form-group col-md-3">
+				<label for="announcer-solve-title">Solve Title</label>
+				<input type="text" class="form-control" id="announcer-solve-title" placeholder="Solved" value="{{ announcer_bot_solve_title }}">
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label>Options</label>
+			<div class="row">
+				<div class="col-md-3">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="announcer-announce-first-blood" {{ "checked" if announce_first_blood == True or announce_first_blood == "true" or announce_first_blood == "1" else "" }}>
+						<label class="form-check-label" for="announcer-announce-first-blood">Announce first blood</label>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="announcer-announce-second-blood" {{ "checked" if announce_second_blood == True or announce_second_blood == "true" or announce_second_blood == "1" else "" }}>
+						<label class="form-check-label" for="announcer-announce-second-blood">Announce second blood</label>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="announcer-announce-third-blood" {{ "checked" if announce_third_blood == True or announce_third_blood == "true" or announce_third_blood == "1" else "" }}>
+						<label class="form-check-label" for="announcer-announce-third-blood">Announce third blood</label>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="announcer-announce-solve" {{ "checked" if announce_solve == True or announce_solve == "true" or announce_solve == "1" else "" }}>
+						<label class="form-check-label" for="announcer-announce-solve">Announce solve</label>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="d-flex align-items-center justify-content-between">
+				<label for="announcer-template" class="mb-0">Announcement JSON Template</label>
+				<button type="button" class="btn btn-sm btn-secondary" id="announcer-template-set">
+					<i class="fas fa-wand-magic-sparkles action-icon"></i>Set
+				</button>
+			</div>
+			<textarea class="form-control mt-2" id="announcer-template" rows="16">{{ announcer_bot_template }}</textarea>
+			<small class="form-text text-muted">
+				Available variables include <code>{title}</code>, <code>{account_name}</code>, <code>{team}</code>, <code>{user}</code>, <code>{challenge_name}</code>, <code>{category}</code>, <code>{timestamp}</code>, and <code>{iso_timestamp}</code>.
+			</small>
+		</div>
+
+		<button type="submit" class="btn btn-md btn-primary float-right" id="announcer-save-button">Save</button>
+	</form>
+
+	<div class="clearfix"></div>
+
+	<div class="mt-5">
+		<div class="d-flex align-items-center justify-content-between mb-2">
+			<h4 class="mb-0">Announcement Logs</h4>
+			<button type="button" class="btn btn-sm btn-secondary" id="announcer-logs-refresh">
+				<i class="fas fa-sync action-icon"></i>Refresh
+			</button>
+		</div>
+		<div class="table-responsive">
+			<table class="table table-striped" id="announcer-logs-table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Time</th>
+						<th>Event</th>
+						<th>User / Team</th>
+						<th>Challenge</th>
+						<th>Status</th>
+						<th>Details</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td colspan="7" class="text-center text-muted">Loading logs...</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

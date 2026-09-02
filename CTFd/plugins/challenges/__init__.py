@@ -320,6 +320,12 @@ class BaseChallenge(object):
             calculate_value(challenge)
 
         analyze_submission(solve)
+        try:
+            from CTFd.utils.announcer_bot import announce_solve
+
+            announce_solve(solve)
+        except Exception:
+            pass
 
     @classmethod
     def fail(cls, user, team, challenge, request):
