@@ -358,10 +358,10 @@ body.ifest2026-theme main {
 .ifest-side-rail {
   position: absolute;
   top: 0;
-  bottom: 0;
-  z-index: 0;
-  width: clamp(28px, 2.8vw, 38px);
-  background: var(--ifest-blue-deep);
+  z-index: -1;
+  width: clamp(36px, 3vw, 40px);
+  height: clamp(88px, 12vw, 156px);
+  background: #133ae0;
   pointer-events: none;
 }
 
