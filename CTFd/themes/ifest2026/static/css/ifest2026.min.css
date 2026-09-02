@@ -255,9 +255,9 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   height: calc(100svh - 80px);
   min-height: 0;
   display: grid;
-  place-items: center;
+  place-items: start center;
   overflow: hidden;
-  padding: clamp(16px, 3vw, 36px) 24px;
+  padding: 0 24px 24px;
   background: #ffffff;
 }
 
@@ -357,6 +357,7 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   position: relative;
   z-index: 2;
   width: min(920px, 100%);
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -513,6 +514,21 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   border-color: var(--ifest-border);
 }
 
+.ifest2026-theme .card.bg-body-tertiary {
+  color: var(--ifest-ink);
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(33, 74, 254, 0.18);
+  box-shadow: 8px 8px 0 rgba(0, 240, 255, 0.18);
+}
+
+.ifest2026-theme .card.bg-body-tertiary .card-title {
+  color: var(--ifest-blue-deep);
+}
+
+.ifest2026-theme .card.bg-body-tertiary .text-muted {
+  color: var(--ifest-gray) !important;
+}
+
 .ifest2026-theme .form-control,
 .ifest2026-theme .custom-select {
   border-color: rgba(33, 74, 254, 0.22);
@@ -596,12 +612,13 @@ body.ifest2026-theme:not(.ifest2026-homepage) main {
   .ifest-home {
     height: calc(100svh - 70px);
     min-height: 0;
-    padding: 24px 18px;
+    padding: 20px 18px;
   }
 
   .ifest-home-inner {
     width: 100%;
     max-width: calc(100vw - 36px);
+    margin-top: 0;
   }
 
   .ifest-home h1 {

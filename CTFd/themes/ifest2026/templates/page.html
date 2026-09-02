@@ -22,17 +22,6 @@
         <p class="ifest-kicker">Informatics Festival 2026</p>
         <h1>Empowering Your Tech Journey</h1>
         <p class="ifest-hero-copy">Join IFEST 2026 to compete, collaborate, and solve real-world security challenges with future IT talents.</p>
-
-        <div class="ifest-actions">
-          <a class="ifest-button ifest-button-primary" href="{{ url_for('challenges.listing') }}">
-            <span>Start Challenges</span>
-          </a>
-          {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
-            <a class="ifest-button ifest-button-secondary" href="{{ url_for('scoreboard.listing') }}">
-              <span>View Scoreboard</span>
-            </a>
-          {% endif %}
-        </div>
       </div>
     </section>
   {% else %}
