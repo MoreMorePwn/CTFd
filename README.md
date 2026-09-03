@@ -98,6 +98,14 @@ Added a `Ticket` admin workflow for targeted user/team notifications. Pending ti
   <img src="docs/screenshots/ctfd-ticket-user-alert-toast.png" alt="User-facing ticket alert and toast">
 </p>
 
+### Announcer Bot
+
+Added an Announcer Bot under admin configuration for Discord webhook solve announcements. It supports first blood, second blood, third blood, and normal solve announcements, configurable bot identity, embed colors/images/footer, editable JSON templates, test sends, delivery logs, and manual resend from a saved log payload.
+
+<p align="center">
+  <img src="docs/screenshots/ctfd-admin-announcer-bot-blood.png" alt="Admin Announcer Bot blood and solve announcement configuration">
+</p>
+
 ### Post-Revoke Calculator
 
 Added Post-Revoke Calc for simulated post-event score review, including simulated bans, solve/award revokes, percentage score adjustments, notes, challenge score recalculation, bracket filtering, reset backups, CTFd export/import support, and PDF export. Challenge rows can be opened to review every correct submission for that challenge with the same score percentage, revoke, note, and banned-status controls.
