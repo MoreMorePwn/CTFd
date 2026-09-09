@@ -107,14 +107,8 @@ def serialize_pending_ticket(ticket):
 
 
 def serialize_ticket_event(ticket):
-    data = serialize_pending_ticket(ticket)
-    data.update(
-        {
-            "target_id": ticket.team_id or ticket.user_id,
-            "target_type": "team" if ticket.team_id else "user",
-        }
-    )
-    return data
+    # The ticket event is broadcast globally; clients must fetch authorized details.
+    return {}
 
 
 def list_ticket_targets(query=None):

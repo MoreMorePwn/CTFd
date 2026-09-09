@@ -4,6 +4,8 @@ import CTFd from "../../index";
 
 const displayedTicketIds = new Set();
 const activeTicketAudio = new Set();
+let pendingTicketLoad = null;
+let pendingTicketReloadQueued = false;
 
 function getTicketSoundSources() {
   return (CTFd.config.eventSounds || [])
@@ -246,30 +248,6 @@ function showTickets(tickets) {
   showTicketQueue(alertTickets, 0);
 }
 
-function isTicketForCurrentUser(ticket) {
-  if (!ticket || !ticket.target_id || !ticket.target_type) {
-    return false;
-  }
-
-  if (ticket.target_type === "team") {
-    return Number(ticket.target_id) === Number(CTFd.team && CTFd.team.id);
-  }
-
-  if (ticket.target_type === "user") {
-    return Number(ticket.target_id) === Number(CTFd.user && CTFd.user.id);
-  }
-
-  return false;
-}
-
-function handleRealtimeTicket(ticket) {
-  if (!isTicketForCurrentUser(ticket)) {
-    return;
-  }
-
-  showTickets([ticket]);
-}
-
 function connectRealtimeTickets() {
   if (!CTFd.events || !CTFd.events.source || !CTFd.events.controller) {
     return;
@@ -278,30 +256,31 @@ function connectRealtimeTickets() {
   CTFd.events.source.addEventListener(
     "ticket",
     event => {
-      let ticket = null;
       try {
-        ticket = JSON.parse(event.data);
+        JSON.parse(event.data);
       } catch (e) {
         return;
       }
 
-      if (!isTicketForCurrentUser(ticket)) {
-        return;
-      }
-
-      CTFd.events.controller.broadcast("ticket", { ticket });
-      showTickets([ticket]);
+      CTFd.events.controller.broadcast("ticket", {});
+      loadPendingTickets();
     },
     false,
   );
 
-  CTFd.events.controller.ticket = data => {
-    handleRealtimeTicket(data && data.ticket);
+  CTFd.events.controller.ticket = () => {
+    loadPendingTickets();
   };
 }
 
 function loadPendingTickets() {
-  CTFd.fetch("/api/v1/tickets/pending")
+  if (pendingTicketLoad) {
+    pendingTicketReloadQueued = true;
+    return;
+  }
+
+  pendingTicketReloadQueued = false;
+  pendingTicketLoad = CTFd.fetch("/api/v1/tickets/pending")
     .then(response => {
       if (!response.ok) {
         return null;
@@ -314,7 +293,13 @@ function loadPendingTickets() {
       }
       showTickets(response.data);
     })
-    .catch(() => {});
+    .catch(() => {})
+    .then(() => {
+      pendingTicketLoad = null;
+      if (pendingTicketReloadQueued) {
+        loadPendingTickets();
+      }
+    });
 }
 
 export default () => {

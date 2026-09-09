@@ -122,7 +122,7 @@ def test_ticket_assistant_permission_controls_admin_access():
 
 
 def test_ticket_creation_publishes_realtime_event():
-    """Ticket creation publishes a targeted SSE event for immediate alerts"""
+    """Ticket creation publishes a minimal SSE wake-up event"""
     app = create_ctfd(user_mode="teams")
     with app.app_context():
         team = gen_team(db, name="realtime_team", member_count=1)
@@ -156,12 +156,7 @@ def test_ticket_creation_publishes_realtime_event():
         assert len(published) == 1
         assert published[0]["type"] == "ticket"
         assert published[0]["channel"] == "ctf"
-        assert published[0]["data"]["target_id"] == team.id
-        assert published[0]["data"]["target_type"] == "team"
-        assert published[0]["data"]["title"] == "Realtime ticket"
-        assert published[0]["data"]["content"] == "Open now"
-        assert published[0]["data"]["type"] == "toast"
-        assert published[0]["data"]["sound"] is True
+        assert published[0]["data"] == {}
     destroy_ctfd(app)
 
 
