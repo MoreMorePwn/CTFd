@@ -574,7 +574,7 @@ body.ifest2026-theme main {
 
 .ifest2026-theme #challenge-window .nav-tabs .nav-link {
   color: var(--ifest-blue-deep);
-  background: rgba(33, 74, 254, 0.06);
+  background: #f4f6ff;
   border-color: rgba(33, 74, 254, 0.18);
   font-weight: 800;
 }
@@ -582,7 +582,7 @@ body.ifest2026-theme main {
 .ifest2026-theme #challenge-window .nav-tabs .nav-link:hover,
 .ifest2026-theme #challenge-window .nav-tabs .nav-link:focus {
   color: var(--ifest-blue);
-  background: rgba(0, 240, 255, 0.12);
+  background: #e6fbff;
   border-color: rgba(33, 74, 254, 0.28);
 }
 
@@ -590,6 +590,63 @@ body.ifest2026-theme main {
   color: var(--ifest-ink);
   background: #ffffff;
   border-color: rgba(33, 74, 254, 0.24) rgba(33, 74, 254, 0.24) #ffffff;
+}
+
+.ifest2026-theme #challenge-window label,
+.ifest2026-theme #challenge-window p,
+.ifest2026-theme #challenge-window .challenge-desc {
+  color: var(--ifest-ink);
+}
+
+.ifest2026-theme #challenge-window .text-muted,
+.ifest2026-theme #challenge-window .form-text {
+  color: var(--ifest-gray) !important;
+}
+
+.ifest2026-theme #challenge-window .btn-outline-secondary,
+.ifest2026-theme #challenge-window .btn-outline-info {
+  color: var(--ifest-blue-deep);
+  background: #ffffff;
+  border-color: rgba(33, 74, 254, 0.34);
+}
+
+.ifest2026-theme #challenge-window .btn-outline-secondary:hover,
+.ifest2026-theme #challenge-window .btn-outline-secondary:focus,
+.ifest2026-theme #challenge-window .btn-outline-info:hover,
+.ifest2026-theme #challenge-window .btn-outline-info:focus {
+  color: #ffffff;
+  background: var(--ifest-blue);
+  border-color: var(--ifest-blue);
+}
+
+.ifest2026-theme #challenge-window .challenge-tag.badge.bg-info {
+  color: var(--ifest-blue-deep) !important;
+  background-color: rgba(0, 240, 255, 0.24) !important;
+  border: 1px solid rgba(33, 74, 254, 0.24);
+}
+
+.ifest2026-theme #challenge-window .alert-info {
+  color: #08315c;
+  background-color: #dff8ff;
+  border-color: #7adceb;
+}
+
+.ifest2026-theme #challenge-window .alert-warning {
+  color: #4b3000;
+  background-color: #fff1be;
+  border-color: #edc451;
+}
+
+.ifest2026-theme #challenge-window .alert-success {
+  color: #053b20;
+  background-color: #dcf7e7;
+  border-color: #7ccf9c;
+}
+
+.ifest2026-theme #challenge-window .alert-danger {
+  color: #55101c;
+  background-color: #ffe2e7;
+  border-color: #ee8fa0;
 }
 
 .ifest2026-theme .card.bg-body-tertiary {
@@ -608,8 +665,41 @@ body.ifest2026-theme main {
 }
 
 .ifest2026-theme .form-control,
+.ifest2026-theme .form-select,
 .ifest2026-theme .custom-select {
+  color: var(--ifest-ink);
+  background-color: #ffffff;
   border-color: rgba(33, 74, 254, 0.22);
+}
+
+.ifest2026-theme .form-control::placeholder {
+  color: var(--ifest-gray);
+  opacity: 1;
+}
+
+.ifest2026-theme .form-control:focus,
+.ifest2026-theme .form-select:focus,
+.ifest2026-theme .custom-select:focus {
+  color: var(--ifest-ink);
+  background-color: #ffffff;
+  border-color: var(--ifest-blue);
+  box-shadow: 0 0 0 0.2rem rgba(33, 74, 254, 0.16);
+}
+
+.ifest2026-theme input[type="file"].form-control {
+  color: var(--ifest-ink);
+}
+
+.ifest2026-theme input[type="file"].form-control::file-selector-button {
+  color: #ffffff;
+  background: var(--ifest-blue);
+  border-color: var(--ifest-blue);
+}
+
+.ifest2026-theme input[type="file"].form-control:hover::file-selector-button {
+  color: #ffffff;
+  background: var(--ifest-blue-deep);
+  border-color: var(--ifest-blue-deep);
 }
 
 .ifest2026-theme .page-jumper {
