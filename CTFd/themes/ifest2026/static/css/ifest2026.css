@@ -568,6 +568,66 @@ body.ifest2026-theme main {
   border-color: var(--ifest-border);
 }
 
+.ifest2026-theme .table {
+  --bs-table-bg: rgba(255, 255, 255, 0.96);
+  --bs-table-color: var(--ifest-ink);
+  --bs-table-border-color: rgba(33, 74, 254, 0.18);
+  --bs-table-striped-bg: #f4f6ff;
+  --bs-table-striped-color: var(--ifest-ink);
+  --bs-table-hover-bg: #e6fbff;
+  --bs-table-hover-color: var(--ifest-ink);
+  --bs-table-active-bg: #e6fbff;
+  --bs-table-active-color: var(--ifest-ink);
+  color: var(--ifest-ink);
+}
+
+.ifest2026-theme thead,
+.ifest2026-theme th {
+  color: var(--ifest-blue-deep);
+  font-weight: 900;
+}
+
+.ifest2026-theme #scoreboard tbody th {
+  color: #b71362;
+  font-size: 0.95rem;
+}
+
+.ifest2026-theme #scoreboard tbody td {
+  color: var(--ifest-ink);
+  font-weight: 700;
+}
+
+.ifest2026-theme #scoreboard tbody td a {
+  color: var(--ifest-blue-deep);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.ifest2026-theme #scoreboard tbody td a:hover,
+.ifest2026-theme #scoreboard tbody td a:focus {
+  color: var(--ifest-blue);
+}
+
+.ifest2026-theme #scoreboard tbody td:last-child {
+  color: var(--ifest-blue-deep);
+  font-weight: 900;
+}
+
+.ifest2026-theme #scoreboard .badge.bg-secondary,
+.ifest2026-theme .badge.bg-secondary {
+  color: #ffffff;
+  background-color: var(--ifest-blue-deep) !important;
+}
+
+.ifest2026-theme .nav-pills .nav-link {
+  color: var(--ifest-blue-deep);
+}
+
+.ifest2026-theme .nav-pills .nav-link.active {
+  color: #ffffff;
+  background-color: var(--ifest-blue);
+}
+
 .ifest2026-theme #challenge-window .nav-tabs {
   border-bottom-color: rgba(33, 74, 254, 0.22);
 }

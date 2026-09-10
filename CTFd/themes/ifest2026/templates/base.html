@@ -36,6 +36,83 @@
             "/themes/core/static/sounds/notification.mp3",
           ],
       }
+
+      const ifestChartTextOptions = {
+          textStyle: {
+              color: "#0a1028",
+              fontFamily: "IFEST IBM Plex, Arial, sans-serif",
+              fontWeight: 700,
+          },
+          title: {
+              textStyle: {
+                  color: "#0a1028",
+                  fontFamily: "IFEST Unbounded, Arial Black, Arial, sans-serif",
+                  fontWeight: 900,
+              },
+          },
+          legend: {
+              textStyle: {
+                  color: "#0a1028",
+                  fontFamily: "IFEST IBM Plex, Arial, sans-serif",
+                  fontWeight: 700,
+              },
+              pageTextStyle: {
+                  color: "#0a1028",
+              },
+          },
+          xAxis: [
+              {
+                  axisLabel: {
+                      color: "#0a1028",
+                  },
+                  axisLine: {
+                      lineStyle: {
+                          color: "#566078",
+                      },
+                  },
+                  splitLine: {
+                      lineStyle: {
+                          color: "rgba(33, 74, 254, 0.14)",
+                      },
+                  },
+              },
+          ],
+          yAxis: [
+              {
+                  axisLabel: {
+                      color: "#0a1028",
+                  },
+                  axisLine: {
+                      lineStyle: {
+                          color: "#566078",
+                      },
+                  },
+                  splitLine: {
+                      lineStyle: {
+                          color: "rgba(33, 74, 254, 0.14)",
+                      },
+                  },
+              },
+          ],
+          dataZoom: [
+              {
+                  textStyle: {
+                      color: "#0a1028",
+                  },
+              },
+          ],
+          grid: {
+              top: 70,
+              right: 36,
+              bottom: 84,
+              left: 36,
+              containLabel: true,
+          },
+      }
+
+      window.scoreboardChartOptions = ifestChartTextOptions
+      window.userScoreGraphChartOptions = ifestChartTextOptions
+      window.teamScoreGraphChartOptions = ifestChartTextOptions
   </script>
 
   {{ Configs.theme_header }}
