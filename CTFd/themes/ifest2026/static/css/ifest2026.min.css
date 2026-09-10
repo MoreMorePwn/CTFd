@@ -568,6 +568,30 @@ body.ifest2026-theme main {
   border-color: var(--ifest-border);
 }
 
+.ifest2026-theme #challenge-window .nav-tabs {
+  border-bottom-color: rgba(33, 74, 254, 0.22);
+}
+
+.ifest2026-theme #challenge-window .nav-tabs .nav-link {
+  color: var(--ifest-blue-deep);
+  background: rgba(33, 74, 254, 0.06);
+  border-color: rgba(33, 74, 254, 0.18);
+  font-weight: 800;
+}
+
+.ifest2026-theme #challenge-window .nav-tabs .nav-link:hover,
+.ifest2026-theme #challenge-window .nav-tabs .nav-link:focus {
+  color: var(--ifest-blue);
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(33, 74, 254, 0.28);
+}
+
+.ifest2026-theme #challenge-window .nav-tabs .nav-link.active {
+  color: var(--ifest-ink);
+  background: #ffffff;
+  border-color: rgba(33, 74, 254, 0.24) rgba(33, 74, 254, 0.24) #ffffff;
+}
+
 .ifest2026-theme .card.bg-body-tertiary {
   color: var(--ifest-ink);
   background: rgba(255, 255, 255, 0.96) !important;
